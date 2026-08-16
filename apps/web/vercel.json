@@ -2,5 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel-schema.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @sts/web build"
+  "buildCommand": "cd ../.. && pnpm --filter @sts/web build",
+  "env": {
+    "AI_MODE": "rules-only",
+    "CHAIN_MODE": "disabled",
+    "DB_MODE": "supabase-cloud",
+    "NEXT_PUBLIC_MAP_TILE_MODE": "openfreemap",
+    "NEXT_PUBLIC_APP_NAME": "Smart Tourist Safety"
+  }
 }

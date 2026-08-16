@@ -8,7 +8,7 @@ import { Mail, Shield, Smartphone } from "lucide-react";
 import { completeSignIn } from "@/lib/auth/actions";
 import { DEMO_OFFICER, DEMO_TOURIST, DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
 import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
-import { createClient } from "@/lib/supabase/client";
+import { getBrowserSupabase } from "@/lib/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +39,17 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
     router.refresh();
   }
 
+  function requireSupabase() {
+    const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setError(
+        "This public deploy shows the product UI. Demo logins need the seeded Supabase project (local or cloud).",
+      );
+      return null;
+    }
+    return supabase;
+  }
+
   function sendMagicLink(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -49,7 +60,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
       return;
     }
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = requireSupabase();
+      if (!supabase) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: parsed.data.email,
         options: {
@@ -70,7 +82,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = requireSupabase();
+      if (!supabase) return;
       const { data, error: anonError } = await supabase.auth.signInAnonymously({
         options: {
           data: {
@@ -106,7 +119,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = requireSupabase();
+      if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
         email: DEMO_TOURIST.email,
         password: DEMO_TOURIST.password,
@@ -130,7 +144,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = createClient();
+      const supabase = requireSupabase();
+      if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
         email: DEMO_OFFICER.email,
         password: DEMO_OFFICER.password,
