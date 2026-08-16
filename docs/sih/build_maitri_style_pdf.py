@@ -173,7 +173,7 @@ def black_to_transparent(src: Path, dest: Path) -> Path:
 
 
 def make_qr(url: str, dest: Path) -> Path:
-    qr = qrcode.QRCode(border=1, box_size=8)
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=2, box_size=10)
     qr.add_data(url)
     qr.make(fit=True)
     img = qr.make_image(fill_color="#004EA8", back_color="white")
@@ -253,19 +253,23 @@ def slide_1(doc: fitz.Document, live_url: str | None = None, github_url: str | N
     if brain.exists():
         page.insert_image(fitz.Rect(900, 165, 1385, 700), filename=str(brain))
 
-    page.draw_rect(fitz.Rect(0, 748, W, H), color=None, fill=NAVY)
+    page.draw_rect(fitz.Rect(0, 736, W, H), color=None, fill=NAVY)
     live = live_url or "Prototype URL will appear here after deploy"
-    git = f"   ·   GitHub: {github_url}" if github_url else ""
+    footer_text = f"LIVE PROTOTYPE   {live}"
+    if github_url:
+        footer_text += f"\nGitHub   {github_url}"
     page.insert_textbox(
-        fitz.Rect(40, 760, 1400, 800),
-        f"LIVE PROTOTYPE  {live}{git}",
-        fontsize=13,
+        fitz.Rect(36, 744, 1404, 804),
+        footer_text,
+        fontsize=12,
         fontname="AB",
         color=WHITE,
         align=1,
     )
     if live_url:
-        page.insert_link({"kind": fitz.LINK_URI, "from": fitz.Rect(40, 760, 1400, 800), "uri": live_url})
+        page.insert_link({"kind": fitz.LINK_URI, "from": fitz.Rect(36, 744, 1404, 774), "uri": live_url})
+    if github_url:
+        page.insert_link({"kind": fitz.LINK_URI, "from": fitz.Rect(36, 774, 1404, 804), "uri": github_url})
 
 
 def slide_2(doc: fitz.Document, qr_path: Path, live_url: str) -> None:
@@ -377,22 +381,31 @@ def slide_2(doc: fitz.Document, qr_path: Path, live_url: str) -> None:
         x += 154
     page.insert_text((1400, 500), "}", fontsize=12, fontname="AB", color=NAVY)
 
-    # screenshots + QR
-    picture_frame(page, fitz.Rect(730, 568, 1048, 742), ASSETS / "shot-landing.png", None)
-    picture_frame(page, fitz.Rect(1060, 568, 1218, 710), ASSETS / "shot-tourist.png", None)
-    if qr_path.exists():
-        page.draw_rect(fitz.Rect(1230, 568, 1410, 710), color=BLUE, width=1.4)
-        page.insert_image(fitz.Rect(1244, 580, 1396, 698), filename=str(qr_path))
+    # screenshots + QR (keep the live URL off the screenshots)
+    picture_frame(page, fitz.Rect(730, 560, 1048, 708), ASSETS / "shot-landing.png", None)
+    picture_frame(page, fitz.Rect(1060, 560, 1218, 708), ASSETS / "shot-tourist.png", None)
+    qr_box = fitz.Rect(1230, 548, 1412, 748)
+    rr(page, qr_box, 8, fill=WHITE, color=BLUE, width=1.6)
     page.insert_textbox(
-        fitz.Rect(730, 714, 1410, 748),
-        f"SCAN FOR LIVE PROTOTYPE    {live_url}",
-        fontsize=9,
+        fitz.Rect(1236, 552, 1406, 572),
+        "SCAN LIVE DEMO",
+        fontsize=8,
         fontname="AB",
         color=RED,
         align=1,
     )
+    if qr_path.exists():
+        page.insert_image(fitz.Rect(1252, 574, 1390, 712), filename=str(qr_path))
+    page.insert_textbox(
+        fitz.Rect(1236, 714, 1406, 744),
+        live_url.replace("https://", ""),
+        fontsize=7,
+        fontname="AB",
+        color=NAVY,
+        align=1,
+    )
     if live_url.startswith("http"):
-        page.insert_link({"kind": fitz.LINK_URI, "from": fitz.Rect(730, 714, 1410, 748), "uri": live_url})
+        page.insert_link({"kind": fitz.LINK_URI, "from": qr_box, "uri": live_url})
 
     # red banner
     page.draw_rect(fitz.Rect(0, 756, W, H), color=None, fill=RED)
@@ -654,19 +667,19 @@ def slide_5(doc: fitz.Document) -> None:
         page.insert_textbox(fitz.Rect(x + 10, 548, x + 258, 616), a, fontsize=8.5, fontname="AR", color=MUTED, align=1)
         x += 280
 
-    page.draw_rect(fitz.Rect(28, 644, 1412, 792), color=INK, width=1.2)
-    page.insert_text((44, 672), "Strategies to Overcome Challenges", fontsize=14, fontname="AB", color=INK)
-    y = 696
+    page.draw_rect(fitz.Rect(28, 640, 1412, 776), color=INK, width=1.2)
+    page.insert_text((44, 664), "Strategies to Overcome Challenges", fontsize=13, fontname="AB", color=INK)
+    y = 686
     strats = [
         ("Limited connectivity (Arunachal / hills)", "IndexedDB queue + Background Sync. Turf.js warns on-device. SOS falls back to sms: with coordinates."),
         ("Accuracy with limited real GPS (DPDP)", "Stated in the pitch. Decision to alert is rules + PostGIS. Forest is unsupervised on generated NE tracks."),
         ("Trust & engagement / “is this surveillance?”", "Consent primer, purpose limitation, RLS on every table, 24 h ping retention, emergency contacts only at critical."),
     ]
     for lab, body in strats:
-        page.insert_text((44, y), lab, fontsize=10.5, fontname="AB", color=BLUE)
-        y += 16
-        page.insert_text((44, y), "Strategy: " + body, fontsize=9.5, fontname="AR", color=INK)
-        y += 22
+        page.insert_text((44, y), lab, fontsize=10, fontname="AB", color=BLUE)
+        y += 14
+        page.insert_text((44, y), "Strategy: " + body, fontsize=9, fontname="AR", color=INK)
+        y += 20
 
 
 def slide_6(doc: fitz.Document) -> None:
@@ -736,7 +749,7 @@ def slide_6(doc: fitz.Document) -> None:
         y += 22
 
     page.insert_textbox(
-        fitz.Rect(28, 430, 1050, 790),
+        fitz.Rect(28, 428, 1050, 772),
         "Future scope  —  only what the architecture already allows\n\n"
         "•  Ministry SMS short-code on the existing notification adapter.\n"
         "•  Real Inner Line Permit / KYC adapter; custodial HD wallet → ERC-4337 paymaster.\n"
@@ -745,7 +758,7 @@ def slide_6(doc: fitz.Document) -> None:
         "•  CERT-In intake + threat model. Geofence engine stays in Postgres.\n\n"
         "Prototype: tourist PWA + command centre + checkpoint verify + PostGIS engine + ONNX model + Anvil/Amoy contracts.\n"
         "Demo: docs/DEMO-SCRIPT.md    Hostile Q&A: docs/JUDGE-QA.md",
-        fontsize=11,
+        fontsize=10.5,
         fontname="AR",
         color=INK,
         align=0,
@@ -755,7 +768,7 @@ def slide_6(doc: fitz.Document) -> None:
 def main() -> Path:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="https://sts-safety.vercel.app")
-    parser.add_argument("--github", default="")
+    parser.add_argument("--github", default="https://github.com/mitanshj07/sts-safety")
     args = parser.parse_args()
     live_url = args.url.strip() or "https://sts-safety.vercel.app"
     github_url = args.github.strip() or None

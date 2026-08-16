@@ -26,10 +26,11 @@ Replace the host after `vercel --prod` (Hobby, no card):
 
 | Surface | URL |
 | --- | --- |
-| Tourist PWA | `https://your-app.vercel.app/home` |
-| Command centre | `https://your-app.vercel.app/dashboard` |
-| Checkpoint verify | `https://your-app.vercel.app/verify` |
-| Health / keepalive | `https://your-app.vercel.app/api/health` |
+| Tourist PWA | https://sts-safety.vercel.app/home |
+| Command centre | https://sts-safety.vercel.app/dashboard |
+| Checkpoint verify | https://sts-safety.vercel.app/verify |
+| Health / keepalive | https://sts-safety.vercel.app/api/health |
+| Source | https://github.com/mitanshj07/sts-safety |
 
 Local: `http://127.0.0.1:3000` with the same paths.
 
