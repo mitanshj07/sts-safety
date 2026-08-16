@@ -1,0 +1,243 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111101",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111101",
+        "name": "Kaziranga Core Range",
+        "category": "restricted",
+        "risk_level": "critical",
+        "advisory_text": "Restricted forest. Leave immediately and contact Kaziranga Forest Range, Kohora.",
+        "time_windows": [],
+        "requires_permit": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[93.3, 26.57], [93.38, 26.54], [93.47, 26.56], [93.49, 26.64], [93.42, 26.7], [93.32, 26.68], [93.3, 26.57]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111102",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111102",
+        "name": "Kaziranga Buffer",
+        "category": "caution",
+        "risk_level": "medium",
+        "advisory_text": "Caution: wildlife crossing. Do not stop after 16:30.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[93.18, 26.5], [93.58, 26.5], [93.62, 26.78], [93.2, 26.78], [93.18, 26.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111103",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111103",
+        "name": "Tawang Town",
+        "category": "safe",
+        "risk_level": "low",
+        "advisory_text": "Stay within town after dark.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.85, 27.575], [91.88, 27.575], [91.88, 27.6], [91.85, 27.6], [91.85, 27.575]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111104",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111104",
+        "name": "Bum La Pass Approach",
+        "category": "border",
+        "risk_level": "high",
+        "advisory_text": "International border zone. Do not proceed without ITBP/Army permit.",
+        "time_windows": [],
+        "requires_permit": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.82, 27.72], [91.86, 27.72], [91.86, 27.76], [91.82, 27.76], [91.82, 27.72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111105",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111105",
+        "name": "Cherrapunji Viewpoints",
+        "category": "caution",
+        "risk_level": "medium",
+        "advisory_text": "Stay behind railings. Trails close in heavy rain.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.67, 25.25], [91.74, 25.25], [91.74, 25.32], [91.67, 25.32], [91.67, 25.25]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111106",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111106",
+        "name": "Living Root Bridges Trail",
+        "category": "caution",
+        "risk_level": "medium",
+        "advisory_text": "Start descent before 11:00. Do not trek after 15:00.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.655, 25.23], [91.695, 25.23], [91.695, 25.265], [91.655, 25.265], [91.655, 25.23]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111107",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111107",
+        "name": "Loktak Lake",
+        "category": "safe",
+        "risk_level": "low",
+        "advisory_text": "Lifejackets on hired boats.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[93.76, 24.43], [93.92, 24.43], [93.92, 24.63], [93.76, 24.63], [93.76, 24.43]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111108",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111108",
+        "name": "Dzukou Valley Trek",
+        "category": "high_risk",
+        "risk_level": "high",
+        "advisory_text": "Register at Viswema/Zakhama checkpost. Do not descend after 14:00.",
+        "time_windows": [],
+        "requires_permit": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[94.04, 25.52], [94.105, 25.52], [94.105, 25.59], [94.04, 25.59], [94.04, 25.52]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111109",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111109",
+        "name": "Guwahati City Centre",
+        "category": "safe",
+        "risk_level": "none",
+        "advisory_text": null,
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.72, 26.16], [91.78, 26.16], [91.78, 26.2], [91.72, 26.2], [91.72, 26.16]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111110",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111110",
+        "name": "Manas National Park (night-restricted)",
+        "category": "forest_reserve",
+        "risk_level": "high",
+        "advisory_text": "Forest roads close at 17:30. Night presence is a time-window violation.",
+        "time_windows": [{ "days": [0, 1, 2, 3, 4, 5, 6], "from": "05:30", "to": "17:30", "risk_level": "low" }],
+        "requires_permit": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[90.85, 26.65], [91.15, 26.65], [91.15, 26.85], [90.85, 26.85], [90.85, 26.65]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Hotel Brahmaputra Ashok (Guwahati)",
+        "category": "accommodation",
+        "risk_level": "none",
+        "advisory_text": null,
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.7475, 26.1795], [91.7508, 26.1795], [91.7508, 26.1818], [91.7475, 26.1818], [91.7475, 26.1795]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111112",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111112",
+        "name": "Hotel Polo Towers (Shillong)",
+        "category": "accommodation",
+        "risk_level": "none",
+        "advisory_text": null,
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.8915, 25.577], [91.895, 25.577], [91.895, 25.5802], [91.8915, 25.5802], [91.8915, 25.577]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111113",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111113",
+        "name": "Jorabat Checkpoint",
+        "category": "checkpoint",
+        "risk_level": "low",
+        "advisory_text": "Keep passport/ILP ready.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[91.86, 26.096], [91.8665, 26.096], [91.8665, 26.1035], [91.86, 26.1035], [91.86, 26.096]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11111111-1111-4111-8111-111111111114",
+      "properties": {
+        "id": "11111111-1111-4111-8111-111111111114",
+        "name": "Sela Pass Checkpoint",
+        "category": "checkpoint",
+        "risk_level": "medium",
+        "advisory_text": "Altitude 4,170 m. Report AMS symptoms.",
+        "time_windows": [],
+        "requires_permit": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[92.1, 27.5], [92.11, 27.5], [92.11, 27.5085], [92.1, 27.5085], [92.1, 27.5]]]
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "Feature",
+  "properties": {
+    "id": "dzukou_trek",
+    "name": "Dzukou Valley trek (Viswema trailhead)",
+    "mode": "trek",
+    "source": "OSM Viswema–Dzukou trail vertices"
+  },
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [94.1053, 25.6751],
+      [94.0904, 25.6508],
+      [94.0702, 25.6250],
+      [94.0660, 25.6120],
+      [94.0654, 25.5980],
+      [94.0680, 25.5880],
+      [94.0740, 25.5750],
+      [94.0820, 25.5620],
+      [94.0870, 25.5520]
+    ]
+  }
+}

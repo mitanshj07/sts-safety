@@ -1,0 +1,70 @@
+# docker-compose.yml
+# Local offline stack: Supabase Postgres (PostGIS) + Foundry Anvil.
+# Auth / Realtime / Studio: `supabase start` once the CLI config exists (Phase 1).
+# App switches: DB_MODE=supabase-local  CHAIN_MODE=anvil-local
+
+name: sts-local
+
+services:
+  supabase-db:
+    image: supabase/postgres:15.8.1.060
+    restart: unless-stopped
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+    command:
+      - postgres
+      - -c
+      - listen_addresses=*
+      - -c
+      - wal_level=logical
+    volumes:
+      - supabase-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - sts
+
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    restart: unless-stopped
+    entrypoint: ["anvil"]
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8545"
+      - --chain-id
+      - "31337"
+      - --block-time
+      - "1"
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - sts
+
+volumes:
+  supabase-db:
+
+networks:
+  sts:
+    driver: bridge

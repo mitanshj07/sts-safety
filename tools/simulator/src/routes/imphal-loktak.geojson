@@ -1,0 +1,26 @@
+{
+  "type": "Feature",
+  "properties": {
+    "id": "imphal_loktak",
+    "name": "Imphal → Loktak Lake (Sendra)",
+    "mode": "car",
+    "source": "OSM Imphal–Bishnupur–Sendra vertices"
+  },
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [93.9368, 24.8170],
+      [93.9280, 24.7980],
+      [93.9200, 24.7800],
+      [93.9080, 24.7540],
+      [93.9000, 24.7300],
+      [93.8880, 24.7040],
+      [93.8800, 24.6800],
+      [93.8680, 24.6540],
+      [93.8600, 24.6300],
+      [93.8500, 24.5800],
+      [93.8400, 24.5500],
+      [93.8550, 24.5200]
+    ]
+  }
+}

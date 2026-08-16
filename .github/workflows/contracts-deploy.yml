@@ -1,0 +1,76 @@
+# .github/workflows/contracts-deploy.yml
+name: Deploy contracts (Polygon Amoy)
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: Also run SeedDemo after a successful deploy
+        type: boolean
+        default: false
+
+concurrency:
+  group: contracts-deploy-amoy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: forge script --broadcast --verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: packages/contracts
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install contract libraries
+        run: bash install-libs.sh
+
+      - name: Build
+        run: forge build
+
+      - name: Deploy and verify on Amoy
+        env:
+          ISSUER_PRIVATE_KEY: ${{ secrets.ISSUER_PRIVATE_KEY }}
+          ISSUER_ADDRESS: ${{ secrets.ISSUER_ADDRESS }}
+          RPC_URL_PRIMARY: ${{ secrets.RPC_URL_PRIMARY }}
+          POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
+          NEXT_PUBLIC_BLOCK_EXPLORER: ${{ secrets.NEXT_PUBLIC_BLOCK_EXPLORER }}
+        run: |
+          set -euo pipefail
+          RPC="${RPC_URL_PRIMARY:-https://rpc-amoy.polygon.technology}"
+          EXPLORER="${NEXT_PUBLIC_BLOCK_EXPLORER:-https://amoy.polygonscan.com}"
+          export RPC_URL_PRIMARY="$RPC"
+          export NEXT_PUBLIC_BLOCK_EXPLORER="$EXPLORER"
+          forge script script/Deploy.s.sol:Deploy \
+            --rpc-url "$RPC" \
+            --broadcast \
+            --verify \
+            --etherscan-api-key "$POLYGONSCAN_API_KEY" \
+            --verifier-url https://api-amoy.polygonscan.com/api \
+            --chain 80002 \
+            --slow \
+            -vvvv
+
+      - name: Seed demo identities
+        if: ${{ inputs.seed }}
+        env:
+          ISSUER_PRIVATE_KEY: ${{ secrets.ISSUER_PRIVATE_KEY }}
+          RPC_URL_PRIMARY: ${{ secrets.RPC_URL_PRIMARY }}
+          NEXT_PUBLIC_TOURIST_ID_REGISTRY_ADDRESS: ${{ secrets.NEXT_PUBLIC_TOURIST_ID_REGISTRY_ADDRESS }}
+          TOURIST_HD_MNEMONIC: ${{ secrets.TOURIST_HD_MNEMONIC }}
+        run: |
+          set -euo pipefail
+          RPC="${RPC_URL_PRIMARY:-https://rpc-amoy.polygon.technology}"
+          forge script script/SeedDemo.s.sol:SeedDemo \
+            --rpc-url "$RPC" \
+            --broadcast \
+            --chain 80002 \
+            --slow \
+            -vvvv

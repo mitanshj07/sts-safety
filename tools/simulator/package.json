@@ -1,0 +1,21 @@
+{
+  "name": "@sts/simulator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "generate": "tsx ../seed-data/generate-trajectories.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sts/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.57.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3"
+  }
+}

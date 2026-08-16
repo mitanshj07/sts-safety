@@ -1,0 +1,84 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+apps/web/.vercel/
+
+# Turbo
+.turbo/
+
+# Env (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+packages/contracts/lib/
+.gitmodules
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Supabase CLI local
+supabase/.temp/
+supabase/.branches/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Logs & coverage
+*.log
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Docker
+docker-data/
+
+# Generated ABIs copied at prebuild (source of truth is forge out/)
+# Keep committed copies under apps/web/src/lib/chain/abi once Phase 3 lands.
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Large offline tiles (Git LFS later)
+*.pmtiles
+
+# Vercel
+.vercel/
+
+# Presentation build scratch (keep the final PDF + product shots)
+docs/sih/_vendor/
+docs/sih/assets/maitri-pages/
+docs/sih/assets/new-pages/
+docs/sih/assets/maitri-img*
+docs/sih/assets/sih-brain.png
+docs/sih/assets/deck-proof.png
+
+# Simulator recordings & synthetic training dumps (regenerate with --record / pnpm sim:generate)
+tools/simulator/recordings/*.json
+!tools/simulator/recordings/.gitkeep
+tools/seed-data/out/*.csv
+tools/seed-data/out/*.json
+!tools/seed-data/out/.gitkeep

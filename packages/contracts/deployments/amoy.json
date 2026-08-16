@@ -1,0 +1,16 @@
+{
+  "chainId": 80002,
+  "network": "polygon-amoy",
+  "TouristIdentityRegistry": {
+    "address": "0x0000000000000000000000000000000000000000",
+    "deployedAtBlock": 0,
+    "explorer": "https://amoy.polygonscan.com/address/0x0000000000000000000000000000000000000000"
+  },
+  "IncidentAnchor": {
+    "address": "0x0000000000000000000000000000000000000000",
+    "deployedAtBlock": 0,
+    "explorer": "https://amoy.polygonscan.com/address/0x0000000000000000000000000000000000000000"
+  },
+  "issuerAddress": "0x0000000000000000000000000000000000000000",
+  "deployedAt": "2025-01-01T00:00:00Z"
+}

@@ -1,0 +1,6 @@
+# services/ai/.gitignore
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+artifacts/train_features.csv

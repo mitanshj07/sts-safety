@@ -1,0 +1,10 @@
+# services/ai/.dockerignore
+.venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ipynb_checkpoints
+notebooks/.ipynb_checkpoints
+*.egg-info
+.mypy_cache
+.git

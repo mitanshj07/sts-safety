@@ -1,0 +1,37 @@
+{
+  "name": "smart-tourist-safety",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Smart Tourist Safety Monitoring & Incident Response System — SIH 2025 (MDoNER)",
+  "license": "MIT",
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "prepare": "corepack enable --install-directory node_modules/.bin || true",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local -o packages/shared/src/types/database.ts",
+    "chain:build": "bash packages/contracts/install-libs.sh && forge build --root packages/contracts",
+    "chain:test": "bash packages/contracts/install-libs.sh && forge test --root packages/contracts",
+    "chain:deploy": "bash packages/contracts/install-libs.sh && forge script --root packages/contracts script/Deploy.s.sol --broadcast",
+    "chain:abi": "bash tools/scripts/copy-abi.sh",
+    "sim": "pnpm --filter @sts/simulator start",
+    "sim:generate": "pnpm --filter @sts/simulator generate",
+    "check:freetier": "bash tools/scripts/check-freetier.sh",
+    "demo:reset": "bash tools/scripts/demo-reset.sh",
+    "icons": "node tools/scripts/generate-pwa-icons.mjs",
+    "test:e2e": "playwright test",
+    "chain:deploy:anvil": "bash tools/scripts/chain-deploy-anvil.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "supabase": "^2.114.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.3"
+  }
+}

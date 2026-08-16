@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "North East India (demo envelope)" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.0, 21.9],
+            [97.5, 21.9],
+            [97.5, 29.5],
+            [88.0, 29.5],
+            [88.0, 21.9]
+          ]
+        ]
+      }
+    }
+  ]
+}

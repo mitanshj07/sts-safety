@@ -1,0 +1,27 @@
+{
+  "type": "Feature",
+  "properties": {
+    "id": "shillong_cherrapunji",
+    "name": "Shillong → Cherrapunji (Sohra)",
+    "mode": "car",
+    "source": "OSM-derived Shillong–Sohra road vertices"
+  },
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [91.8930, 25.5788],
+      [91.8884, 25.5512],
+      [91.8800, 25.5204],
+      [91.8752, 25.4800],
+      [91.8601, 25.4506],
+      [91.8404, 25.4208],
+      [91.8102, 25.3904],
+      [91.7800, 25.3602],
+      [91.7500, 25.3401],
+      [91.7204, 25.3206],
+      [91.6963, 25.3009],
+      [91.6982, 25.2840],
+      [91.6914, 25.2722]
+    ]
+  }
+}

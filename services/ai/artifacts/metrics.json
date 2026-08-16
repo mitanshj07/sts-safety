@@ -1,0 +1,11 @@
+{
+  "precision": 1.0,
+  "recall": 0.56,
+  "f1": 0.717948717948718,
+  "support": 1650,
+  "positives": 150,
+  "pred_positives": 84,
+  "threshold": 0.72,
+  "n_train": 3850,
+  "n_test": 1650
+}

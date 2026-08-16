@@ -1,0 +1,2 @@
+# services/ai/artifacts/.gitkeep
+# Populated by `python -m app.train` (iforest.onnx, scaler.json, iforest.pkl).

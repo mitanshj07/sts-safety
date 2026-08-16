@@ -1,0 +1,122 @@
+{
+  "model_version": "iforest-v1.0.0",
+  "algorithm": "IsolationForest",
+  "contamination": 0.05,
+  "n_features": 18,
+  "feature_names": [
+    "speed_mean_mps",
+    "speed_std_mps",
+    "speed_max_mps",
+    "accel_std_mps2",
+    "bearing_change_entropy",
+    "stop_count",
+    "stop_duration_s",
+    "itinerary_distance_m",
+    "radius_of_gyration_m",
+    "straightness_index",
+    "night_fraction",
+    "zone_risk_weighted_dwell",
+    "ping_gap_mean_s",
+    "ping_gap_max_s",
+    "battery_slope_pct_per_h",
+    "total_distance_m",
+    "window_duration_s",
+    "n_pings"
+  ],
+  "threshold": 0.72,
+  "holdout": {
+    "precision": 1.0,
+    "recall": 0.56,
+    "f1": 0.717948717948718,
+    "support": 1650,
+    "positives": 150,
+    "pred_positives": 84,
+    "threshold": 0.72,
+    "n_train": 3850,
+    "n_test": 1650
+  },
+  "train": {
+    "precision": 1.0,
+    "recall": 0.5514285714285714,
+    "f1": 0.7108655616942909,
+    "support": 3850,
+    "positives": 350,
+    "pred_positives": 193
+  },
+  "per_scenario": {
+    "normal-trek": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 1500,
+      "positives": 0,
+      "pred_positives": 0
+    },
+    "panic-sos": {
+      "precision": 1.0,
+      "recall": 0.32,
+      "f1": 0.48484848484848486,
+      "support": 25,
+      "positives": 25,
+      "pred_positives": 8
+    },
+    "route-deviation": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 34,
+      "positives": 34,
+      "pred_positives": 0
+    },
+    "signal-loss": {
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6666666666666666,
+      "support": 30,
+      "positives": 30,
+      "pred_positives": 15
+    },
+    "stationary-anomaly": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 30,
+      "positives": 30,
+      "pred_positives": 30
+    },
+    "zone-breach": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 31,
+      "positives": 31,
+      "pred_positives": 31
+    }
+  },
+  "confusion_matrix": {
+    "tn": 1500,
+    "fp": 0,
+    "fn": 66,
+    "tp": 84
+  },
+  "dataset_source": "synthetic:app.synthetic",
+  "score_scale": 0.25941211927268115,
+  "onnx_kind": "decision_function",
+  "onnx_offset": 0.0,
+  "onnx_max_abs_err": 1.6344950048985396e-07,
+  "onnx_output_index": 1,
+  "onnx_output_column": 0,
+  "sklearn_offset": -0.6583117340551481,
+  "onnx_input_name": "features",
+  "onnx_n_outputs": 2,
+  "onnx_output_shapes": [
+    [
+      256,
+      1
+    ],
+    [
+      256,
+      1
+    ]
+  ]
+}
