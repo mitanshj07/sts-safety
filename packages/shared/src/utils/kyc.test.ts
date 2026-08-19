@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest"
 import {
   allowedKycTypes,
   defaultKycType,
+  guestAadhaarNumber,
+  guestKycForNationality,
   isValidAadhaar,
   isValidDrivingLicence,
   isValidPassportNumber,
@@ -93,5 +95,20 @@ describe("kycIssuanceIssues", () => {
         kycNumber: "TS7654321",
       }),
     ).toEqual([])
+  })
+})
+
+describe("guest credentials", () => {
+  it("mints a Verhoeff-valid Aadhaar for Indian skip-to-app", () => {
+    const number = guestAadhaarNumber("profile-123")
+    expect(isValidAadhaar(number)).toBe(true)
+    expect(guestAadhaarNumber("profile-123")).toBe(number)
+    expect(guestAadhaarNumber("other")).not.toBe(number)
+  })
+
+  it("mints an ICAO-shaped passport for international guests", () => {
+    const { kycType, kycNumber } = guestKycForNationality("GB", "guest-1")
+    expect(kycType).toBe("passport")
+    expect(isValidPassportNumber(kycNumber)).toBe(true)
   })
 })

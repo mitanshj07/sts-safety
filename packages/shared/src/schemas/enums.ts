@@ -13,6 +13,9 @@ export const kycTypeSchema = z.enum([
 export type KycType = z.infer<typeof kycTypeSchema>
 /** Indian issuance uses aadhaar (voter_id / driving_licence equivalent). International uses passport. */
 
+export const kycStatusSchema = z.enum(["skipped", "pending", "verified"])
+export type KycStatus = z.infer<typeof kycStatusSchema>
+
 /** Postgres enum ordinals — must match `kyc_type` declaration order. */
 export const KYC_TYPE_ORDINAL: Record<KycType, number> = {
   passport: 1,

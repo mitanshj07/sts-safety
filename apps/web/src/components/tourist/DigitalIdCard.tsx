@@ -3,10 +3,9 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { KYC_TYPE_LABELS, type KycType } from "@sts/shared";
+import { KYC_TYPE_LABELS, type KycType, type QrPayload } from "@sts/shared";
 import { publicEnv } from "@/lib/config/public";
 import type { CachedDigitalId } from "@/lib/offline/db";
-import type { QrPayload } from "@/lib/tourist/schemas";
 import { Badge } from "@/components/ui/badge";
 
 function kycHeading(kycType: string | null | undefined): string {
@@ -24,19 +23,26 @@ function maskKyc(last4: string | null): string {
 export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
   const [qr, setQr] = useState<string | null>(null);
   const payload: QrPayload = {
+    v: 1,
+    kind: "sts-id",
     chainId: id.chain_id || publicEnv.chainId,
     contract: id.contract_address || publicEnv.touristIdRegistry,
     tokenId: id.token_id,
+    digitalId: id.id,
+    touristId: id.tourist_id,
     vcPath: id.vc_path,
+    sig: null,
+    kycStatus: id.kyc_status,
   };
+  const payloadJson = JSON.stringify(payload);
 
   useEffect(() => {
-    void QRCode.toDataURL(JSON.stringify(payload), {
+    void QRCode.toDataURL(payloadJson, {
       margin: 1,
       width: 220,
       color: { dark: "#022c22", light: "#ecfdf5" },
     }).then(setQr);
-  }, [payload.chainId, payload.contract, payload.tokenId, payload.vcPath]);
+  }, [payloadJson]);
 
   const explorer =
     id.issue_tx_hash && id.issue_tx_hash !== "0x0"
@@ -48,7 +54,7 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
       <header className="flex items-center justify-between px-5 py-3 text-xs tracking-widest text-emerald-200/80 uppercase">
         <span>MDoNER · Digital Tourist ID</span>
         <Badge variant="outline" className="border-emerald-700 text-emerald-200">
-          {id.status}
+          {id.kyc_status === "skipped" ? "guest" : id.status}
         </Badge>
       </header>
       <div className="grid gap-4 px-5 pb-5 sm:grid-cols-[auto_1fr]">
@@ -72,6 +78,9 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
           ) : (
             <div className="size-28 animate-pulse rounded-md bg-emerald-900/40" />
           )}
+          <p className="sr-only" data-testid="id-qr-payload">
+            {payloadJson}
+          </p>
         </div>
         <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
           <dt className="text-muted-foreground">Name</dt>
@@ -81,7 +90,7 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
           <dt className="text-muted-foreground">{kycHeading(id.kyc_type)}</dt>
           <dd className="font-mono">{maskKyc(id.kyc_last4)}</dd>
           <dt className="text-muted-foreground">Token</dt>
-          <dd className="font-mono text-xs">{id.token_id ?? "pending"}</dd>
+          <dd className="font-mono text-xs">{id.token_id ?? "offline"}</dd>
           <dt className="text-muted-foreground">Valid</dt>
           <dd className="text-xs">
             {new Date(id.valid_from).toLocaleDateString()} –{" "}
@@ -104,7 +113,7 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
         </a>
       ) : (
         <p className="border-t border-emerald-900/60 px-5 py-3 text-center text-xs text-muted-foreground">
-          On-chain issuance queued — ID is valid offline as a commitment.
+          Show this QR at the command centre — valid with or without an on-chain token.
         </p>
       )}
     </article>

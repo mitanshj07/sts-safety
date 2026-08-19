@@ -11,7 +11,9 @@ import {
   normaliseKycNumber,
   toUnixSeconds,
   type IssueIdentityRequest,
+  type KycStatus,
   type QrPayload,
+  type SaveItineraryRequest,
 } from "@sts/shared";
 
 import { ChainDisabledError } from "@/lib/chain/clients";
@@ -30,22 +32,13 @@ import {
 } from "@/lib/chain/env";
 import { kycLast4, kycTypeToUint8 } from "@/lib/identity/kyc";
 import { identityLog } from "@/lib/identity/log";
+import { resolveIssuePlan, resolveItinerary } from "@/lib/identity/plan";
 import { buildAndStoreVc, vcObjectPath, vcPublicUrl } from "@/lib/identity/vc-store";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { byteaToHex, hexToByteaLiteral } from "@/lib/utils/bytea";
 
 const MAX_VALIDITY_S = 365 * 24 * 60 * 60;
 const GRACE_S = 24 * 60 * 60;
-
-const DEFAULT_ITINERARY = {
-  type: "LineString" as const,
-  coordinates: [
-    [91.7362, 26.1445],
-    [91.778, 26.121],
-    [91.8631, 26.1],
-    [91.893, 25.5788],
-  ] as [number, number][],
-};
 
 export type IssueResult = {
   ok: true;
@@ -60,8 +53,10 @@ export type IssueResult = {
   holderAddress: Address;
   kycCommitment: Hex;
   itineraryHash: Hex;
+  itineraryId: string | null;
+  kycStatus: KycStatus;
   vcPath: string | null;
-  qr: QrPayload | null;
+  qr: QrPayload;
   idempotent: boolean;
 };
 
@@ -81,18 +76,9 @@ type ExistingBundle = {
   status: string;
   kycType: string;
   nationality: string;
+  kycStatus: KycStatus;
+  itineraryId: string | null;
 };
-
-function corridorM(request: IssueIdentityRequest): number {
-  if (request.corridorM) {
-    return request.corridorM;
-  }
-  const fromEnv = Number.parseInt(
-    process.env.DEFAULT_ITINERARY_CORRIDOR_M ?? "2000",
-    10,
-  );
-  return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 2000;
-}
 
 function validityWindow(tripStart: string, tripEnd: string): {
   validFrom: bigint;
@@ -129,11 +115,14 @@ async function findExisting(
   request: IssueIdentityRequest,
   last4: string,
 ): Promise<ExistingBundle | null> {
+  if (!request.name || !request.kycType) {
+    return null;
+  }
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("tourists")
     .select(
-      "id, hd_index, wallet_address, nationality, kyc_type, digital_ids ( id, kyc_commitment, itinerary_hash, metadata_uri, valid_from, valid_until, token_id, issue_tx_hash, vc_path, status, holder_address )",
+      "id, hd_index, wallet_address, nationality, kyc_type, kyc_status, digital_ids ( id, kyc_commitment, itinerary_hash, metadata_uri, valid_from, valid_until, token_id, issue_tx_hash, vc_path, status, holder_address )",
     )
     .eq("full_name", request.name)
     .eq("kyc_type", request.kycType)
@@ -196,6 +185,8 @@ async function findExisting(
     status: inflight.status,
     kycType: String(data.kyc_type),
     nationality: String(data.nationality ?? "IN"),
+    kycStatus: (data.kyc_status as KycStatus | null) ?? "pending",
+    itineraryId: null,
   };
 }
 
@@ -205,6 +196,7 @@ type TouristRow = {
   walletAddress: Address | null;
   kycType: string;
   nationality: string;
+  kycStatus: KycStatus;
 };
 
 async function findTouristByProfileId(
@@ -213,7 +205,7 @@ async function findTouristByProfileId(
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("tourists")
-    .select("id, hd_index, wallet_address, nationality, kyc_type")
+    .select("id, hd_index, wallet_address, nationality, kyc_type, kyc_status")
     .eq("profile_id", profileId)
     .maybeSingle();
   if (error || !data) {
@@ -227,6 +219,7 @@ async function findTouristByProfileId(
       : null,
     kycType: String(data.kyc_type),
     nationality: String(data.nationality ?? "IN"),
+    kycStatus: (data.kyc_status as KycStatus | null) ?? "pending",
   };
 }
 
@@ -236,6 +229,7 @@ async function loadInflightForTourist(
   nationality: string,
   hdIndex: number,
   holderAddress: Address,
+  kycStatus: KycStatus,
 ): Promise<ExistingBundle | null> {
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -268,6 +262,8 @@ async function loadInflightForTourist(
     status: String(data.status),
     kycType,
     nationality,
+    kycStatus,
+    itineraryId: null,
   };
 }
 
@@ -307,23 +303,24 @@ function toResult(
   bundle: ExistingBundle,
   opts: { idempotent: boolean; sig: string | null },
 ): IssueResult {
-  const tokenId = bundle.tokenId;
-  const qr: QrPayload | null =
-    tokenId && bundle.status === "active"
-      ? {
-          chainId: activeChainId(),
-          contract: registryAddress(),
-          tokenId,
-          vcPath: bundle.vcPath,
-          sig: opts.sig,
-        }
-      : null;
+  const qr: QrPayload = {
+    v: 1,
+    kind: "sts-id",
+    chainId: activeChainId(),
+    contract: registryAddress(),
+    tokenId: bundle.tokenId,
+    digitalId: bundle.digitalId,
+    touristId: bundle.touristId,
+    vcPath: bundle.vcPath,
+    sig: opts.sig,
+    kycStatus: bundle.kycStatus,
+  };
   return {
     ok: true,
     status: bundle.status === "active" ? "active" : "pending",
     touristId: bundle.touristId,
     digitalId: bundle.digitalId,
-    tokenId,
+    tokenId: bundle.tokenId,
     txHash: bundle.txHash,
     explorerUrl: explorerTxUrl(bundle.txHash as Hex | null),
     chainId: activeChainId(),
@@ -331,6 +328,8 @@ function toResult(
     holderAddress: bundle.holderAddress,
     kycCommitment: bundle.commitment,
     itineraryHash: bundle.itineraryHashValue,
+    itineraryId: bundle.itineraryId,
+    kycStatus: bundle.kycStatus,
     vcPath: bundle.vcPath,
     qr,
     idempotent: opts.idempotent,
@@ -422,14 +421,65 @@ async function submitOnChain(bundle: ExistingBundle): Promise<IssueResult> {
         pending: true,
       });
     } else {
+      const now = new Date().toISOString();
+      await admin
+        .from("digital_ids")
+        .update({
+          status: "active",
+          updated_at: now,
+        })
+        .eq("id", bundle.digitalId);
+      await admin
+        .from("chain_anchors")
+        .update({
+          status: "confirmed",
+          error: "chain_disabled",
+          confirmed_at: now,
+        })
+        .eq("subject_id", bundle.digitalId)
+        .eq("kind", "id_issue");
       identityLog("issue_chain_skipped", {
         touristId: bundle.touristId,
         digitalId: bundle.digitalId,
-        pending: true,
+        pending: false,
       });
+      return toResult(
+        { ...bundle, status: "active" },
+        { idempotent: false, sig: null },
+      );
     }
     return toResult(bundle, { idempotent: false, sig: null });
   }
+}
+
+async function writeItinerary(
+  touristId: string,
+  request: IssueIdentityRequest | SaveItineraryRequest,
+  tripStart: string,
+  tripEnd: string,
+): Promise<string | null> {
+  const plan = resolveItinerary(request);
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("insert_itinerary_from_geojson", {
+    p_tourist_id: touristId,
+    p_title: plan.title,
+    p_geojson: plan.geojson,
+    p_corridor_m: plan.corridorM,
+    p_waypoints: plan.waypoints,
+    p_starts_at: tripStart,
+    p_ends_at: tripEnd,
+  });
+  if (error) {
+    identityLog("itinerary_insert_failed", { touristId, ok: false });
+    throw new Error(error.message);
+  }
+  if (plan.entryPoint) {
+    await admin
+      .from("tourists")
+      .update({ entry_point: plan.entryPoint })
+      .eq("id", touristId);
+  }
+  return typeof data === "string" ? data : null;
 }
 
 async function persistDigitalId(args: {
@@ -438,12 +488,18 @@ async function persistDigitalId(args: {
   request: IssueIdentityRequest;
   normalised: string;
   last4: string;
+  kycType: string;
+  nationality: string;
+  kycStatus: KycStatus;
+  name: string;
+  preserveKyc?: boolean;
 }): Promise<ExistingBundle> {
-  const itinerary = args.request.itineraryGeoJSON ?? DEFAULT_ITINERARY;
+  const plan = resolveIssuePlan(args.request);
+  const itinerary = plan.geojson;
   const routeHash = itineraryHash(itinerary);
   const salt = bytesToHex(randomBytes(32));
   const commitment = kycCommitment(
-    kycTypeToUint8(args.request.kycType),
+    kycTypeToUint8(args.kycType),
     args.normalised,
     salt,
   );
@@ -451,78 +507,105 @@ async function persistDigitalId(args: {
     args.request.tripStart,
     args.request.tripEnd,
   );
-  const ciphertext = await encryptKyc(args.normalised);
   const admin = createAdminClient();
   const touristId = args.touristId;
 
+  const touristPatch: Record<string, unknown> = {
+    trip_start: args.request.tripStart,
+    trip_end: args.request.tripEnd,
+    entry_point: plan.entryPoint,
+    hd_index: args.wallet.hdIndex,
+    wallet_address: args.wallet.address,
+    status: "active",
+  };
+
+  if (!args.preserveKyc) {
+    const ciphertext = await encryptKyc(args.normalised);
+    touristPatch.full_name = args.name;
+    touristPatch.nationality = args.nationality;
+    touristPatch.date_of_birth = args.request.dateOfBirth ?? null;
+    touristPatch.kyc_type = args.kycType;
+    touristPatch.kyc_number_enc = ciphertext;
+    touristPatch.kyc_last4 = args.last4;
+    touristPatch.kyc_salt = hexToByteaLiteral(salt);
+    touristPatch.kyc_status = args.kycStatus;
+    touristPatch.phone_e164 = args.request.phone ?? null;
+    touristPatch.email = args.request.email ?? null;
+    touristPatch.emergency_contacts = args.request.emergencyContacts ?? [];
+  }
+
   const { error: updateError } = await admin
     .from("tourists")
-    .update({
-      full_name: args.request.name,
-      nationality: args.request.nationality,
-      date_of_birth: args.request.dateOfBirth ?? null,
-      kyc_type: args.request.kycType,
-      kyc_number_enc: ciphertext,
-      kyc_last4: args.last4,
-      kyc_salt: hexToByteaLiteral(salt),
-      phone_e164: args.request.phone ?? null,
-      email: args.request.email ?? null,
-      emergency_contacts: args.request.emergencyContacts ?? [],
-      trip_start: args.request.tripStart,
-      trip_end: args.request.tripEnd,
-      entry_point: args.request.entryPoint ?? null,
-      hd_index: args.wallet.hdIndex,
-      wallet_address: args.wallet.address,
-      status: "active",
-    })
+    .update(touristPatch)
     .eq("id", touristId);
   if (updateError) {
     throw new Error(updateError.message);
   }
 
-  const { error: itinError } = await admin.rpc("insert_itinerary_from_geojson", {
-    p_tourist_id: touristId,
-    p_title: args.request.itineraryTitle ?? "Planned route",
-    p_geojson: itinerary,
-    p_corridor_m: corridorM(args.request),
-    p_waypoints: [],
-    p_starts_at: args.request.tripStart,
-    p_ends_at: args.request.tripEnd,
-  });
-  if (itinError) {
-    identityLog("itinerary_insert_failed", { touristId, ok: false });
-  }
+  const itineraryId = await writeItinerary(
+    touristId,
+    args.request,
+    args.request.tripStart,
+    args.request.tripEnd,
+  );
 
-  const digitalId = crypto.randomUUID();
+  const inflight = await admin
+    .from("digital_ids")
+    .select("id")
+    .eq("tourist_id", touristId)
+    .in("status", ["pending", "active"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const digitalId = inflight.data?.id ? String(inflight.data.id) : crypto.randomUUID();
   const metadataURI = isZeroHex(registryAddress())
     ? `supabase://did/${digitalId}.json`
     : vcPublicUrl(vcObjectPath(digitalId));
 
-  const { error: didError } = await admin.from("digital_ids").insert({
-    id: digitalId,
-    tourist_id: touristId,
-    chain_id: publicChainId(),
-    contract_address: registryAddress(),
-    holder_address: args.wallet.address,
-    kyc_commitment: commitment,
-    itinerary_hash: routeHash,
-    metadata_uri: metadataURI,
-    valid_from: new Date(Number(validFrom) * 1000).toISOString(),
-    valid_until: new Date(Number(validUntil) * 1000).toISOString(),
-    status: "pending",
-  });
-  if (didError) {
-    throw new Error(didError.message);
-  }
+  if (inflight.data?.id) {
+    const { error: didError } = await admin
+      .from("digital_ids")
+      .update({
+        holder_address: args.wallet.address,
+        kyc_commitment: commitment,
+        itinerary_hash: routeHash,
+        metadata_uri: metadataURI,
+        valid_from: new Date(Number(validFrom) * 1000).toISOString(),
+        valid_until: new Date(Number(validUntil) * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", digitalId);
+    if (didError) {
+      throw new Error(didError.message);
+    }
+  } else {
+    const { error: didError } = await admin.from("digital_ids").insert({
+      id: digitalId,
+      tourist_id: touristId,
+      chain_id: publicChainId(),
+      contract_address: registryAddress(),
+      holder_address: args.wallet.address,
+      kyc_commitment: commitment,
+      itinerary_hash: routeHash,
+      metadata_uri: metadataURI,
+      valid_from: new Date(Number(validFrom) * 1000).toISOString(),
+      valid_until: new Date(Number(validUntil) * 1000).toISOString(),
+      status: "pending",
+    });
+    if (didError) {
+      throw new Error(didError.message);
+    }
 
-  await admin.from("chain_anchors").insert({
-    kind: "id_issue",
-    subject_id: digitalId,
-    record_hash: commitment,
-    chain_id: publicChainId(),
-    contract_address: registryAddress(),
-    status: "pending",
-  });
+    await admin.from("chain_anchors").insert({
+      kind: "id_issue",
+      subject_id: digitalId,
+      record_hash: commitment,
+      chain_id: publicChainId(),
+      contract_address: registryAddress(),
+      status: "pending",
+    });
+  }
 
   identityLog("issue_pending", {
     touristId,
@@ -544,23 +627,33 @@ async function persistDigitalId(args: {
     txHash: null,
     vcPath: null,
     status: "pending",
-    kycType: args.request.kycType,
-    nationality: args.request.nationality,
+    kycType: args.kycType,
+    nationality: args.nationality,
+    kycStatus: args.kycStatus,
+    itineraryId,
   };
+}
+
+export async function saveTouristItinerary(
+  touristId: string,
+  request: SaveItineraryRequest,
+  tripStart: string,
+  tripEnd: string,
+): Promise<string | null> {
+  return writeItinerary(touristId, request, tripStart, tripEnd);
 }
 
 export async function issueTouristIdentity(
   request: IssueIdentityRequest,
 ): Promise<IssueResult> {
-  const normalised = normaliseKycNumber(request.kycNumber);
+  const plan = resolveIssuePlan(request);
+  const normalised = normaliseKycNumber(plan.kycNumber);
   const last4 = kycLast4(normalised);
 
   const byProfile = request.profileId
     ? await findTouristByProfileId(request.profileId)
     : null;
-  const existing = byProfile
-    ? null
-    : await findExisting(request, last4);
+  const existing = byProfile ? null : await findExisting(request, last4);
 
   if (existing) {
     identityLog("issue_idempotent", {
@@ -568,14 +661,43 @@ export async function issueTouristIdentity(
       digitalId: existing.digitalId,
       status: existing.status,
     });
-    if (existing.status === "active") {
+    if (existing.status === "active" && (plan.skipKyc || existing.kycStatus === "verified")) {
+      await writeItinerary(
+        existing.touristId,
+        request,
+        request.tripStart,
+        request.tripEnd,
+      ).catch(() => null);
       return toResult(existing, { idempotent: true, sig: null });
+    }
+    if (!plan.skipKyc && existing.kycStatus === "skipped") {
+      const wallet = await ensureTouristWallet(
+        existing.touristId,
+        existing.hdIndex,
+        existing.holderAddress,
+      );
+      const bundle = await persistDigitalId({
+        touristId: existing.touristId,
+        wallet,
+        request,
+        normalised,
+        last4,
+        kycType: plan.kycType,
+        nationality: plan.nationality,
+        kycStatus: plan.kycStatus,
+        name: plan.name,
+      });
+      return submitOnChain({ ...bundle, tokenId: existing.tokenId, txHash: existing.txHash, status: existing.status });
     }
     const retried = await submitOnChain(existing);
     return { ...retried, idempotent: true };
   }
 
   if (byProfile) {
+    const preserveKyc = plan.skipKyc && byProfile.kycStatus !== "skipped";
+    const kycType = preserveKyc ? byProfile.kycType : plan.kycType;
+    const nationality = preserveKyc ? byProfile.nationality : plan.nationality;
+    const kycStatus = preserveKyc ? byProfile.kycStatus : plan.kycStatus;
     const wallet = await ensureTouristWallet(
       byProfile.id,
       byProfile.hdIndex,
@@ -583,17 +705,44 @@ export async function issueTouristIdentity(
     );
     const inflight = await loadInflightForTourist(
       byProfile.id,
-      request.kycType,
-      request.nationality,
+      kycType,
+      nationality,
       wallet.hdIndex,
       wallet.address,
+      kycStatus,
     );
     if (inflight) {
+      const shouldUpgrade = !plan.skipKyc && byProfile.kycStatus === "skipped";
+      if (shouldUpgrade) {
+        const bundle = await persistDigitalId({
+          touristId: byProfile.id,
+          wallet,
+          request,
+          normalised,
+          last4,
+          kycType: plan.kycType,
+          nationality: plan.nationality,
+          kycStatus: plan.kycStatus,
+          name: plan.name,
+        });
+        return submitOnChain({
+          ...bundle,
+          tokenId: inflight.tokenId,
+          txHash: inflight.txHash,
+          status: inflight.status === "active" ? "pending" : inflight.status,
+        });
+      }
       identityLog("issue_idempotent", {
         touristId: inflight.touristId,
         digitalId: inflight.digitalId,
         status: inflight.status,
       });
+      await writeItinerary(
+        byProfile.id,
+        request,
+        request.tripStart,
+        request.tripEnd,
+      ).catch(() => null);
       if (inflight.status === "active") {
         return toResult(inflight, { idempotent: true, sig: null });
       }
@@ -604,8 +753,13 @@ export async function issueTouristIdentity(
       touristId: byProfile.id,
       wallet,
       request,
-      normalised,
-      last4,
+      normalised: preserveKyc ? `preserved:${byProfile.id}` : normalised,
+      last4: preserveKyc ? "0000" : last4,
+      kycType,
+      nationality,
+      kycStatus,
+      name: plan.name,
+      preserveKyc,
     });
     return submitOnChain(bundle);
   }
@@ -618,19 +772,20 @@ export async function issueTouristIdentity(
     .from("tourists")
     .insert({
       profile_id: request.profileId ?? null,
-      full_name: request.name,
-      nationality: request.nationality,
+      full_name: plan.name,
+      nationality: plan.nationality,
       date_of_birth: request.dateOfBirth ?? null,
-      kyc_type: request.kycType,
+      kyc_type: plan.kycType,
       kyc_number_enc: ciphertext,
       kyc_last4: last4,
-      kyc_salt: hexToByteaLiteral(saltForInsert(normalised, request.kycType)),
+      kyc_salt: hexToByteaLiteral(bytesToHex(randomBytes(32))),
+      kyc_status: plan.kycStatus,
       phone_e164: request.phone ?? null,
       email: request.email ?? null,
       emergency_contacts: request.emergencyContacts ?? [],
       trip_start: request.tripStart,
       trip_end: request.tripEnd,
-      entry_point: request.entryPoint ?? null,
+      entry_point: plan.entryPoint,
       hd_index: wallet.hdIndex,
       wallet_address: wallet.address,
       status: "active",
@@ -648,10 +803,10 @@ export async function issueTouristIdentity(
     request,
     normalised,
     last4,
+    kycType: plan.kycType,
+    nationality: plan.nationality,
+    kycStatus: plan.kycStatus,
+    name: plan.name,
   });
   return submitOnChain(bundle);
-}
-
-function saltForInsert(_normalised: string, _kycType: string): Hex {
-  return bytesToHex(randomBytes(32));
 }

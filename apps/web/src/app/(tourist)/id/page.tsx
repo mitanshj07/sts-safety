@@ -20,7 +20,7 @@ export default function DigitalIdPage() {
         <EmptyState
           icon={IdCard}
           title="No credential on this device"
-          description="Complete KYC to issue a soulbound digital tourist ID. KYC never goes on-chain."
+          description="Complete KYC or skip to issue a soulbound digital tourist ID. KYC never goes on-chain."
           action={
             <Button asChild>
               <Link href="/onboard">Start onboarding</Link>
@@ -32,6 +32,7 @@ export default function DigitalIdPage() {
   }
 
   const card = digitalId ?? {
+    id: tourist?.id ?? "local",
     tourist_id: tourist?.id ?? "local",
     chain_id: publicEnv.chainId,
     contract_address: publicEnv.touristIdRegistry,
@@ -43,6 +44,7 @@ export default function DigitalIdPage() {
     valid_until: tourist?.trip_end ?? new Date().toISOString(),
     kyc_last4: tourist?.kyc_last4 ?? null,
     kyc_type: tourist?.kyc_type ?? "aadhaar",
+    kyc_status: tourist?.kyc_status,
     full_name: tourist?.full_name ?? "Tourist",
     nationality: tourist?.nationality ?? "IN",
     photo_data_url: tourist?.photo_data_url ?? null,
@@ -57,6 +59,15 @@ export default function DigitalIdPage() {
         className="mb-0"
       />
       <DigitalIdCard id={card} />
+      {tourist?.kyc_status === "skipped" ? (
+        <p className="text-center text-sm text-muted-foreground">
+          Guest credential.{" "}
+          <Link href="/onboard" className="text-primary underline">
+            Complete Aadhaar / passport KYC
+          </Link>{" "}
+          for a verified checkpoint card.
+        </p>
+      ) : null}
       <div className="flex justify-center">
         <SignOutButton />
       </div>

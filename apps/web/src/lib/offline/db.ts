@@ -25,6 +25,7 @@ export type CachedTourist = {
   nationality: string;
   kyc_type: string;
   kyc_last4: string | null;
+  kyc_status?: "skipped" | "pending" | "verified";
   photo_data_url: string | null;
   safety_score: number;
   trip_start: string;
@@ -37,6 +38,7 @@ export type CachedTourist = {
 };
 
 export type CachedDigitalId = {
+  id: string;
   tourist_id: string;
   chain_id: number;
   contract_address: string;
@@ -48,6 +50,7 @@ export type CachedDigitalId = {
   valid_until: string;
   kyc_last4: string | null;
   kyc_type: string | null;
+  kyc_status?: "skipped" | "pending" | "verified";
   full_name: string;
   nationality: string;
   photo_data_url: string | null;

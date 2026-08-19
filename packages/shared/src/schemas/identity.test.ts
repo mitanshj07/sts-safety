@@ -52,4 +52,13 @@ describe("issueIdentityRequestSchema KYC policy", () => {
     })
     expect(parsed.success).toBe(false)
   })
+  it("allows skipKyc without a travel document", () => {
+    const parsed = issueIdentityRequestSchema.safeParse({
+      skipKyc: true,
+      tripStart: base.tripStart,
+      tripEnd: base.tripEnd,
+      itineraryPresetId: "ghy-shillong",
+    })
+    expect(parsed.success).toBe(true)
+  })
 })

@@ -1,11 +1,10 @@
 // apps/web/src/app/(auth)/login/login-form.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Mail, Shield, Smartphone } from "lucide-react";
 
-import { completeSignIn } from "@/lib/auth/actions";
+import { completeSignIn, createGuestLogin, skipToApp } from "@/lib/auth/actions";
 import { DEMO_OFFICER, DEMO_TOURIST, DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
 import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -25,24 +24,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type LoginFormProps = {
   defaultTab: LoginTab;
   initialError: string | null;
+  autoSkip?: boolean;
 };
 
-export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
-  const router = useRouter();
+export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginFormProps) {
   const [error, setError] = useState<string | null>(initialError);
   const [info, setInfo] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [pending, startTransition] = useTransition();
+  const autoSkipStarted = useRef(false);
 
   function finish(redirectTo: string) {
-    router.push(redirectTo);
-    router.refresh();
+    // Full navigation avoids the auth error boundary: router.push + refresh
+    // re-renders /login while middleware redirects an authenticated session.
+    window.location.assign(redirectTo);
+  }
+
+  function fail(message: string) {
+    setError(message);
+  }
+
+  function runAuth(work: () => Promise<void>) {
+    setError(null);
+    setInfo(null);
+    startTransition(async () => {
+      try {
+        await work();
+      } catch (err) {
+        fail(err instanceof Error ? err.message : "Sign-in failed. Retry.");
+      }
+    });
   }
 
   function requireSupabase() {
     const supabase = getBrowserSupabase();
     if (!supabase) {
-      setError(
+      fail(
         "This public deploy shows the product UI. Demo logins need the seeded Supabase project (local or cloud).",
       );
       return null;
@@ -52,14 +69,12 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
 
   function sendMagicLink(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setInfo(null);
     const parsed = magicLinkSchema.safeParse({ email });
     if (!parsed.success) {
-      setError("Enter a valid email address.");
+      fail("Enter a valid email address.");
       return;
     }
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -71,7 +86,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        fail(otpError.message);
         return;
       }
       setInfo("Check your inbox for the magic link. Local Inbucket: :54324.");
@@ -79,9 +94,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
   }
 
   function demoTourist() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { data, error: anonError } = await supabase.auth.signInAnonymously({
@@ -92,23 +105,32 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
           },
         },
       });
-      if (anonError) {
-        setError(anonError.message);
+      if (anonError || !data.user) {
+        const guest = await createGuestLogin();
+        if (!guest.ok) {
+          fail(guest.message);
+          return;
+        }
+        const { error: passwordError } = await supabase.auth.signInWithPassword({
+          email: guest.email,
+          password: guest.password,
+        });
+        if (passwordError) {
+          fail(passwordError.message);
+          return;
+        }
+        const skipped = await skipToApp();
+        if (!skipped.ok) {
+          fail(skipped.message);
+          return;
+        }
+        finish(skipped.redirectTo);
         return;
       }
       // Anonymous users have no email — provision profile + tourists row server-side.
-      if (data.user && (data.user.is_anonymous || !data.user.email)) {
-        const result = await completeSignIn();
-        if (!result.ok) {
-          setError(result.message);
-          return;
-        }
-        finish(result.redirectTo);
-        return;
-      }
-      const result = await completeSignIn();
+      const result = await skipToApp();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
@@ -116,9 +138,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
   }
 
   function demoSeededTourist() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
@@ -126,14 +146,12 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
         password: DEMO_TOURIST.password,
       });
       if (passwordError) {
-        setError(
-          `${passwordError.message} Seed tourists first (pnpm demo:reset).`,
-        );
+        fail(`${passwordError.message} Seed tourists first (pnpm demo:reset).`);
         return;
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
@@ -141,9 +159,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
   }
 
   function demoOfficer() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
@@ -151,19 +167,27 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
         password: DEMO_OFFICER.password,
       });
       if (passwordError) {
-        setError(
+        fail(
           `${passwordError.message} Seed the staff user (supabase db reset) first.`,
         );
         return;
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
     });
   }
+
+  useEffect(() => {
+    if (!autoSkip || autoSkipStarted.current) return;
+    autoSkipStarted.current = true;
+    demoTourist();
+    // Run once for /login?skip=1 — demoTourist is recreated each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSkip]);
 
   return (
     <Card className="sts-enter w-full max-w-md border-border/80 bg-card/80 shadow-2xl shadow-black/20 backdrop-blur-md">
@@ -173,7 +197,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
         </p>
         <CardTitle className="text-2xl tracking-tight">Sign in</CardTitle>
         <CardDescription>
-          Three ways in. Judges: use a demo button — do not wait for email.
+          Sign in, complete KYC, or skip straight to a scannable guest ID.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -188,7 +212,7 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
           </Alert>
         ) : null}
 
-        <Tabs defaultValue={defaultTab} className="w-full">
+        <Tabs defaultValue={defaultTab || "magic"} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="magic" className="gap-1.5 text-xs sm:text-sm">
               <Mail className="size-3.5" />
@@ -221,14 +245,22 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
               <Button type="submit" disabled={pending}>
                 {pending ? "Sending…" : "Send magic link"}
               </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={pending}
+                onClick={demoTourist}
+              >
+                {pending ? "Entering…" : "Skip — enter without KYC"}
+              </Button>
             </form>
           </TabsContent>
 
           <TabsContent value="tourist" className="mt-4 flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
               Seeded traveller{" "}
-              <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span>{" "}
-              or an anonymous guest for a cold start.
+              <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span>
+              , or skip KYC and still get a scannable guest ID plus a North-East itinerary.
             </p>
             <Button type="button" onClick={demoSeededTourist} disabled={pending}>
               {pending ? "Signing in…" : `Enter as ${DEMO_TOURIST.label}`}
@@ -238,8 +270,9 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
               variant="outline"
               onClick={demoTourist}
               disabled={pending}
+              data-testid="skip-onboarding"
             >
-              {pending ? "Entering…" : "Anonymous demo tourist"}
+              {pending ? "Entering…" : "Skip — enter without KYC"}
             </Button>
           </TabsContent>
 

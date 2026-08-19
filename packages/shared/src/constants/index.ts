@@ -2,5 +2,6 @@
 export * from "./chains"
 export * from "./command-notes"
 export * from "./feature-vector"
+export * from "./ne-routes"
 export * from "./scoring-weights"
 export * from "./severity-matrix"
