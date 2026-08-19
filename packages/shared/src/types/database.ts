@@ -915,6 +915,7 @@ export type Database = {
           kyc_last4: string | null
           kyc_number_enc: string
           kyc_salt: string
+          kyc_status: Database["public"]["Enums"]["kyc_status"]
           kyc_type: Database["public"]["Enums"]["kyc_type"]
           last_geog: unknown
           last_ping_at: string | null
@@ -943,6 +944,7 @@ export type Database = {
           kyc_last4?: string | null
           kyc_number_enc: string
           kyc_salt?: string
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_type: Database["public"]["Enums"]["kyc_type"]
           last_geog?: unknown
           last_ping_at?: string | null
@@ -971,6 +973,7 @@ export type Database = {
           kyc_last4?: string | null
           kyc_number_enc?: string
           kyc_salt?: string
+          kyc_status?: Database["public"]["Enums"]["kyc_status"]
           kyc_type?: Database["public"]["Enums"]["kyc_type"]
           last_geog?: unknown
           last_ping_at?: string | null
@@ -1164,6 +1167,7 @@ export type Database = {
         | "battery_critical"
         | "missed_checkin"
         | "manual_report"
+      kyc_status: "skipped" | "pending" | "verified"
       kyc_type: "passport" | "aadhaar" | "voter_id" | "driving_licence"
       notify_channel: "webpush" | "telegram" | "email" | "realtime" | "sms"
       notify_status: "queued" | "sent" | "delivered" | "failed"
@@ -1354,6 +1358,7 @@ export const Constants = {
         "missed_checkin",
         "manual_report",
       ],
+      kyc_status: ["skipped", "pending", "verified"],
       kyc_type: ["passport", "aadhaar", "voter_id", "driving_licence"],
       notify_channel: ["webpush", "telegram", "email", "realtime", "sms"],
       notify_status: ["queued", "sent", "delivered", "failed"],

@@ -54,7 +54,8 @@ function localeFor(user: User): string {
 /**
  * Idempotent profile upsert, backed by the `handle_new_user` trigger.
  * Anonymous (no-email) demo tourists also get a `tourists` row so /home works
- * without waiting for KYC onboarding.
+ * without waiting for KYC onboarding. Magic-link tourists go to /onboard unless
+ * they skip.
  */
 export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
   const supabase = await createClient();

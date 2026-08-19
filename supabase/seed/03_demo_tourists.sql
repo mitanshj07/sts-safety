@@ -84,7 +84,7 @@ on conflict (id) do update set
 
 insert into tourists (
   id, profile_id, full_name, nationality, date_of_birth,
-  kyc_type, kyc_number_enc, kyc_last4, kyc_salt,
+  kyc_type, kyc_number_enc, kyc_last4, kyc_salt, kyc_status,
   phone_e164, email, emergency_contacts,
   trip_start, trip_end, entry_point,
   safety_score, tracking_enabled, hd_index, status
@@ -93,8 +93,9 @@ insert into tourists (
   '22222222-2222-4222-8222-222222222201',
   (select id from profiles where id = '33333333-3333-4333-8333-333333333301'),
   'Priya Sharma', 'IN', '1998-04-12',
-  'passport', pgp_sym_encrypt('M1234567', 'dev-only-pii-key'), '4567',
+  'aadhaar', pgp_sym_encrypt('234123412346', 'dev-only-pii-key'), '2346',
   decode('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'hex'),
+  'verified',
   '+919864210001', 'priya.sharma@demo.sts',
   '[{"name":"Amit Sharma","relation":"father","phone_e164":"+919864210011","notify":true}]'::jsonb,
   now() - interval '1 day', now() + interval '10 days',
@@ -106,6 +107,7 @@ insert into tourists (
   'Ananya Baruah', 'IN', '1996-11-03',
   'aadhaar', pgp_sym_encrypt('999988887777', 'dev-only-pii-key'), '7777',
   decode('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'hex'),
+  'verified',
   '+919864210002', 'ananya.baruah@demo.sts',
   '[{"name":"Nandini Baruah","relation":"mother","phone_e164":"+919864210012","notify":true}]'::jsonb,
   now() - interval '1 day', now() + interval '12 days',
@@ -117,6 +119,7 @@ insert into tourists (
   'Emma Wilson', 'GB', '1994-07-21',
   'passport', pgp_sym_encrypt('GB7654321', 'dev-only-pii-key'), '4321',
   decode('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'hex'),
+  'verified',
   '+447700900203', 'emma.wilson@demo.sts',
   '[{"name":"James Wilson","relation":"spouse","phone_e164":"+447700900213","notify":true}]'::jsonb,
   now() - interval '2 days', now() + interval '14 days',
@@ -128,6 +131,7 @@ insert into tourists (
   'Tenzin Dorje', 'IN', '1991-02-08',
   'voter_id', pgp_sym_encrypt('ARX1234567', 'dev-only-pii-key'), '4567',
   decode('dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', 'hex'),
+  'verified',
   '+919364210004', 'tenzin.dorje@demo.sts',
   '[{"name":"Pema Dorje","relation":"brother","phone_e164":"+919364210014","notify":true}]'::jsonb,
   now() - interval '1 day', now() + interval '8 days',
@@ -139,6 +143,7 @@ insert into tourists (
   'Kenji Nakamura', 'JP', '1989-09-30',
   'passport', pgp_sym_encrypt('TS7654321', 'dev-only-pii-key'), '4321',
   decode('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', 'hex'),
+  'verified',
   '+819012345205', 'kenji.nakamura@demo.sts',
   '[{"name":"Yuki Nakamura","relation":"sister","phone_e164":"+819012345215","notify":true}]'::jsonb,
   now() - interval '1 day', now() + interval '7 days',
@@ -150,6 +155,8 @@ on conflict (id) do update set
   trip_end     = excluded.trip_end,
   profile_id   = excluded.profile_id,
   email        = excluded.email,
+  kyc_type     = excluded.kyc_type,
+  kyc_status   = excluded.kyc_status,
   status       = excluded.status,
   updated_at   = now();
 
@@ -245,3 +252,59 @@ on conflict (id) do update set
   starts_at  = excluded.starts_at,
   ends_at    = excluded.ends_at,
   active     = excluded.active;
+
+-- Scannable digital IDs for every seeded tourist (chain token optional).
+insert into digital_ids (
+  id, tourist_id, chain_id, contract_address, holder_address,
+  kyc_commitment, itinerary_hash, valid_from, valid_until, status
+) values
+(
+  '55555555-5555-4555-8555-555555555501',
+  '22222222-2222-4222-8222-222222222201',
+  80002, '0x0000000000000000000000000000000000000000',
+  '0x0000000000000000000000000000000000000001',
+  '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  '0x1111111111111111111111111111111111111111111111111111111111111111',
+  now() - interval '1 day', now() + interval '10 days', 'active'
+),
+(
+  '55555555-5555-4555-8555-555555555502',
+  '22222222-2222-4222-8222-222222222202',
+  80002, '0x0000000000000000000000000000000000000000',
+  '0x0000000000000000000000000000000000000002',
+  '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+  '0x2222222222222222222222222222222222222222222222222222222222222222',
+  now() - interval '1 day', now() + interval '12 days', 'active'
+),
+(
+  '55555555-5555-4555-8555-555555555503',
+  '22222222-2222-4222-8222-222222222203',
+  80002, '0x0000000000000000000000000000000000000000',
+  '0x0000000000000000000000000000000000000003',
+  '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+  '0x3333333333333333333333333333333333333333333333333333333333333333',
+  now() - interval '2 days', now() + interval '14 days', 'active'
+),
+(
+  '55555555-5555-4555-8555-555555555504',
+  '22222222-2222-4222-8222-222222222204',
+  80002, '0x0000000000000000000000000000000000000000',
+  '0x0000000000000000000000000000000000000004',
+  '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+  '0x4444444444444444444444444444444444444444444444444444444444444444',
+  now() - interval '1 day', now() + interval '8 days', 'active'
+),
+(
+  '55555555-5555-4555-8555-555555555505',
+  '22222222-2222-4222-8222-222222222205',
+  80002, '0x0000000000000000000000000000000000000000',
+  '0x0000000000000000000000000000000000000005',
+  '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+  '0x5555555555555555555555555555555555555555555555555555555555555555',
+  now() - interval '1 day', now() + interval '7 days', 'active'
+)
+on conflict (id) do update set
+  status     = excluded.status,
+  valid_from = excluded.valid_from,
+  valid_until = excluded.valid_until,
+  updated_at = now();
