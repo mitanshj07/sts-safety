@@ -1,7 +1,8 @@
 // packages/shared/src/schemas/tourist.ts
 import { z } from "zod"
+import { kycIssuanceIssues } from "../utils/kyc"
 import { latitudeSchema, longitudeSchema, timestamptzSchema, uuidSchema } from "./coords"
-import { kycTypeSchema, touristStatusSchema } from "./enums"
+import { kycStatusSchema, kycTypeSchema, touristStatusSchema } from "./enums"
 
 export const emergencyContactSchema = z.object({
   name: z.string().min(1),
@@ -12,22 +13,44 @@ export const emergencyContactSchema = z.object({
 })
 export type EmergencyContact = z.infer<typeof emergencyContactSchema>
 
-export const touristCreateSchema = z.object({
-  full_name: z.string().min(1),
-  nationality: z.string().length(2).overwrite((s) => s.toUpperCase()),
-  date_of_birth: z.iso.date().optional(),
-  kyc_type: kycTypeSchema,
-  kyc_number: z.string().min(4),
-  phone_e164: z.string().optional(),
-  email: z.email().optional(),
-  emergency_contacts: z.array(emergencyContactSchema).default([]),
-  trip_start: timestamptzSchema,
-  trip_end: timestamptzSchema,
-  entry_point: z.string().optional(),
-  photo_path: z.string().optional(),
-  locale: z.string().default("en"),
-  profile_id: uuidSchema.optional(),
-})
+export const touristCreateSchema = z
+  .object({
+    full_name: z.string().min(1),
+    nationality: z.string().length(2).overwrite((s) => s.toUpperCase()),
+    date_of_birth: z.iso.date().optional(),
+    kyc_type: kycTypeSchema,
+    kyc_number: z.string().min(4),
+    kyc_status: kycStatusSchema.optional(),
+    phone_e164: z.string().optional(),
+    email: z.email().optional(),
+    emergency_contacts: z.array(emergencyContactSchema).default([]),
+    trip_start: timestamptzSchema,
+    trip_end: timestamptzSchema,
+    entry_point: z.string().optional(),
+    photo_path: z.string().optional(),
+    locale: z.string().default("en"),
+    profile_id: uuidSchema.optional(),
+  })
+  .superRefine((d, ctx) => {
+    if (d.kyc_status === "skipped") return
+    for (const issue of kycIssuanceIssues({
+      nationality: d.nationality,
+      kycType: d.kyc_type,
+      kycNumber: d.kyc_number,
+    })) {
+      const path =
+        issue.path === "kycType"
+          ? "kyc_type"
+          : issue.path === "kycNumber"
+            ? "kyc_number"
+            : issue.path
+      ctx.addIssue({
+        code: "custom",
+        message: issue.message,
+        path: [path],
+      })
+    }
+  })
 export type TouristCreate = z.infer<typeof touristCreateSchema>
 
 export const touristPublicSchema = z.object({
@@ -36,6 +59,7 @@ export const touristPublicSchema = z.object({
   nationality: z.string(),
   kyc_type: kycTypeSchema,
   kyc_last4: z.string().nullable(),
+  kyc_status: kycStatusSchema.optional(),
   photo_path: z.string().nullable(),
   trip_start: timestamptzSchema,
   trip_end: timestamptzSchema,

@@ -1,5 +1,6 @@
 // packages/shared/src/constants/index.ts
 export * from "./chains"
 export * from "./feature-vector"
+export * from "./ne-routes"
 export * from "./scoring-weights"
 export * from "./severity-matrix"
