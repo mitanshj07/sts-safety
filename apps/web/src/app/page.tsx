@@ -62,13 +62,13 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Button asChild size="lg">
-                  <Link href="/login?tab=tourist">Open tourist app</Link>
+                  <Link href="/login?tab=tourist&flow=kyc">Issue ID with KYC</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
-                  <Link href="/login?tab=officer">Command centre</Link>
+                  <Link href="/login?tab=tourist&skip=1">Skip — guest ID</Link>
                 </Button>
                 <Button asChild size="lg" variant="ghost">
-                  <Link href="/login?tab=tourist&skip=1">Skip — guest ID</Link>
+                  <Link href="/login?tab=officer">Command centre</Link>
                 </Button>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function HomePage() {
                   Digital ID, live map, trip check-ins, and a 1.5s panic hold.
                 </p>
                 <p className="mt-4 text-xs font-medium tracking-wide text-primary">
-                  Enter as traveller →
+                  KYC, skip, or seeded travellers →
                 </p>
               </Link>
               <Link

@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Mail, Shield, Smartphone } from "lucide-react";
 
-import { completeSignIn, createGuestLogin, skipToApp } from "@/lib/auth/actions";
-import { DEMO_OFFICER, DEMO_TOURIST, DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
+import { completeSignIn, skipToApp } from "@/lib/auth/actions";
+import {
+  DEMO_OFFICER,
+  DEMO_TOURIST,
+  DEMO_TOURISTS,
+  DEMO_TOURIST_DISPLAY_NAME,
+  touristSubtitle,
+  type DemoTourist,
+} from "@/lib/auth/demo";
+import { ensurePublicTouristSession } from "@/lib/auth/public-session";
 import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,15 +34,23 @@ type LoginFormProps = {
   defaultTab: LoginTab;
   initialError: string | null;
   autoSkip?: boolean;
+  autoKyc?: boolean;
 };
 
-export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginFormProps) {
+const MORE_TOURISTS = DEMO_TOURISTS.filter((tourist) => tourist.slug !== DEMO_TOURIST.slug);
+
+export function LoginForm({
+  defaultTab,
+  initialError,
+  autoSkip = false,
+  autoKyc = false,
+}: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
   const [info, setInfo] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [pending, startTransition] = useTransition();
-  const autoSkipStarted = useRef(false);
+  const autoStarted = useRef(false);
 
   function finish(redirectTo: string) {
     router.push(redirectTo);
@@ -80,50 +96,13 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
     });
   }
 
-  function demoTourist() {
+  function startKyc() {
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = requireSupabase();
-      if (!supabase) return;
-      const { data, error: anonError } = await supabase.auth.signInAnonymously({
-        options: {
-          data: {
-            display_name: DEMO_TOURIST_DISPLAY_NAME,
-            role: "tourist",
-          },
-        },
-      });
-      if (anonError || !data.user) {
-        const guest = await createGuestLogin();
-        if (!guest.ok) {
-          setError(guest.message);
-          return;
-        }
-        const { error: passwordError } = await supabase.auth.signInWithPassword({
-          email: guest.email,
-          password: guest.password,
-        });
-        if (passwordError) {
-          setError(passwordError.message);
-          return;
-        }
-        const skipped = await skipToApp();
-        if (!skipped.ok) {
-          setError(skipped.message);
-          return;
-        }
-        finish(skipped.redirectTo);
-        return;
-      }
-      // Anonymous users have no email — provision profile + tourists row server-side.
-      if (data.user && (data.user.is_anonymous || !data.user.email)) {
-        const result = await skipToApp();
-        if (!result.ok) {
-          setError(result.message);
-          return;
-        }
-        finish(result.redirectTo);
+      const session = await ensurePublicTouristSession("New traveller");
+      if (!session.ok) {
+        setError(session.message);
         return;
       }
       const result = await completeSignIn();
@@ -135,20 +114,36 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
     });
   }
 
-  function demoSeededTourist() {
+  function skipKyc() {
+    setError(null);
+    setInfo(null);
+    startTransition(async () => {
+      const session = await ensurePublicTouristSession(DEMO_TOURIST_DISPLAY_NAME);
+      if (!session.ok) {
+        setError(session.message);
+        return;
+      }
+      const result = await skipToApp();
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      finish(result.redirectTo);
+    });
+  }
+
+  function enterSeededTourist(tourist: DemoTourist) {
     setError(null);
     setInfo(null);
     startTransition(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
-        email: DEMO_TOURIST.email,
-        password: DEMO_TOURIST.password,
+        email: tourist.email,
+        password: tourist.password,
       });
       if (passwordError) {
-        setError(
-          `${passwordError.message} Seed tourists first (pnpm demo:reset).`,
-        );
+        setError(`${passwordError.message} Seed tourists first (pnpm demo:reset).`);
         return;
       }
       const result = await completeSignIn();
@@ -171,9 +166,7 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
         password: DEMO_OFFICER.password,
       });
       if (passwordError) {
-        setError(
-          `${passwordError.message} Seed the staff user (supabase db reset) first.`,
-        );
+        setError(`${passwordError.message} Seed the staff user (supabase db reset) first.`);
         return;
       }
       const result = await completeSignIn();
@@ -186,12 +179,19 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
   }
 
   useEffect(() => {
-    if (!autoSkip || autoSkipStarted.current) return;
-    autoSkipStarted.current = true;
-    demoTourist();
-    // Run once for /login?skip=1 — demoTourist is recreated each render.
+    if (autoStarted.current) return;
+    if (autoKyc) {
+      autoStarted.current = true;
+      startKyc();
+      return;
+    }
+    if (autoSkip) {
+      autoStarted.current = true;
+      skipKyc();
+    }
+    // Run once for /login?flow=kyc or /login?skip=1.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoSkip]);
+  }, [autoKyc, autoSkip]);
 
   return (
     <Card className="sts-enter w-full max-w-md border-border/80 bg-card/80 shadow-2xl shadow-black/20 backdrop-blur-md">
@@ -201,7 +201,7 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
         </p>
         <CardTitle className="text-2xl tracking-tight">Sign in</CardTitle>
         <CardDescription>
-          Sign in, complete KYC, or skip straight to a scannable guest ID.
+          Issue an ID with KYC, skip to a scannable guest card, or enter as a seeded traveller.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -249,12 +249,10 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
               <Button type="submit" disabled={pending}>
                 {pending ? "Sending…" : "Send magic link"}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={pending}
-                onClick={demoTourist}
-              >
+              <Button type="button" variant="outline" disabled={pending} onClick={startKyc}>
+                {pending ? "Starting…" : "Issue ID with KYC"}
+              </Button>
+              <Button type="button" variant="ghost" disabled={pending} onClick={skipKyc}>
                 {pending ? "Entering…" : "Skip — enter without KYC"}
               </Button>
             </form>
@@ -262,30 +260,53 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
 
           <TabsContent value="tourist" className="mt-4 flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
-              Seeded traveller{" "}
-              <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span>
-              , or skip KYC and still get a scannable guest ID plus a North-East itinerary.
+              Anyone can mint a checkpoint ID. Complete Aadhaar (India) or passport (visitors), or
+              skip and upgrade later.
             </p>
-            <Button type="button" onClick={demoSeededTourist} disabled={pending}>
-              {pending ? "Signing in…" : `Enter as ${DEMO_TOURIST.label}`}
+            <Button type="button" onClick={startKyc} disabled={pending} data-testid="start-kyc">
+              {pending ? "Starting…" : "Issue ID with KYC"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={demoTourist}
+              onClick={skipKyc}
               disabled={pending}
               data-testid="skip-onboarding"
             >
               {pending ? "Entering…" : "Skip — enter without KYC"}
             </Button>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Seeded traveller
+              </p>
+              <SeededTouristButton
+                tourist={DEMO_TOURIST}
+                pending={pending}
+                onEnter={enterSeededTourist}
+              />
+              <details className="rounded-md border border-border/70 px-3 py-2" data-testid="more-travellers">
+                <summary className="cursor-pointer text-sm font-medium">
+                  More travellers
+                </summary>
+                <div className="mt-3 flex flex-col gap-2">
+                  {MORE_TOURISTS.map((tourist) => (
+                    <SeededTouristButton
+                      key={tourist.slug}
+                      tourist={tourist}
+                      pending={pending}
+                      onEnter={enterSeededTourist}
+                    />
+                  ))}
+                </div>
+              </details>
+            </div>
           </TabsContent>
 
           <TabsContent value="officer" className="mt-4 flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
               Seeded control-room admin. Credentials:{" "}
-              <span className="font-mono text-foreground">
-                {DEMO_OFFICER.email}
-              </span>
+              <span className="font-mono text-foreground">{DEMO_OFFICER.email}</span>
             </p>
             <Button type="button" onClick={demoOfficer} disabled={pending}>
               {pending ? "Signing in…" : "Enter command centre"}
@@ -294,5 +315,33 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
         </Tabs>
       </CardContent>
     </Card>
+  );
+}
+
+function SeededTouristButton({
+  tourist,
+  pending,
+  onEnter,
+}: {
+  tourist: DemoTourist;
+  pending: boolean;
+  onEnter: (tourist: DemoTourist) => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={pending}
+      onClick={() => onEnter(tourist)}
+      data-testid={`enter-tourist-${tourist.slug}`}
+      className="h-auto w-full justify-start whitespace-normal py-2.5 text-left"
+    >
+      <span className="flex min-w-0 flex-col items-start gap-0.5">
+        <span>Enter as {tourist.label}</span>
+        <span className="text-xs font-normal text-muted-foreground">
+          {touristSubtitle(tourist)}
+        </span>
+      </span>
+    </Button>
   );
 }

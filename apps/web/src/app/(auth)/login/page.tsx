@@ -12,17 +12,26 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; error?: string; skip?: string }>;
+  searchParams: Promise<{ tab?: string; error?: string; skip?: string; flow?: string }>;
 }) {
   const params = await searchParams;
   const autoSkip = params.skip === "1" || params.skip === "true";
+  const autoKyc =
+    !autoSkip && (params.flow === "kyc" || params.flow === "onboard");
   const tab = loginTabSchema.catch("magic").parse(
-    params.tab ?? (autoSkip ? "tourist" : "magic"),
+    params.tab ?? (autoSkip || autoKyc ? "tourist" : "magic"),
   );
   const initialError =
     typeof params.error === "string" && params.error.length > 0
       ? params.error
       : null;
 
-  return <LoginForm defaultTab={tab} initialError={initialError} autoSkip={autoSkip} />;
+  return (
+    <LoginForm
+      defaultTab={tab}
+      initialError={initialError}
+      autoSkip={autoSkip}
+      autoKyc={autoKyc}
+    />
+  );
 }

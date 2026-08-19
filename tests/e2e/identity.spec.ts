@@ -51,6 +51,26 @@ test.describe("identity issue + verify", () => {
     await officerContext.close();
   });
 
+  test("Issue ID with KYC opens onboarding and still offers Skip KYC", async ({
+    page,
+  }) => {
+    await expectHealthy(page);
+    await page.goto("/login?tab=tourist");
+    await expect(page.getByTestId("start-kyc")).toBeVisible();
+    await expect(page.getByTestId("skip-onboarding")).toBeVisible();
+    await expect(page.getByTestId("enter-tourist-priya-sharma")).toBeVisible();
+    await page.getByTestId("more-travellers").locator("summary").click();
+    await expect(page.getByTestId("enter-tourist-ananya-baruah")).toBeVisible();
+    await expect(page.getByTestId("enter-tourist-emma-wilson")).toBeVisible();
+    await expect(page.getByTestId("enter-tourist-tenzin-dorje")).toBeVisible();
+    await expect(page.getByTestId("enter-tourist-kenji-nakamura")).toBeVisible();
+
+    await page.getByTestId("start-kyc").click();
+    await page.waitForURL(/\/onboard/, { timeout: 30_000 });
+    await expect(page.getByTestId("residency-indian")).toBeVisible();
+    await expect(page.getByTestId("skip-kyc")).toBeVisible();
+  });
+
   test("skip KYC mints a scannable guest ID with a North-East itinerary", async ({
     browser,
     page,
@@ -85,5 +105,26 @@ test.describe("identity issue + verify", () => {
     await expect(officer.getByText(/guwahati/i).first()).toBeVisible();
 
     await officerContext.close();
+  });
+
+  test("More travellers signs in Ananya Baruah with a live digital ID", async ({
+    page,
+  }) => {
+    await expectHealthy(page);
+    await page.goto("/login?tab=tourist");
+    await page.getByTestId("more-travellers").locator("summary").click();
+    await page.getByTestId("enter-tourist-ananya-baruah").click();
+    await page.waitForURL(/\/home/, { timeout: 20_000 });
+    await page.goto("/trip");
+    await expect(page.getByRole("heading", { name: /cherrapunji|sohra/i })).toBeVisible({
+      timeout: 20_000,
+    });
+    await page.goto("/id");
+    const payload = page.getByTestId("id-qr-payload");
+    await expect(payload).toBeVisible({ timeout: 20_000 });
+    const raw = (await payload.innerText()).trim();
+    expect(raw).toContain("digitalId");
+    const parsed = JSON.parse(raw) as { digitalId?: string };
+    expect(parsed.digitalId).toMatch(UUID_RE);
   });
 });

@@ -53,9 +53,9 @@ function localeFor(user: User): string {
 
 /**
  * Idempotent profile upsert, backed by the `handle_new_user` trigger.
- * Anonymous (no-email) demo tourists also get a `tourists` row so /home works
- * without waiting for KYC onboarding. Magic-link tourists go to /onboard unless
- * they skip.
+ * Public KYC starts here with a profile only — skip-to-app and /onboard mint
+ * the tourist row, itinerary, and digital ID. Do not auto-provision a skipped
+ * guest tourist or the KYC path cannot start clean.
  */
 export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
   const supabase = await createClient();
@@ -70,11 +70,7 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
   }
 
   if (existing) {
-    const parsed = profileRowSchema.parse(existing);
-    if (isAnonymousUser(user)) {
-      await ensureDemoTouristRow(user.id);
-    }
-    return parsed;
+    return profileRowSchema.parse(existing);
   }
 
   const admin = tryCreateAdminClient();
@@ -98,22 +94,7 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
     );
   }
 
-  if (isAnonymousUser(user)) {
-    await ensureDemoTouristRow(user.id);
-  }
-
   return profileRowSchema.parse(created);
-}
-
-async function ensureDemoTouristRow(profileId: string): Promise<void> {
-  const admin = tryCreateAdminClient();
-  const supabase = admin ?? (await createClient());
-  const { error } = await supabase.rpc("ensure_demo_tourist", {
-    p_profile_id: profileId,
-  });
-  if (error) {
-    throw new Error(`Failed to provision demo tourist: ${error.message}`);
-  }
 }
 
 export async function ensureCurrentProfile(): Promise<ProfileRow> {
