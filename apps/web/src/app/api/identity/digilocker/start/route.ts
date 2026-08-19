@@ -8,6 +8,7 @@ import {
   cookieOptions,
   encodeOAuthCookie,
   newOAuthState,
+  requestOrigin,
   startRedirectUrl,
 } from "@/lib/identity/digilocker";
 import { identityLog } from "@/lib/identity/log";
@@ -17,7 +18,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const origin = request.nextUrl.origin;
+  const origin = requestOrigin(request);
   if (tryGetSupabasePublicConfig()) {
     let principal = null;
     try {

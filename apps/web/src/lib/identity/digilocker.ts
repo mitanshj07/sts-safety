@@ -66,10 +66,23 @@ export function digilockerBaseUrl(): string {
   return "https://digilocker.meripehchaan.gov.in/public";
 }
 
+export function requestOrigin(request: Request): string {
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || request.headers.get("host")?.trim();
+  if (host) {
+    const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+    const proto =
+      forwardedProto ||
+      (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
+    return `${proto}://${host}`;
+  }
+  return new URL(request.url).origin;
+}
+
 export function digilockerRedirectUri(request: Request): string {
   const fromEnv = trim(serverEnv.digilockerRedirectUri);
   if (fromEnv) return fromEnv;
-  return new URL("/api/identity/digilocker/callback", request.url).toString();
+  return new URL("/api/identity/digilocker/callback", requestOrigin(request)).toString();
 }
 
 export function digilockerLiveConfigured(): boolean {
@@ -186,7 +199,7 @@ export function startRedirectUrl(request: Request, oauth: OAuthCookie): {
     if (!digilockerLiveConfigured()) return { url: null, reason: "config" };
     return { url: buildAuthorizeUrl({ request, oauth }) };
   }
-  return { url: demoConsentUrl(new URL(request.url).origin, oauth.state) };
+  return { url: demoConsentUrl(requestOrigin(request), oauth.state) };
 }
 
 export function digilockerErrorReason(error: unknown): string {
@@ -202,7 +215,7 @@ export function onboardStatusUrl(
   status: "ok" | "error" | "denied",
   reason?: string,
 ): URL {
-  const url = new URL("/onboard", request.url);
+  const url = new URL("/onboard", requestOrigin(request));
   url.searchParams.set("digilocker", status);
   if (reason) url.searchParams.set("reason", reason);
   return url;
