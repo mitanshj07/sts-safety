@@ -169,6 +169,9 @@ export type NotificationRow = {
   title: string | null;
   body: string | null;
   locale: string | null;
+  provider_ref: string | null;
+  error: string | null;
+  attempts: number;
   created_at: string;
   delivered_at: string | null;
 };

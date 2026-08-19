@@ -10,6 +10,7 @@ import {
   severityLevelSchema,
   uuidSchema,
   zoneCategorySchema,
+  COMMAND_NOTE_MAX_LENGTH,
 } from "@sts/shared"
 
 export const jsonRecordSchema = z.record(z.string(), z.unknown())
@@ -116,6 +117,12 @@ export const regenerateBriefSchema = z.object({
 
 export const generateEfirSchema = z.object({
   incidentId: uuidSchema,
+})
+
+export const sendNoteSchema = z.object({
+  incidentId: uuidSchema,
+  body: z.string().trim().min(1).max(COMMAND_NOTE_MAX_LENGTH),
+  presetId: z.string().max(40).optional(),
 })
 
 export const saveZoneSchema = z.object({

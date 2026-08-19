@@ -10,6 +10,7 @@ import {
   markFalsePositive,
   resolveIncident,
 } from "@/app/(command)/actions"
+import { TouristNoteComposer } from "@/components/command/TouristNoteComposer"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -109,6 +110,9 @@ export function IncidentActions({
         >
           Generate E-FIR
         </Button>
+      </div>
+      <div className="mt-4 border-t border-border pt-4">
+        <TouristNoteComposer incidentId={incidentId} />
       </div>
     </div>
   )

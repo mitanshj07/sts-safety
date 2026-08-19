@@ -1,6 +1,7 @@
 // apps/web/src/lib/notify/schemas.ts
 import { z } from "zod";
 import {
+  COMMAND_NOTE_MAX_LENGTH,
   incidentTypeSchema,
   notifyChannelSchema,
   severityLevelSchema,
@@ -31,6 +32,13 @@ export const dispatchAckBodySchema = z.object({
 export const dispatchResolveBodySchema = z.object({
   incidentId: uuidSchema,
   notes: z.string().min(1).max(4000),
+  actorLabel: z.string().max(120).optional(),
+});
+
+export const touristNoteBodySchema = z.object({
+  incidentId: uuidSchema,
+  body: z.string().trim().min(1).max(COMMAND_NOTE_MAX_LENGTH),
+  presetId: z.string().max(40).optional(),
   actorLabel: z.string().max(120).optional(),
 });
 
@@ -76,3 +84,4 @@ export const enabledChannelListSchema = z.array(notifyChannelSchema);
 export type PipelineIncidentBody = z.infer<typeof pipelineIncidentSchema>;
 export type DispatchAckBody = z.infer<typeof dispatchAckBodySchema>;
 export type DispatchResolveBody = z.infer<typeof dispatchResolveBodySchema>;
+export type TouristNoteBody = z.infer<typeof touristNoteBodySchema>;
