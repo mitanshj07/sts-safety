@@ -16,9 +16,9 @@ Measured SOS figure to quote: **Realtime first-channel typically 180–450 ms** 
 
 ## 0:20–1:10 — Digital ID (issue)
 
-**Phone:** `/onboard` → document `M9988776` → name Priya Sharma → emergency contact → **Issue digital ID**.
+**Phone:** `/onboard` → Indian resident → Aadhaar `2341 2341 2346` → name Priya Sharma → emergency contact → **Issue digital ID**. Or tap **Skip KYC** / **Skip — enter without KYC** on login for a scannable guest ID plus the Guwahati → Shillong itinerary.
 
-**Say while the transaction confirms:** “KYC is encrypted in Postgres with pgcrypto. The chain only stores a keccak256 commitment and a soulbound token — no name, no passport, no GPS. If Amoy is slow we are on Anvil; the card is valid offline either way.”
+**Say while the transaction confirms:** “KYC is encrypted in Postgres with pgcrypto. Indian travellers verify Aadhaar; visitors verify a passport. The chain only stores a keccak256 commitment and a soulbound token — no name, no Aadhaar, no GPS. If Amoy is slow we are on Anvil; the card is valid at `/verify` either way.”
 
 **Clicker:** `/verify` ready. When the token appears, paste it (or scan the QR). Green “Valid” or “Chain offline + DB mirror” both count.
 

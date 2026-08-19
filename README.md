@@ -14,7 +14,7 @@ pnpm install
 pnpm dev
 ```
 
-Then `pnpm db:reset` (local Supabase) or point `.env.local` at a free Supabase project. Demo logins after seed: **admin@demo.sts** / **priya.sharma@demo.sts**, password `DemoPass123!`.
+Then `pnpm db:reset` (local Supabase) or point `.env.local` at a free Supabase project. Demo logins after seed: **admin@demo.sts** / **priya.sharma@demo.sts**, password `DemoPass123!`. Public visitors can tap **Skip — guest ID** to mint a scannable checkpoint card without KYC; Indian travellers can complete Aadhaar later, visitors a passport.
 
 Unplugged venue: [`docs/OFFLINE-DEMO.md`](docs/OFFLINE-DEMO.md). Six-minute pitch: [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md). Hostile Q&A: [`docs/JUDGE-QA.md`](docs/JUDGE-QA.md).
 
@@ -27,6 +27,7 @@ Replace the host after `vercel --prod` (Hobby, no card):
 | Surface | URL |
 | --- | --- |
 | Tourist PWA | https://sts-safety.vercel.app/home |
+| Skip — guest ID | https://sts-safety.vercel.app/login?tab=tourist&skip=1 |
 | Command centre | https://sts-safety.vercel.app/dashboard |
 | Checkpoint verify | https://sts-safety.vercel.app/verify |
 | Health / keepalive | https://sts-safety.vercel.app/api/health |
