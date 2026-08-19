@@ -2,14 +2,23 @@
 import "server-only";
 
 import type { NotifyChannel, NotifyStatus } from "@sts/shared";
+import { COMMAND_NOTE_PROVIDER_REF } from "@sts/shared";
 
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { channelApplies, enabledChannels } from "@/lib/notify/channels";
 import { NotConfiguredError } from "@/lib/notify/errors";
 import { notifyLog } from "@/lib/notify/log";
-import { resolveDispatchContext } from "@/lib/notify/recipients";
+import { resolveDispatchContext, resolveTouristRecipient } from "@/lib/notify/recipients";
 import { errorMessage, withTransientRetry } from "@/lib/notify/retry";
-import { incidentBody, incidentTitle } from "@/lib/notify/templates/messages";
+import {
+  commandNoteTitle,
+  incidentBody,
+  incidentTitle,
+  touristAlertUrl,
+  touristSosUrl,
+} from "@/lib/notify/templates/messages";
+import { broadcastIncident } from "@/lib/notify/channels/realtime";
+import { serverEnv } from "@/lib/env/server";
 import type { ChannelSendInput, NotifyIncident, NotifyRecipient } from "@/lib/notify/types";
 
 export type DispatchFanoutResult = {
@@ -27,6 +36,7 @@ async function insertQueued(input: {
   channel: NotifyChannel;
   title: string;
   body: string;
+  providerRef?: string | null;
 }): Promise<number | null> {
   const admin = createAdminSupabase();
   const { data, error } = await admin
@@ -40,6 +50,7 @@ async function insertQueued(input: {
       title: input.title,
       body: input.body,
       locale: input.recipient.locale,
+      provider_ref: input.providerRef ?? null,
       attempts: 0,
     })
     .select("id")
@@ -240,6 +251,116 @@ export async function dispatchIncidentNotifications(
     failed,
     telegramMs,
     firstChannelMs,
+  };
+}
+
+export type TouristNoteFanout = {
+  incidentId: string;
+  queued: number;
+  delivered: number;
+  failed: number;
+};
+
+export async function dispatchTouristNote(input: {
+  incidentId: string;
+  body: string;
+  actorLabel: string;
+}): Promise<TouristNoteFanout> {
+  const ctx = await resolveTouristRecipient(input.incidentId);
+  if (!ctx) {
+    throw new Error("incident has no tourist recipient");
+  }
+
+  const title = commandNoteTitle(ctx.recipient.locale);
+  const url =
+    ctx.incident.type === "sos"
+      ? touristSosUrl(serverEnv.appUrl)
+      : touristAlertUrl(serverEnv.appUrl);
+
+  const inboxId = await insertQueued({
+    incidentId: input.incidentId,
+    recipient: ctx.recipient,
+    channel: "realtime",
+    title,
+    body: input.body,
+    providerRef: COMMAND_NOTE_PROVIDER_REF,
+  });
+  if (inboxId === null) {
+    throw new Error("failed to queue tourist note");
+  }
+
+  try {
+    await broadcastIncident({
+      kind: "note",
+      incident_id: ctx.incident.id,
+      tourist_id: ctx.incident.touristId,
+      status: ctx.incident.status,
+      severity: ctx.incident.severity,
+      type: ctx.incident.type,
+      actor_label: input.actorLabel,
+      at: new Date().toISOString(),
+      title,
+      body: input.body,
+    });
+    await finalizeRow({
+      id: inboxId,
+      status: "delivered",
+      providerRef: COMMAND_NOTE_PROVIDER_REF,
+      error: null,
+      attempts: 1,
+    });
+  } catch (error) {
+    await finalizeRow({
+      id: inboxId,
+      status: inboxId === null ? "failed" : "sent",
+      providerRef: COMMAND_NOTE_PROVIDER_REF,
+      error: errorMessage(error),
+      attempts: 1,
+    });
+  }
+
+  const payload: ChannelSendInput = {
+    recipient: ctx.recipient,
+    incident: ctx.incident,
+    title,
+    body: input.body,
+    locale: ctx.recipient.locale,
+    url,
+    broadcastKind: "note",
+  };
+
+  let delivered = inboxId === null ? 0 : 1;
+  let failed = inboxId === null ? 1 : 0;
+  let queued = 1;
+
+  for (const channel of enabledChannels()) {
+    if (channel.id === "realtime") continue;
+    if (channel.id !== "webpush") continue;
+    if (!channelApplies(channel.id, ctx.recipient)) continue;
+    queued += 1;
+    const result = await deliverOne(
+      channel.id,
+      (sendInput) => channel.send(sendInput),
+      () => channel.isConfigured(),
+      payload,
+    );
+    if (result.ok) delivered += 1;
+    else failed += 1;
+  }
+
+  notifyLog("notify.tourist_note", {
+    incident_id: input.incidentId,
+    actor: input.actorLabel,
+    delivered,
+    failed,
+    queued,
+  });
+
+  return {
+    incidentId: input.incidentId,
+    queued,
+    delivered,
+    failed,
   };
 }
 

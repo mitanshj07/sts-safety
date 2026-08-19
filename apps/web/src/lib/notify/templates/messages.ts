@@ -131,3 +131,22 @@ export function dashboardUrl(appUrl: string, incidentId: string): string {
 export function touristAlertUrl(appUrl: string): string {
   return `${appUrl.replace(/\/$/, "")}/alerts`;
 }
+
+export function touristSosUrl(appUrl: string): string {
+  return `${appUrl.replace(/\/$/, "")}/sos`;
+}
+
+export function commandNoteTitle(locale: NotifyLocale): string {
+  switch (locale) {
+    case "hi":
+      return "कंट्रोल रूम";
+    case "as":
+      return "নিয়ন্ত্রণ কক্ষ";
+    case "bn":
+      return "কন্ট্রোল রুম";
+    case "ne":
+      return "कन्ट्रोल रुम";
+    default:
+      return "Control room";
+  }
+}

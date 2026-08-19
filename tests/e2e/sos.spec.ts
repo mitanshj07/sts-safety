@@ -33,6 +33,17 @@ test.describe("SOS end to end", () => {
     await expect(officer.getByText(/\bsos\b/i).first()).toBeVisible({ timeout: 20_000 });
     await expect(officer.getByLabel(/severity critical/i).first()).toBeVisible();
 
+    await officer.getByRole("option").filter({ hasText: /\bsos\b/i }).first().click();
+    await expect(officer.getByRole("button", { name: /send to tourist/i })).toBeVisible({
+      timeout: 10_000,
+    });
+    await officer.getByRole("button", { name: /^sos received$/i }).click();
+    await expect(officer.getByText(/sent to tourist/i)).toBeVisible({ timeout: 15_000 });
+
+    await expect(tourist.getByText(/we received your sos/i)).toBeVisible({ timeout: 20_000 });
+    await tourist.goto("/alerts");
+    await expect(tourist.getByText(/we received your sos/i)).toBeVisible();
+
     await touristContext.close();
     await officerContext.close();
   });

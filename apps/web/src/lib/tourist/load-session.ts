@@ -1,5 +1,6 @@
 // apps/web/src/lib/tourist/load-session.ts
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import { isCommandNoteNotification } from "@sts/shared";
 import {
   kvGet,
   kvSet,
@@ -96,7 +97,7 @@ export async function loadLiveSession(): Promise<TouristSession> {
     supabase.rpc("my_itinerary_geojson"),
     supabase
       .from("notifications")
-      .select("id, title, body, channel, status, created_at, incident_id")
+      .select("id, title, body, channel, status, created_at, incident_id, provider_ref")
       .or(`recipient_id.eq.${user.id},recipient_id.eq.${tourist.id}`)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -151,16 +152,26 @@ export async function loadLiveSession(): Promise<TouristSession> {
           status: String(rec.status ?? "queued"),
           created_at: String(rec.created_at ?? new Date().toISOString()),
           incident_id: typeof rec.incident_id === "string" ? rec.incident_id : null,
+          provider_ref: typeof rec.provider_ref === "string" ? rec.provider_ref : null,
         };
       })
     : cached.notifications;
+
+  const seenNotes = new Set<string>();
+  const deduped = notifications.filter((row) => {
+    if (!isCommandNoteNotification(row)) return true;
+    const key = `${row.incident_id ?? ""}:${row.body ?? ""}`;
+    if (seenNotes.has(key)) return false;
+    seenNotes.add(key);
+    return true;
+  });
 
   const session: TouristSession = {
     profileId: user.id,
     tourist,
     digitalId,
     itinerary,
-    notifications,
+    notifications: deduped,
   };
   await saveSession(session);
   return session;

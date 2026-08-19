@@ -9,6 +9,7 @@ import { serverEnv } from "@/lib/env/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { NotConfiguredError, TransientNotifyError } from "@/lib/notify/errors";
 import { touristAlertUrl } from "@/lib/notify/templates/messages";
+
 import type {
   ChannelSendInput,
   ChannelSendResult,
@@ -69,13 +70,14 @@ export const webpushChannel: INotificationChannel = {
       return { providerRef: "no-subscription", delivered: true };
     }
 
+    const fallbackUrl =
+      input.recipient.kind === "tourist"
+        ? touristAlertUrl(serverEnv.appUrl)
+        : `${serverEnv.appUrl.replace(/\/$/, "")}/dashboard`;
     const payload = JSON.stringify({
       title: input.title,
       body: input.body,
-      url:
-        input.recipient.kind === "tourist"
-          ? touristAlertUrl(serverEnv.appUrl)
-          : `${serverEnv.appUrl.replace(/\/$/, "")}/dashboard`,
+      url: input.url ?? fallbackUrl,
     });
 
     let sent = 0;

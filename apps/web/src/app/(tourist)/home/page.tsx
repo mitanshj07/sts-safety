@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronRight, MapPin, Navigation } from "lucide-react";
 import { PanicButton } from "@/components/tourist/PanicButton";
 import { SafetyScoreGauge } from "@/components/tourist/SafetyScoreGauge";
+import { SosReplyThread } from "@/components/tourist/SosReplyThread";
 import { StatusPills } from "@/components/tourist/StatusPills";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { RISK_BANNER } from "@/lib/geo/risk-colors";
@@ -108,6 +109,7 @@ export default function TouristHomePage() {
       </Link>
 
       <PanicButton />
+      <SosReplyThread onlyWhenOpen />
     </main>
   );
 }

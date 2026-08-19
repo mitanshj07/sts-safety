@@ -49,6 +49,8 @@ export type ChannelSendInput = {
   title: string;
   body: string;
   locale: NotifyLocale;
+  url?: string;
+  broadcastKind?: BroadcastKind;
 };
 
 export type ChannelSendResult = {
@@ -62,7 +64,7 @@ export interface INotificationChannel {
   send(input: ChannelSendInput): Promise<ChannelSendResult>;
 }
 
-export type BroadcastKind = "alert" | "ack" | "dispatch" | "resolve";
+export type BroadcastKind = "alert" | "ack" | "dispatch" | "resolve" | "note";
 
 export type IncidentBroadcast = {
   kind: BroadcastKind;
@@ -73,4 +75,6 @@ export type IncidentBroadcast = {
   type: string;
   actor_label: string;
   at: string;
+  title?: string;
+  body?: string;
 };

@@ -71,6 +71,7 @@ export type CachedNotification = {
   status: string;
   created_at: string;
   incident_id: string | null;
+  provider_ref: string | null;
 };
 
 export type ZoneProperties = {

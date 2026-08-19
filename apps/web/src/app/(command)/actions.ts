@@ -19,6 +19,7 @@ import {
   regenerateBriefSchema,
   resolveSchema,
   saveZoneSchema,
+  sendNoteSchema,
   type ActionResult,
 } from "@/lib/command/schemas"
 import { etaSeconds } from "@/lib/geo/osrm"
@@ -118,6 +119,29 @@ export async function resolveIncident(raw: unknown): Promise<ActionResult> {
   })
   revalidateIncident(parsed.data.incidentId)
   return ok("Resolved")
+}
+
+export async function sendIncidentNote(raw: unknown): Promise<ActionResult> {
+  const parsed = sendNoteSchema.safeParse(raw)
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input")
+  const { sendTouristNote } = await import("@/lib/notify/lifecycle")
+  const result = await sendTouristNote({
+    incidentId: parsed.data.incidentId,
+    body: parsed.data.body,
+    presetId: parsed.data.presetId,
+    actorLabel: "command-dashboard",
+  })
+  if (!result.ok) return fail(result.error)
+  await writeAudit({
+    action: "incident.note_tourist",
+    entity: "incidents",
+    entityId: parsed.data.incidentId,
+    after: { body: parsed.data.body, preset_id: parsed.data.presetId ?? null },
+  })
+  revalidateIncident(parsed.data.incidentId)
+  revalidatePath("/alerts")
+  revalidatePath("/sos")
+  return ok("Sent to tourist")
 }
 
 export async function markFalsePositive(raw: unknown): Promise<ActionResult> {

@@ -2,6 +2,7 @@
 "use client";
 
 import { PanicButton } from "@/components/tourist/PanicButton";
+import { SosReplyThread } from "@/components/tourist/SosReplyThread";
 
 export default function SosPage() {
   return (
@@ -22,6 +23,9 @@ export default function SosPage() {
       </div>
       <div className="relative z-10">
         <PanicButton />
+      </div>
+      <div className="relative z-10 w-full max-w-sm">
+        <SosReplyThread />
       </div>
     </main>
   );
