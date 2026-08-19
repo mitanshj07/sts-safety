@@ -1,7 +1,7 @@
 // tests/e2e/identity.spec.ts
 import { expect, test } from "@playwright/test";
 
-import { expectHealthy, loginAsOfficer, loginAsTourist } from "./helpers";
+import { dismissPermissionPrimer, expectHealthy, loginAsOfficer, loginAsTourist } from "./helpers";
 
 const DEMO_AADHAAR = "2341 2341 2346";
 const UUID_RE =
@@ -67,6 +67,7 @@ test.describe("identity issue + verify", () => {
 
     await page.getByTestId("start-kyc").click();
     await page.waitForURL(/\/onboard/, { timeout: 30_000 });
+    await dismissPermissionPrimer(page);
     await expect(page.getByTestId("residency-indian")).toBeVisible();
     await expect(page.getByTestId("skip-kyc")).toBeVisible();
   });
@@ -79,6 +80,7 @@ test.describe("identity issue + verify", () => {
     await page.goto("/login?tab=tourist");
     await page.getByTestId("skip-onboarding").click();
     await page.waitForURL(/\/home/, { timeout: 30_000 });
+    await dismissPermissionPrimer(page);
 
     await page.goto("/trip");
     await expect(page.getByRole("heading", { name: /guwahati/i })).toBeVisible({
@@ -115,6 +117,7 @@ test.describe("identity issue + verify", () => {
     await page.getByTestId("more-travellers").locator("summary").click();
     await page.getByTestId("enter-tourist-ananya-baruah").click();
     await page.waitForURL(/\/home/, { timeout: 20_000 });
+    await dismissPermissionPrimer(page);
     await page.goto("/trip");
     await expect(page.getByRole("heading", { name: /cherrapunji|sohra/i })).toBeVisible({
       timeout: 20_000,
