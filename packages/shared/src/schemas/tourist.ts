@@ -2,7 +2,7 @@
 import { z } from "zod"
 import { kycIssuanceIssues } from "../utils/kyc"
 import { latitudeSchema, longitudeSchema, timestamptzSchema, uuidSchema } from "./coords"
-import { kycTypeSchema, touristStatusSchema } from "./enums"
+import { kycStatusSchema, kycTypeSchema, touristStatusSchema } from "./enums"
 
 export const emergencyContactSchema = z.object({
   name: z.string().min(1),
@@ -20,6 +20,7 @@ export const touristCreateSchema = z
     date_of_birth: z.iso.date().optional(),
     kyc_type: kycTypeSchema,
     kyc_number: z.string().min(4),
+    kyc_status: kycStatusSchema.optional(),
     phone_e164: z.string().optional(),
     email: z.email().optional(),
     emergency_contacts: z.array(emergencyContactSchema).default([]),
@@ -31,6 +32,7 @@ export const touristCreateSchema = z
     profile_id: uuidSchema.optional(),
   })
   .superRefine((d, ctx) => {
+    if (d.kyc_status === "skipped") return
     for (const issue of kycIssuanceIssues({
       nationality: d.nationality,
       kycType: d.kyc_type,
@@ -57,6 +59,7 @@ export const touristPublicSchema = z.object({
   nationality: z.string(),
   kyc_type: kycTypeSchema,
   kyc_last4: z.string().nullable(),
+  kyc_status: kycStatusSchema.optional(),
   photo_path: z.string().nullable(),
   trip_start: timestamptzSchema,
   trip_end: timestamptzSchema,

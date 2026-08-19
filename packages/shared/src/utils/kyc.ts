@@ -204,3 +204,31 @@ export function kycIssuanceIssues(input: {
   }
   return issues
 }
+
+/** Deterministic 12-digit Verhoeff-valid Aadhaar-shaped guest number. */
+export function guestAadhaarNumber(seed: string): string {
+  let hash = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  const unsigned = hash >>> 0
+  const body = `2${String(unsigned).padStart(10, "0")}`.slice(0, 11)
+  return `${body}${verhoeffCheckDigit(body)}`
+}
+
+/** ICAO-shaped guest passport derived from a profile id or display name. */
+export function guestPassportNumber(seed: string): string {
+  const compact = seed.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().padEnd(7, "0")
+  return `G${compact.slice(0, 7)}`
+}
+
+export function guestKycForNationality(
+  nationality: string,
+  seed: string,
+): { kycType: KycType; kycNumber: string } {
+  if (isIndianNationality(nationality)) {
+    return { kycType: "aadhaar", kycNumber: guestAadhaarNumber(seed) }
+  }
+  return { kycType: "passport", kycNumber: guestPassportNumber(seed) }
+}

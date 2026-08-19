@@ -17,6 +17,7 @@ import {
   type IssueIdentityRequest,
   type KycType,
 } from "@sts/shared";
+import { skipToApp } from "@/lib/auth/actions";
 import { DigilockerConnect } from "@/components/tourist/DigilockerConnect";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ type IssueStep = {
 type IssueView = {
   touristId: string;
   tokenId: string | null;
+  digitalId: string | null;
   txHash: string | null;
   explorerUrl: string | null;
   vcPath: string | null;
@@ -86,9 +88,9 @@ function residencyOf(nationality: string): Residency {
   return isIndianNationality(nationality) ? "indian" : "international";
 }
 
-function toRequest(form: FormState): IssueIdentityRequest | null {
+function issuePayload(form: FormState): Record<string, unknown> {
   const route = routeById(form.itineraryId);
-  const parsed = issueIdentityRequestSchema.safeParse({
+  return {
     kycType: form.kycType,
     kycNumber: form.kycNumber,
     name: form.name,
@@ -110,37 +112,19 @@ function toRequest(form: FormState): IssueIdentityRequest | null {
       ? { type: "LineString", coordinates: route.coordinates }
       : undefined,
     itineraryTitle: route?.title,
+    itineraryPresetId: form.itineraryId,
+    itineraryWaypoints: route?.waypoints,
     corridorM: route?.corridor_m,
-  });
+  };
+}
+
+function toRequest(form: FormState): IssueIdentityRequest | null {
+  const parsed = issueIdentityRequestSchema.safeParse(issuePayload(form));
   return parsed.success ? parsed.data : null;
 }
 
 function firstSchemaError(form: FormState): string | null {
-  const route = routeById(form.itineraryId);
-  const parsed = issueIdentityRequestSchema.safeParse({
-    kycType: form.kycType,
-    kycNumber: form.kycNumber,
-    name: form.name,
-    nationality: form.nationality,
-    dateOfBirth: form.dateOfBirth,
-    phone: form.phone,
-    emergencyContacts: [
-      {
-        name: form.emergencyName,
-        relation: form.emergencyRelation,
-        phone_e164: form.emergencyPhone,
-        notify: true,
-      },
-    ],
-    tripStart: form.tripStart,
-    tripEnd: form.tripEnd,
-    entryPoint: route?.entry_point,
-    itineraryGeoJSON: route
-      ? { type: "LineString", coordinates: route.coordinates }
-      : undefined,
-    itineraryTitle: route?.title,
-    corridorM: route?.corridor_m,
-  });
+  const parsed = issueIdentityRequestSchema.safeParse(issuePayload(form));
   if (parsed.success) return null;
   return parsed.error.issues[0]?.message ?? "Check the form — a field is still invalid.";
 }
@@ -298,6 +282,95 @@ export default function OnboardPage() {
     setStep((s) => s + 1);
   }
 
+  async function cacheCredential(opts: {
+    touristId: string;
+    tokenId: string | null;
+    digitalId: string | null;
+    vcPath: string | null;
+    txHash: string | null;
+    chainId: number;
+    contract: string;
+    status: "pending" | "active";
+    kycLast4: string;
+    kycType: KycType;
+    kycStatus: "skipped" | "verified";
+    name: string;
+  }) {
+    const route = routeById(form.itineraryId);
+    const tourist: CachedTourist = {
+      id: opts.touristId,
+      profile_id: null,
+      full_name: opts.name,
+      nationality: form.nationality || "IN",
+      kyc_type: opts.kycType,
+      kyc_last4: opts.kycLast4,
+      kyc_status: opts.kycStatus,
+      photo_data_url: photo,
+      safety_score: 100,
+      trip_start: form.tripStart,
+      trip_end: form.tripEnd,
+      phone_e164: form.phone,
+      email: null,
+      emergency_contacts: [
+        {
+          name: form.emergencyName,
+          relation: form.emergencyRelation,
+          phone_e164: form.emergencyPhone,
+          notify: true,
+        },
+      ],
+      current_zone_ids: [],
+      tracking_enabled: true,
+    };
+    const digitalId: CachedDigitalId = {
+      id: opts.digitalId ?? opts.touristId,
+      tourist_id: opts.touristId,
+      chain_id: opts.chainId,
+      contract_address: opts.contract,
+      token_id: opts.tokenId,
+      vc_path: opts.vcPath,
+      status: opts.status,
+      issue_tx_hash: opts.txHash,
+      valid_from: form.tripStart,
+      valid_until: form.tripEnd,
+      kyc_last4: opts.kycLast4,
+      kyc_type: opts.kycType,
+      kyc_status: opts.kycStatus,
+      full_name: opts.name,
+      nationality: form.nationality || "IN",
+      photo_data_url: photo,
+    };
+    const itinerary: CachedItinerary | null = route
+      ? {
+          id: route.id,
+          title: route.title,
+          corridor_m: route.corridor_m,
+          waypoints: route.waypoints.map((w) => ({ ...w })),
+          starts_at: form.tripStart,
+          ends_at: form.tripEnd,
+          geometry: itineraryLineString(route).geometry,
+        }
+      : null;
+    await patchSession({ tourist, digitalId, itinerary });
+  }
+
+  async function skipOnboarding() {
+    setError(null);
+    setIssuing(true);
+    try {
+      const resultSkip = await skipToApp(form.itineraryId);
+      if (!resultSkip.ok) {
+        setError(resultSkip.message);
+        return;
+      }
+      window.location.assign(resultSkip.redirectTo);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not skip onboarding");
+    } finally {
+      setIssuing(false);
+    }
+  }
+
   async function submit() {
     setError(null);
     const payload = toRequest(form);
@@ -306,7 +379,6 @@ export default function OnboardPage() {
       return;
     }
     setIssuing(true);
-    const route = routeById(form.itineraryId);
     try {
       const res = await fetch("/api/identity/issue", {
         method: "POST",
@@ -331,13 +403,16 @@ export default function OnboardPage() {
       const txHash = typeof rec.txHash === "string" ? rec.txHash : null;
       const explorerUrl = typeof rec.explorerUrl === "string" ? rec.explorerUrl : null;
       const tokenId = rec.tokenId == null ? null : String(rec.tokenId);
+      const digitalId = typeof rec.digitalId === "string" ? rec.digitalId : null;
       const vcPath = typeof rec.vcPath === "string" ? rec.vcPath : null;
       const chainId = Number(rec.chainId ?? publicEnv.chainId);
       const contract = typeof rec.contract === "string" ? rec.contract : publicEnv.touristIdRegistry;
+      const itineraryId = typeof rec.itineraryId === "string" ? rec.itineraryId : null;
 
       const view: IssueView = {
         touristId,
         tokenId,
+        digitalId,
         txHash,
         explorerUrl,
         vcPath,
@@ -351,71 +426,49 @@ export default function OnboardPage() {
             id: "insert",
             label: "Write tourist + itinerary",
             status: "done",
-            detail: touristId,
+            detail: itineraryId ?? touristId,
           },
           {
             id: "chain",
             label: "TouristIdentityRegistry.issue()",
             status: txHash ? "done" : "pending",
-            detail: txHash ?? "Queued on the relayer — ID is valid offline",
+            detail: txHash ?? "Queued on the relayer — ID is valid at checkpoints via the DB mirror",
           },
         ],
       };
       setResult(view);
 
       const last4 = form.kycNumber.replace(/[\s-]/g, "").slice(-4);
-      const tourist: CachedTourist = {
-        id: touristId,
-        profile_id: null,
-        full_name: form.name,
-        nationality: form.nationality,
-        kyc_type: form.kycType,
-        kyc_last4: last4,
-        photo_data_url: photo,
-        safety_score: 100,
-        trip_start: form.tripStart,
-        trip_end: form.tripEnd,
-        phone_e164: form.phone,
-        email: null,
-        emergency_contacts: [
-          {
-            name: form.emergencyName,
-            relation: form.emergencyRelation,
-            phone_e164: form.emergencyPhone,
-            notify: true,
-          },
-        ],
-        current_zone_ids: [],
-        tracking_enabled: true,
-      };
-      const digitalId: CachedDigitalId = {
-        tourist_id: touristId,
-        chain_id: chainId,
-        contract_address: contract,
-        token_id: tokenId,
-        vc_path: vcPath,
+      await cacheCredential({
+        touristId,
+        tokenId,
+        digitalId,
+        vcPath,
+        txHash,
+        chainId,
+        contract,
         status,
-        issue_tx_hash: txHash,
-        valid_from: form.tripStart,
-        valid_until: form.tripEnd,
-        kyc_last4: last4,
-        kyc_type: form.kycType,
-        full_name: form.name,
-        nationality: form.nationality,
-        photo_data_url: photo,
-      };
-      const itinerary: CachedItinerary | null = route
-        ? {
-            id: route.id,
-            title: route.title,
-            corridor_m: route.corridor_m,
-            waypoints: route.waypoints.map((w) => ({ ...w })),
-            starts_at: form.tripStart,
-            ends_at: form.tripEnd,
-            geometry: itineraryLineString(route).geometry,
-          }
-        : null;
-      await patchSession({ tourist, digitalId, itinerary });
+        kycLast4: last4,
+        kycType: form.kycType,
+        kycStatus: "verified",
+        name: form.name,
+      });
+      if (itineraryId) {
+        const route = routeById(form.itineraryId);
+        if (route) {
+          await patchSession({
+            itinerary: {
+              id: itineraryId,
+              title: route.title,
+              corridor_m: route.corridor_m,
+              waypoints: route.waypoints.map((w) => ({ ...w })),
+              starts_at: form.tripStart,
+              ends_at: form.tripEnd,
+              geometry: itineraryLineString(route).geometry,
+            },
+          });
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Issuance failed");
     } finally {
@@ -444,6 +497,10 @@ export default function OnboardPage() {
           <p className="font-mono text-sm" data-testid="issued-token">
             Token {result.tokenId}
           </p>
+        ) : result.digitalId ? (
+          <p className="font-mono text-sm" data-testid="issued-token">
+            ID {result.digitalId}
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">
             Token pending — local credential is still valid for checkpoint staff via the DB mirror.
@@ -460,11 +517,11 @@ export default function OnboardPage() {
           </a>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Chain write is queued. Your local ID card is ready offline.
+            Chain write is queued. Your ID card is scannable at the command centre now.
           </p>
         )}
-        <Button type="button" onClick={() => router.push("/home")}>
-          Continue to home
+        <Button type="button" onClick={() => router.push("/id")}>
+          Show ID card
         </Button>
       </main>
     );
@@ -722,7 +779,7 @@ export default function OnboardPage() {
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {step > 0 ? (
           <Button type="button" variant="secondary" onClick={() => setStep((s) => s - 1)}>
             Back
@@ -742,6 +799,15 @@ export default function OnboardPage() {
             {issuing ? "Issuing…" : "Issue digital ID"}
           </Button>
         )}
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={issuing}
+          data-testid="skip-kyc"
+          onClick={() => void skipOnboarding()}
+        >
+          Skip KYC
+        </Button>
       </div>
     </main>
   );

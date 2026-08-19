@@ -49,6 +49,7 @@ export type TouristRow = {
   nationality: string;
   date_of_birth: string | null;
   kyc_type: "passport" | "aadhaar" | "voter_id" | "driving_licence";
+  kyc_status?: "skipped" | "pending" | "verified";
   kyc_number_enc: string;
   kyc_last4: string | null;
   kyc_salt: string;
@@ -78,6 +79,7 @@ export type TouristInsert = {
   nationality?: string;
   date_of_birth?: string | null;
   kyc_type: TouristRow["kyc_type"];
+  kyc_status?: TouristRow["kyc_status"];
   kyc_number_enc: string;
   kyc_last4?: string | null;
   kyc_salt?: string;
@@ -273,6 +275,18 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      insert_itinerary_from_geojson: {
+        Args: {
+          p_tourist_id: string;
+          p_title: string;
+          p_geojson: Json;
+          p_corridor_m: number;
+          p_waypoints: Json;
+          p_starts_at: string;
+          p_ends_at: string;
+        };
+        Returns: string;
+      };
       nearest_responders: {
         Args: { p_lon: number; p_lat: number; p_limit?: number };
         Returns: Array<{
@@ -285,6 +299,7 @@ export type Database = {
     };
     Enums: {
       user_role: UserRole;
+      kyc_status: "skipped" | "pending" | "verified";
     };
     CompositeTypes: Record<string, never>;
   };

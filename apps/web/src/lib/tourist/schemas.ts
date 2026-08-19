@@ -83,10 +83,16 @@ export const pushSubscribeSchema = z.object({
 export type PushSubscribeRequest = z.infer<typeof pushSubscribeSchema>;
 
 export const qrPayloadSchema = z.object({
+  v: z.literal(1).default(1),
+  kind: z.literal("sts-id").default("sts-id"),
   chainId: z.number(),
   contract: z.string(),
   tokenId: z.string().nullable(),
-  vcPath: z.string().nullable(),
+  digitalId: z.string(),
+  touristId: z.string(),
+  vcPath: z.string().nullable().optional(),
+  sig: z.string().nullable().optional(),
+  kycStatus: z.enum(["skipped", "pending", "verified"]).optional(),
 });
 
 export type QrPayload = z.infer<typeof qrPayloadSchema>;

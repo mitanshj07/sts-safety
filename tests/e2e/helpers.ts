@@ -20,7 +20,7 @@ export async function loginAsOfficer(page: Page): Promise<void> {
 export async function loginAsTourist(page: Page): Promise<void> {
   await page.goto("/login?tab=tourist");
   await page.getByRole("button", { name: /enter as priya sharma/i }).click();
-  await page.waitForURL(/\/home/, { timeout: 20_000 });
+  await page.waitForURL(/\/(home|onboard)/, { timeout: 20_000 });
   await dismissPermissionPrimer(page);
 }
 
