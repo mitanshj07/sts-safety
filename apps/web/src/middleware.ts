@@ -55,6 +55,12 @@ async function readRole(
   return parseUserRole(data?.role) ?? fromJwt ?? "tourist";
 }
 
+function isServerActionRequest(request: NextRequest): boolean {
+  return (
+    request.headers.has("next-action") || request.headers.has("Next-Action")
+  );
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
@@ -119,6 +125,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const home = homePathForRole(role);
 
   if (pathname === "/login") {
+    // Server Actions POST to the current URL. Redirecting them to /home
+    // breaks completeSignIn / skipToApp with "unexpected response".
+    if (isServerActionRequest(request) || request.method !== "GET") {
+      return supabaseResponse;
+    }
     return redirectWithCookies(request, supabaseResponse, home);
   }
 

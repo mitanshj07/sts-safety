@@ -1,4 +1,6 @@
 // apps/web/src/lib/auth/public-session.ts
+"use client";
+
 import { createGuestLogin } from "@/lib/auth/actions";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 

@@ -100,17 +100,21 @@ export function LoginForm({
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const session = await ensurePublicTouristSession("New traveller");
-      if (!session.ok) {
-        setError(session.message);
-        return;
+      try {
+        const session = await ensurePublicTouristSession("New traveller");
+        if (!session.ok) {
+          setError(session.message);
+          return;
+        }
+        const result = await completeSignIn();
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        finish(result.redirectTo);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not start KYC");
       }
-      const result = await completeSignIn();
-      if (!result.ok) {
-        setError(result.message);
-        return;
-      }
-      finish(result.redirectTo);
     });
   }
 
@@ -118,17 +122,21 @@ export function LoginForm({
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const session = await ensurePublicTouristSession(DEMO_TOURIST_DISPLAY_NAME);
-      if (!session.ok) {
-        setError(session.message);
-        return;
+      try {
+        const session = await ensurePublicTouristSession(DEMO_TOURIST_DISPLAY_NAME);
+        if (!session.ok) {
+          setError(session.message);
+          return;
+        }
+        const result = await skipToApp();
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        finish(result.redirectTo);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not skip KYC");
       }
-      const result = await skipToApp();
-      if (!result.ok) {
-        setError(result.message);
-        return;
-      }
-      finish(result.redirectTo);
     });
   }
 
@@ -136,22 +144,26 @@ export function LoginForm({
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = requireSupabase();
-      if (!supabase) return;
-      const { error: passwordError } = await supabase.auth.signInWithPassword({
-        email: tourist.email,
-        password: tourist.password,
-      });
-      if (passwordError) {
-        setError(`${passwordError.message} Seed tourists first (pnpm demo:reset).`);
-        return;
+      try {
+        const supabase = requireSupabase();
+        if (!supabase) return;
+        const { error: passwordError } = await supabase.auth.signInWithPassword({
+          email: tourist.email,
+          password: tourist.password,
+        });
+        if (passwordError) {
+          setError(`${passwordError.message} Seed tourists first (pnpm demo:reset).`);
+          return;
+        }
+        const result = await completeSignIn();
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        finish(result.redirectTo);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not sign in");
       }
-      const result = await completeSignIn();
-      if (!result.ok) {
-        setError(result.message);
-        return;
-      }
-      finish(result.redirectTo);
     });
   }
 
@@ -159,22 +171,26 @@ export function LoginForm({
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const supabase = requireSupabase();
-      if (!supabase) return;
-      const { error: passwordError } = await supabase.auth.signInWithPassword({
-        email: DEMO_OFFICER.email,
-        password: DEMO_OFFICER.password,
-      });
-      if (passwordError) {
-        setError(`${passwordError.message} Seed the staff user (supabase db reset) first.`);
-        return;
+      try {
+        const supabase = requireSupabase();
+        if (!supabase) return;
+        const { error: passwordError } = await supabase.auth.signInWithPassword({
+          email: DEMO_OFFICER.email,
+          password: DEMO_OFFICER.password,
+        });
+        if (passwordError) {
+          setError(`${passwordError.message} Seed the staff user (supabase db reset) first.`);
+          return;
+        }
+        const result = await completeSignIn();
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        finish(result.redirectTo);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not sign in");
       }
-      const result = await completeSignIn();
-      if (!result.ok) {
-        setError(result.message);
-        return;
-      }
-      finish(result.redirectTo);
     });
   }
 
