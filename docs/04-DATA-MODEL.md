@@ -71,6 +71,7 @@ kycCommitment = keccak256(abi.encodePacked(uint8 kycType, string kycNumber, byte
 ```
 
 - `kycType`: `1` passport, `2` aadhaar, `3` voter_id, `4` driving_licence — matching the `kyc_type` enum ordinal.
+- Issuance policy (onboarding step 1, Zod, and `tourists_kyc_matches_nationality`): **Indian (`IN`) travellers must use Aadhaar**, with Voter ID or driving licence as equivalent Indian KYC. **International travellers must use a passport.** Aadhaar numbers are 12 digits (first digit 2–9) with a Verhoeff checksum; passport numbers follow ICAO 9303 shape.
 - `kycNumber`: uppercased, all whitespace and hyphens stripped.
 - `salt`: `tourists.kyc_salt`, 32 random bytes, generated once, never reused, never leaves the database unencrypted.
 

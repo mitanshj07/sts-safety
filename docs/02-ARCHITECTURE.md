@@ -101,14 +101,17 @@
 ## 2.2 Flow 1 — Digital ID issuance (tourist onboarding at a check-post)
 
 ```
- 1. Tourist scans passport / enters Aadhaar-masked ID + trip details in the PWA
-    (or a tourism-desk operator does it on the tourist's behalf).
+ 1. Opening step: Indian resident → Aadhaar (Voter ID / driving licence
+    accepted as equivalent Indian KYC). International visitor → passport.
+    Numbers are format-checked (UIDAI Verhoeff / ICAO / EPIC / DL).
+    A tourism-desk operator can complete this on the tourist's behalf.
         │
  2. POST /api/identity/issue   { kycType, kycNumber, name, nationality,
                                  emergencyContacts[], tripStart, tripEnd,
                                  itineraryGeoJSON }
         │
- 3. Server-side validation (Zod) → reject malformed / expired trip windows.
+ 3. Server-side validation (Zod) → reject malformed numbers, nationality /
+    document mismatches, and expired trip windows.
         │
  4. Generate salt = randomBytes(32).
     kycCommitment = keccak256(abi.encodePacked(kycType, kycNumber, salt))

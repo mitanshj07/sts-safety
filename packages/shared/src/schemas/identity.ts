@@ -1,5 +1,6 @@
 // packages/shared/src/schemas/identity.ts
 import { z } from "zod"
+import { kycIssuanceIssues } from "../utils/kyc"
 import { lonLatTupleSchema, timestamptzSchema } from "./coords"
 import { kycTypeSchema } from "./enums"
 import { emergencyContactSchema } from "./tourist"
@@ -30,9 +31,25 @@ export const issueIdentityRequestSchema = z
     locale: z.string().max(8).optional(),
     profileId: z.uuid().optional(),
   })
-  .refine((d) => Date.parse(d.tripEnd) > Date.parse(d.tripStart), {
-    message: "tripEnd must be after tripStart",
-    path: ["tripEnd"],
+  .superRefine((d, ctx) => {
+    if (Date.parse(d.tripEnd) <= Date.parse(d.tripStart)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "tripEnd must be after tripStart",
+        path: ["tripEnd"],
+      })
+    }
+    for (const issue of kycIssuanceIssues({
+      nationality: d.nationality,
+      kycType: d.kycType,
+      kycNumber: d.kycNumber,
+    })) {
+      ctx.addIssue({
+        code: "custom",
+        message: issue.message,
+        path: [issue.path],
+      })
+    }
   })
 export type IssueIdentityRequest = z.infer<typeof issueIdentityRequestSchema>
 

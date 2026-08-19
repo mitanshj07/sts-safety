@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: BadgeCheck,
     title: "Soulbound digital ID",
-    body: "KYC stays encrypted. On-chain: a keccak256 commitment, never PII.",
+    body: "Indian travellers verify Aadhaar; visitors verify a passport. Only a keccak256 commitment goes on-chain.",
   },
   {
     icon: Radio,

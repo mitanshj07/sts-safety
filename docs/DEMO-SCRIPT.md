@@ -16,7 +16,7 @@ Measured SOS figure to quote: **Realtime first-channel typically 180–450 ms** 
 
 ## 0:20–1:10 — Digital ID (issue)
 
-**Phone:** `/onboard` → document `M9988776` → name Priya Sharma → emergency contact → **Issue digital ID**.
+**Phone:** `/onboard` → Indian resident → Aadhaar `2341 2341 2346` → name Priya Sharma → emergency contact → **Issue digital ID**.
 
 **Say while the transaction confirms:** “KYC is encrypted in Postgres with pgcrypto. The chain only stores a keccak256 commitment and a soulbound token — no name, no passport, no GPS. If Amoy is slow we are on Anvil; the card is valid offline either way.”
 

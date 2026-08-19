@@ -315,9 +315,10 @@ Build the tourist experience in apps/web/src/app/(tourist)/:
 3. hooks/useOnlineStatus.ts, hooks/usePushSubscription.ts (VAPID subscribe →
    POST /api/notify/subscribe).
 4. Pages:
-   - onboard/page.tsx — multi-step KYC form (document type, number, name,
-     nationality, DOB, emergency contacts, trip dates, itinerary picked from
-     preset NE routes). Submits to /api/identity/issue. Optimistic progress UI
+   - onboard/page.tsx — first step is residency: Indian → Aadhaar (Voter ID /
+     driving licence as equivalent docs); international → passport. Then name,
+     DOB, emergency contacts, trip dates, itinerary from preset NE routes.
+     Submits to /api/identity/issue. Optimistic progress UI
      with the on-chain step shown explicitly — judges like watching the tx land.
    - home/page.tsx — SafetyScoreGauge (animated SVG arc), current zone banner
      coloured by risk, next waypoint, connection + tracking status pills.

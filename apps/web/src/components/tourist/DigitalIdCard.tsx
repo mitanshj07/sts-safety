@@ -3,10 +3,18 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { KYC_TYPE_LABELS, type KycType } from "@sts/shared";
 import { publicEnv } from "@/lib/config/public";
 import type { CachedDigitalId } from "@/lib/offline/db";
 import type { QrPayload } from "@/lib/tourist/schemas";
 import { Badge } from "@/components/ui/badge";
+
+function kycHeading(kycType: string | null | undefined): string {
+  if (kycType && kycType in KYC_TYPE_LABELS) {
+    return KYC_TYPE_LABELS[kycType as KycType];
+  }
+  return "KYC";
+}
 
 function maskKyc(last4: string | null): string {
   if (!last4) return "•••• ••••";
@@ -70,7 +78,7 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
           <dd className="font-medium">{id.full_name}</dd>
           <dt className="text-muted-foreground">Nationality</dt>
           <dd className="font-mono">{id.nationality}</dd>
-          <dt className="text-muted-foreground">KYC</dt>
+          <dt className="text-muted-foreground">{kycHeading(id.kyc_type)}</dt>
           <dd className="font-mono">{maskKyc(id.kyc_last4)}</dd>
           <dt className="text-muted-foreground">Token</dt>
           <dd className="font-mono text-xs">{id.token_id ?? "pending"}</dd>

@@ -47,6 +47,7 @@ export type CachedDigitalId = {
   valid_from: string;
   valid_until: string;
   kyc_last4: string | null;
+  kyc_type: string | null;
   full_name: string;
   nationality: string;
   photo_data_url: string | null;

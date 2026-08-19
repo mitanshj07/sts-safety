@@ -138,7 +138,7 @@ smart-tourist-safety/
 │           │   │
 │           │   ├── (tourist)/
 │           │   │   ├── layout.tsx          # bottom nav, permission prompts, SW registration
-│           │   │   ├── onboard/page.tsx    # KYC form → digital ID issuance
+│           │   │   ├── onboard/page.tsx    # Aadhaar (IN) / passport (intl) → digital ID
 │           │   │   ├── home/page.tsx       # safety score gauge, current zone, weather-ish banner
 │           │   │   ├── map/page.tsx        # own position + zone overlays + itinerary corridor
 │           │   │   ├── id/page.tsx         # digital ID card + QR + on-chain proof link

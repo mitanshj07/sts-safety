@@ -80,7 +80,7 @@ create policy profiles_self_insert on profiles
   with check (id = auth.uid() and role = 'tourist'::user_role);
 
 -- Provision a tourists row for anonymous (no-email) demo sign-ins.
--- KYC is a placeholder; onboarding (Phase 6) replaces it.
+-- Placeholder KYC is Indian Aadhaar; /onboard replaces it with a real document.
 create or replace function public.ensure_demo_tourist(p_profile_id uuid)
 returns uuid
 language plpgsql
@@ -115,7 +115,7 @@ begin
     p_profile_id,
     coalesce(nullif(v_name, ''), 'Demo Tourist'),
     'IN',
-    'passport',
+    'aadhaar',
     pgp_sym_encrypt('DEMO-ANON', 'dev-only-pii-key'),
     'ANON',
     null,

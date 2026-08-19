@@ -4,7 +4,14 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
+  allowedKycTypes,
+  defaultKycType,
+  isIndianNationality,
   issueIdentityRequestSchema,
+  kycIssuanceIssues,
+  KYC_NUMBER_HINTS,
+  KYC_NUMBER_PLACEHOLDERS,
+  KYC_TYPE_LABELS,
   type IssueIdentityRequest,
   type KycType,
 } from "@sts/shared";
@@ -16,8 +23,12 @@ import { Label } from "@/components/ui/label";
 import { publicEnv } from "@/lib/config/public";
 import type { CachedDigitalId, CachedItinerary, CachedTourist } from "@/lib/offline/db";
 import { PRESET_NE_ROUTES, itineraryLineString, routeById } from "@/lib/tourist/routes";
+import { cn } from "@/lib/utils";
 
 const STEPS = ["Document", "You", "Emergency", "Trip"] as const;
+const INDIAN_KEEP = new Set<KycType>(["aadhaar", "voter_id", "driving_licence"]);
+
+type Residency = "indian" | "international";
 
 type FormState = {
   kycType: KycType;
@@ -54,7 +65,7 @@ type IssueView = {
 };
 
 const EMPTY: FormState = {
-  kycType: "passport",
+  kycType: "aadhaar",
   kycNumber: "",
   name: "",
   nationality: "IN",
@@ -67,6 +78,10 @@ const EMPTY: FormState = {
   tripEnd: new Date(Date.now() + 7 * 86400000).toISOString(),
   itineraryId: PRESET_NE_ROUTES[0]?.id ?? "ghy-shillong",
 };
+
+function residencyOf(nationality: string): Residency {
+  return isIndianNationality(nationality) ? "indian" : "international";
+}
 
 function toRequest(form: FormState): IssueIdentityRequest | null {
   const route = routeById(form.itineraryId);
@@ -97,6 +112,45 @@ function toRequest(form: FormState): IssueIdentityRequest | null {
   return parsed.success ? parsed.data : null;
 }
 
+function firstSchemaError(form: FormState): string | null {
+  const route = routeById(form.itineraryId);
+  const parsed = issueIdentityRequestSchema.safeParse({
+    kycType: form.kycType,
+    kycNumber: form.kycNumber,
+    name: form.name,
+    nationality: form.nationality,
+    dateOfBirth: form.dateOfBirth,
+    phone: form.phone,
+    emergencyContacts: [
+      {
+        name: form.emergencyName,
+        relation: form.emergencyRelation,
+        phone_e164: form.emergencyPhone,
+        notify: true,
+      },
+    ],
+    tripStart: form.tripStart,
+    tripEnd: form.tripEnd,
+    entryPoint: route?.entry_point,
+    itineraryGeoJSON: route
+      ? { type: "LineString", coordinates: route.coordinates }
+      : undefined,
+    itineraryTitle: route?.title,
+    corridorM: route?.corridor_m,
+  });
+  if (parsed.success) return null;
+  return parsed.error.issues[0]?.message ?? "Check the form — a field is still invalid.";
+}
+
+function documentStepError(form: FormState): string | null {
+  const issues = kycIssuanceIssues({
+    nationality: form.nationality,
+    kycType: form.kycType,
+    kycNumber: form.kycNumber,
+  });
+  return issues[0]?.message ?? null;
+}
+
 export default function OnboardPage() {
   const router = useRouter();
   const { patchSession } = useTouristRuntime();
@@ -108,16 +162,53 @@ export default function OnboardPage() {
   const [result, setResult] = useState<IssueView | null>(null);
 
   const parsed = useMemo(() => toRequest(form), [form]);
+  const residency = residencyOf(form.nationality);
+  const docTypes = allowedKycTypes(form.nationality);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function setResidency(next: Residency) {
+    setError(null);
+    setForm((prev) => {
+      if (next === "indian") {
+        const kycType = (INDIAN_KEEP.has(prev.kycType) ? prev.kycType : "aadhaar") as KycType;
+        return { ...prev, nationality: "IN", kycType };
+      }
+      return {
+        ...prev,
+        nationality: prev.nationality === "IN" ? "" : prev.nationality,
+        kycType: "passport",
+      };
+    });
+  }
+
+  function goNext() {
+    setError(null);
+    if (step === 0) {
+      const docError = documentStepError(form);
+      if (docError) {
+        setError(docError);
+        return;
+      }
+    }
+    if (step === 1 && form.name.trim().length < 1) {
+      setError("Enter the traveller's full name.");
+      return;
+    }
+    if (step === 2 && form.emergencyName.trim().length < 1) {
+      setError("Enter an emergency contact.");
+      return;
+    }
+    setStep((s) => s + 1);
   }
 
   async function submit() {
     setError(null);
     const payload = toRequest(form);
     if (!payload) {
-      setError("Check the form — a field is still invalid.");
+      setError(firstSchemaError(form) ?? "Check the form — a field is still invalid.");
       return;
     }
     setIssuing(true);
@@ -214,6 +305,7 @@ export default function OnboardPage() {
         valid_from: form.tripStart,
         valid_until: form.tripEnd,
         kyc_last4: last4,
+        kyc_type: form.kycType,
         full_name: form.name,
         nationality: form.nationality,
         photo_data_url: photo,
@@ -284,6 +376,8 @@ export default function OnboardPage() {
     );
   }
 
+  const kycLabel = KYC_TYPE_LABELS[form.kycType];
+
   return (
     <main className="sts-enter mx-auto flex max-w-lg flex-col gap-5 px-4 py-6">
       <div>
@@ -313,26 +407,99 @@ export default function OnboardPage() {
           <CardHeader>
             <CardTitle>Travel document</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Label htmlFor="kyc_type">Document type</Label>
-            <select
-              id="kyc_type"
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={form.kycType}
-              onChange={(e) => update("kycType", e.target.value as KycType)}
-            >
-              <option value="passport">Passport</option>
-              <option value="aadhaar">Aadhaar</option>
-              <option value="voter_id">Voter ID</option>
-              <option value="driving_licence">Driving licence</option>
-            </select>
-            <Label htmlFor="kyc_number">Document number</Label>
-            <Input
-              id="kyc_number"
-              value={form.kycNumber}
-              autoComplete="off"
-              onChange={(e) => update("kycNumber", e.target.value)}
-            />
+          <CardContent className="space-y-4">
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">Who is travelling?</legend>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-testid="residency-indian"
+                  aria-pressed={residency === "indian"}
+                  onClick={() => setResidency("indian")}
+                  className={cn(
+                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    residency === "indian"
+                      ? "border-primary bg-primary/10"
+                      : "border-border/80 bg-background hover:border-primary/40",
+                  )}
+                >
+                  <p className="text-sm font-semibold">Indian resident</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Aadhaar first. Voter ID or driving licence also accepted.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  data-testid="residency-international"
+                  aria-pressed={residency === "international"}
+                  onClick={() => setResidency("international")}
+                  className={cn(
+                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    residency === "international"
+                      ? "border-primary bg-primary/10"
+                      : "border-border/80 bg-background hover:border-primary/40",
+                  )}
+                >
+                  <p className="text-sm font-semibold">International visitor</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Passport verification — ICAO travel document number.
+                  </p>
+                </button>
+              </div>
+            </fieldset>
+
+            {residency === "international" ? (
+              <div className="space-y-2">
+                <Label htmlFor="nationality">Nationality (ISO 2)</Label>
+                <Input
+                  id="nationality"
+                  maxLength={2}
+                  placeholder="GB"
+                  value={form.nationality}
+                  onChange={(e) => {
+                    const next = e.target.value.toUpperCase();
+                    if (next === "IN") {
+                      setResidency("indian");
+                      return;
+                    }
+                    update("nationality", next);
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Nationality locked to India (IN) for Aadhaar / equivalent Indian KYC.
+              </p>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="kyc_type">Document type</Label>
+              <select
+                id="kyc_type"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={form.kycType}
+                onChange={(e) => update("kycType", e.target.value as KycType)}
+              >
+                {docTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {KYC_TYPE_LABELS[type]}
+                    {type === defaultKycType(form.nationality) ? " — recommended" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="kyc_number">{kycLabel} number</Label>
+              <Input
+                id="kyc_number"
+                value={form.kycNumber}
+                autoComplete="off"
+                inputMode={form.kycType === "aadhaar" ? "numeric" : "text"}
+                placeholder={KYC_NUMBER_PLACEHOLDERS[form.kycType]}
+                onChange={(e) => update("kycNumber", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">{KYC_NUMBER_HINTS[form.kycType]}</p>
+            </div>
           </CardContent>
         </Card>
       ) : null}
@@ -345,13 +512,6 @@ export default function OnboardPage() {
           <CardContent className="space-y-3">
             <Label htmlFor="full_name">Full name</Label>
             <Input id="full_name" value={form.name} onChange={(e) => update("name", e.target.value)} />
-            <Label htmlFor="nationality">Nationality (ISO 2)</Label>
-            <Input
-              id="nationality"
-              maxLength={2}
-              value={form.nationality}
-              onChange={(e) => update("nationality", e.target.value.toUpperCase())}
-            />
             <Label htmlFor="dob">Date of birth</Label>
             <Input
               id="dob"
@@ -454,7 +614,7 @@ export default function OnboardPage() {
           </Button>
         ) : null}
         {step < STEPS.length - 1 ? (
-          <Button type="button" className="flex-1" onClick={() => setStep((s) => s + 1)}>
+          <Button type="button" className="flex-1" onClick={goNext}>
             Next
           </Button>
         ) : (

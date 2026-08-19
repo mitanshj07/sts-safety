@@ -11,7 +11,8 @@ test.describe("identity issue + verify", () => {
     await expectHealthy(page);
     await loginAsTourist(page);
     await page.goto("/onboard");
-    await page.getByLabel(/document number/i).fill("M9988776");
+    await page.getByTestId("residency-indian").click();
+    await page.getByLabel(/aadhaar number/i).fill("234123412346");
     await page.getByRole("button", { name: /^next$/i }).click();
     await page.getByLabel(/full name/i).fill("Priya Sharma");
     await page.getByRole("button", { name: /^next$/i }).click();

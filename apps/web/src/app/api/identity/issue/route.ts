@@ -18,8 +18,9 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = issueIdentityRequestSchema.safeParse(body);
   if (!parsed.success) {
+    const first = parsed.error.issues[0]?.message ?? "validation_failed";
     return Response.json(
-      { ok: false, error: "validation_failed", details: parsed.error.flatten() },
+      { ok: false, error: first, details: parsed.error.flatten() },
       { status: 400 },
     );
   }

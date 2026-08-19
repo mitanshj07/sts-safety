@@ -42,6 +42,7 @@ export default function DigitalIdPage() {
     valid_from: tourist?.trip_start ?? new Date().toISOString(),
     valid_until: tourist?.trip_end ?? new Date().toISOString(),
     kyc_last4: tourist?.kyc_last4 ?? null,
+    kyc_type: tourist?.kyc_type ?? "aadhaar",
     full_name: tourist?.full_name ?? "Tourist",
     nationality: tourist?.nationality ?? "IN",
     photo_data_url: tourist?.photo_data_url ?? null,
