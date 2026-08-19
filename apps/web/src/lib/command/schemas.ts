@@ -146,6 +146,18 @@ export const saveZoneSchema = z.object({
 
 export const qrPayloadSchema = z.union([
   z.object({
+    v: z.literal(1).optional(),
+    kind: z.literal("sts-id").optional(),
+    chainId: z.number().optional(),
+    contract: z.string().optional(),
+    tokenId: z.union([z.string(), z.number()]).nullable().optional(),
+    digitalId: z.string().optional(),
+    touristId: z.string().optional(),
+    vcPath: z.string().nullable().optional(),
+    sig: z.string().nullable().optional(),
+    kycStatus: z.enum(["skipped", "pending", "verified"]).optional(),
+  }),
+  z.object({
     tokenId: z.union([z.string(), z.number()]),
     chainId: z.number().optional(),
     contract: z.string().optional(),

@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 
 import { ensureProfileForUser } from "@/lib/auth/ensure-profile";
 import { callbackSearchSchema } from "@/lib/auth/schemas";
-import { homePathForRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
+import { homePathForRole } from "@/lib/auth/roles";
 
 export async function GET(request: Request): Promise<NextResponse> {
   const url = new URL(request.url);
@@ -53,6 +54,27 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const profile = await ensureProfileForUser(user);
-  const destination = new URL(homePathForRole(profile.role), origin);
+  let destinationPath = homePathForRole(profile.role);
+  if (profile.role === "tourist") {
+    const admin = tryCreateAdminClient();
+    const tourist = admin
+      ? await admin
+          .from("tourists")
+          .select("id")
+          .eq("profile_id", profile.id)
+          .maybeSingle()
+      : { data: null };
+    const digital = tourist.data?.id && admin
+      ? await admin
+          .from("digital_ids")
+          .select("id")
+          .eq("tourist_id", tourist.data.id)
+          .in("status", ["pending", "active"])
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
+    destinationPath = digital.data?.id ? "/home" : "/onboard";
+  }
+  const destination = new URL(destinationPath, origin);
   return NextResponse.redirect(destination);
 }

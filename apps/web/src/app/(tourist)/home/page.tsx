@@ -44,6 +44,15 @@ export default function TouristHomePage() {
         </Link>
       </header>
 
+      {tourist?.kyc_status === "skipped" ? (
+        <Link
+          href="/onboard"
+          className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm"
+        >
+          Guest ID is live at checkpoints. Complete Aadhaar (India) or passport (visitors) KYC anytime.
+        </Link>
+      ) : null}
+
       <StatusPills />
 
       <section className="rounded-2xl border border-border/80 bg-card/80 p-5 shadow-sm">
@@ -100,7 +109,7 @@ export default function TouristHomePage() {
             </span>
           ) : (
             <span className="block text-muted-foreground">
-              {itinerary ? "All waypoints complete" : "No itinerary yet — finish onboarding"}
+              {itinerary ? "All waypoints complete" : "Pick a North-East itinerary on Trip"}
             </span>
           )}
         </span>

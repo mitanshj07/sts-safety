@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: BadgeCheck,
     title: "Soulbound digital ID",
-    body: "KYC stays encrypted. On-chain: a keccak256 commitment, never PII.",
+    body: "Indian travellers verify Aadhaar; visitors verify a passport. Or skip and still get a scannable guest ID.",
   },
   {
     icon: Radio,
@@ -66,6 +66,9 @@ export default function HomePage() {
                 </Button>
                 <Button asChild size="lg" variant="outline">
                   <Link href="/login?tab=officer">Command centre</Link>
+                </Button>
+                <Button asChild size="lg" variant="ghost">
+                  <Link href="/login?tab=tourist&skip=1">Skip — guest ID</Link>
                 </Button>
               </div>
             </div>

@@ -18,18 +18,26 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = issueIdentityRequestSchema.safeParse(body);
   if (!parsed.success) {
+    const first = parsed.error.issues[0]?.message ?? "validation_failed";
     return Response.json(
-      { ok: false, error: "validation_failed", details: parsed.error.flatten() },
+      { ok: false, error: first, details: parsed.error.flatten() },
       { status: 400 },
     );
   }
 
+  const principal = await getPrincipal(request).catch(() => null);
+  if (!principal) {
+    return Response.json({ ok: false, error: "sign in to issue an ID" }, { status: 401 });
+  }
+
   const input = { ...parsed.data };
-  if (!input.profileId) {
-    const principal = await getPrincipal(request);
-    if (principal?.role === "tourist") {
-      input.profileId = principal.id;
-    }
+  if (principal.role === "tourist") {
+    input.profileId = principal.id;
+  } else if (!input.profileId) {
+    return Response.json(
+      { ok: false, error: "profileId required for desk issuance" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -38,6 +46,7 @@ export async function POST(request: Request): Promise<Response> {
       touristId: result.touristId,
       status: result.status,
       idempotent: result.idempotent,
+      kycStatus: result.kycStatus,
     });
     return Response.json(result, { status: result.status === "active" ? 201 : 202 });
   } catch (cause) {

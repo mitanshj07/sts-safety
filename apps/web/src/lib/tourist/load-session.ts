@@ -32,8 +32,12 @@ function asTourist(row: Record<string, unknown>, profileId: string | null): Cach
     profile_id: profileId,
     full_name: String(row.full_name ?? "Tourist"),
     nationality: String(row.nationality ?? "IN"),
-    kyc_type: String(row.kyc_type ?? "passport"),
+    kyc_type: String(row.kyc_type ?? "aadhaar"),
     kyc_last4: typeof row.kyc_last4 === "string" ? row.kyc_last4 : null,
+    kyc_status:
+      row.kyc_status === "skipped" || row.kyc_status === "verified" || row.kyc_status === "pending"
+        ? row.kyc_status
+        : "pending",
     photo_data_url: null,
     safety_score: Number(row.safety_score ?? 100),
     trip_start: String(row.trip_start ?? new Date().toISOString()),
@@ -69,7 +73,7 @@ export async function loadLiveSession(): Promise<TouristSession> {
   const { data: touristRow } = await supabase
     .from("tourists")
     .select(
-      "id, profile_id, full_name, nationality, kyc_type, kyc_last4, safety_score, trip_start, trip_end, phone_e164, email, emergency_contacts, current_zone_ids, tracking_enabled, photo_path",
+      "id, profile_id, full_name, nationality, kyc_type, kyc_last4, kyc_status, safety_score, trip_start, trip_end, phone_e164, email, emergency_contacts, current_zone_ids, tracking_enabled, photo_path",
     )
     .eq("profile_id", user.id)
     .maybeSingle();
@@ -87,7 +91,7 @@ export async function loadLiveSession(): Promise<TouristSession> {
     supabase
       .from("digital_ids")
       .select(
-        "tourist_id, chain_id, contract_address, token_id, vc_path, status, issue_tx_hash, valid_from, valid_until",
+        "id, tourist_id, chain_id, contract_address, token_id, vc_path, status, issue_tx_hash, valid_from, valid_until",
       )
       .eq("tourist_id", tourist.id)
       .order("created_at", { ascending: false })
@@ -106,6 +110,7 @@ export async function loadLiveSession(): Promise<TouristSession> {
   if (idRow) {
     const rec = idRow as Record<string, unknown>;
     digitalId = {
+      id: String(rec.id ?? tourist.id),
       tourist_id: tourist.id,
       chain_id: Number(rec.chain_id ?? 80002),
       contract_address: String(rec.contract_address ?? ""),
@@ -116,6 +121,8 @@ export async function loadLiveSession(): Promise<TouristSession> {
       valid_from: String(rec.valid_from ?? tourist.trip_start),
       valid_until: String(rec.valid_until ?? tourist.trip_end),
       kyc_last4: tourist.kyc_last4,
+      kyc_type: tourist.kyc_type,
+      kyc_status: tourist.kyc_status,
       full_name: tourist.full_name,
       nationality: tourist.nationality,
       photo_data_url: tourist.photo_data_url,
