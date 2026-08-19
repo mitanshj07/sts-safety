@@ -98,7 +98,7 @@ async function ensureTouristRow(
       profile_id: profileId,
       full_name: plan.label,
       nationality: "IN",
-      kyc_type: "passport",
+      kyc_type: "aadhaar",
       kyc_number_enc: kycBytea(plan.slot),
       kyc_last4: "SIM0",
       email: plan.email,
