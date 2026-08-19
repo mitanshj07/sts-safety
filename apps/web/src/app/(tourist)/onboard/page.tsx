@@ -194,32 +194,40 @@ export default function OnboardPage() {
     const params = new URLSearchParams(window.location.search);
     const status = params.get("digilocker");
     const reason = params.get("reason") ?? "";
-    if (status === "ok") {
-      setDlNotice(null);
-    } else if (status === "denied") {
-      setDlNotice(DIGILOCKER_REASON_COPY.denied);
-    } else if (status === "error") {
-      const copy =
-        reason in DIGILOCKER_REASON_COPY
-          ? DIGILOCKER_REASON_COPY[reason as keyof typeof DIGILOCKER_REASON_COPY]
-          : DIGILOCKER_REASON_COPY.fetch;
-      setDlNotice(copy);
-    }
     if (status) {
       window.history.replaceState({}, "", "/onboard");
     }
 
+    const notice =
+      status === "denied"
+        ? DIGILOCKER_REASON_COPY.denied
+        : status === "error"
+          ? reason in DIGILOCKER_REASON_COPY
+            ? DIGILOCKER_REASON_COPY[reason as keyof typeof DIGILOCKER_REASON_COPY]
+            : DIGILOCKER_REASON_COPY.fetch
+          : null;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (!cancelled && notice) setDlNotice(notice);
+    }, 0);
+
     void (async () => {
       try {
         const res = await fetch("/api/identity/digilocker/session");
-        if (!res.ok) return;
+        if (!res.ok || cancelled) return;
         const json: unknown = await res.json();
         const profile = (json as { profile?: DigilockerSession | null }).profile;
-        if (profile?.ok) applyDigilocker(profile);
+        if (!cancelled && profile?.ok) applyDigilocker(profile);
       } catch {
         // Manual KYC remains available if the session cookie is missing.
       }
     })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {

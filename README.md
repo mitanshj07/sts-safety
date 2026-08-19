@@ -27,6 +27,7 @@ Replace the host after `vercel --prod` (Hobby, no card):
 | Surface | URL |
 | --- | --- |
 | Tourist PWA | https://sts-safety.vercel.app/home |
+| Onboarding / DigiLocker | https://sts-safety.vercel.app/onboard |
 | Command centre | https://sts-safety.vercel.app/dashboard |
 | Checkpoint verify | https://sts-safety.vercel.app/verify |
 | Health / keepalive | https://sts-safety.vercel.app/api/health |
