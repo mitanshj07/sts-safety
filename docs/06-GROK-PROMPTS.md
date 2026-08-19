@@ -315,11 +315,14 @@ Build the tourist experience in apps/web/src/app/(tourist)/:
 3. hooks/useOnlineStatus.ts, hooks/usePushSubscription.ts (VAPID subscribe →
    POST /api/notify/subscribe).
 4. Pages:
-   - onboard/page.tsx — first step is residency: Indian → Aadhaar (Voter ID /
-     driving licence as equivalent docs); international → passport. Then name,
+   - onboard/page.tsx — first step is residency: Indian → Continue with
+     DigiLocker (OAuth; after allow, fetch eAadhaar XML + issued docs) or
+     type Aadhaar / Voter ID / DL; international → passport. Then name,
      DOB, emergency contacts, trip dates, itinerary from preset NE routes.
      Submits to /api/identity/issue. Optimistic progress UI
      with the on-chain step shown explicitly — judges like watching the tx land.
+   - onboard/digilocker/page.tsx — demo DigiLocker consent (used when
+     DIGILOCKER_CLIENT_ID is unset). Live mode redirects to meripehchaan.gov.in.
    - home/page.tsx — SafetyScoreGauge (animated SVG arc), current zone banner
      coloured by risk, next waypoint, connection + tracking status pills.
    - map/page.tsx — own position, zone overlays, itinerary corridor as a
@@ -379,6 +382,13 @@ Implement the blockchain identity layer in apps/web:
    - POST /api/identity/verify-kyc — selective disclosure via verifyKyc().
    - POST /api/identity/revoke — admin only, on-chain revoke + status update +
      audit_log row.
+   - GET /api/identity/digilocker/start — PKCE + state cookie, redirect to
+     DigiLocker authorize (live) or /onboard/digilocker (demo).
+   - GET /api/identity/digilocker/callback — exchange code, fetch user +
+     eAadhaar XML + issued files, HMAC-check XML, set a short-lived KYC
+     cookie, redirect to /onboard. Never log the XML or Aadhaar.
+   - GET/DELETE /api/identity/digilocker/session — onboard reads the fetched
+     profile (name, DOB, Aadhaar) to prefill the form.
    - POST /api/chain/retry — drains chain_anchors where status in
      ('pending','failed'), HMAC-verified against PIPELINE_SECRET.
 7. src/lib/utils/hmac.ts — timing-safe verification of the x-pipeline-secret

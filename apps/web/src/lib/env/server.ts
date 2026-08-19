@@ -107,6 +107,12 @@ export const serverEnv = {
     process.env.NEXT_PUBLIC_SUPPORTED_LOCALES ?? "en,hi,as,bn,ne",
   ),
   anchorMinSeverity: process.env.ANCHOR_MIN_SEVERITY ?? "high",
+  digilockerMode: process.env.DIGILOCKER_MODE ?? "",
+  digilockerClientId: process.env.DIGILOCKER_CLIENT_ID ?? "",
+  digilockerClientSecret: process.env.DIGILOCKER_CLIENT_SECRET ?? "",
+  digilockerRedirectUri: process.env.DIGILOCKER_REDIRECT_URI ?? "",
+  digilockerBaseUrl: process.env.DIGILOCKER_BASE_URL ?? "",
+  digilockerStateSecret: process.env.DIGILOCKER_STATE_SECRET ?? "",
 }
 
 export function isHfSpaceConfigured(): boolean {

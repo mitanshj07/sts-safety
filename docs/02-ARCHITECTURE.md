@@ -101,10 +101,11 @@
 ## 2.2 Flow 1 — Digital ID issuance (tourist onboarding at a check-post)
 
 ```
- 1. Opening step: Indian resident → Aadhaar (Voter ID / driving licence
-    accepted as equivalent Indian KYC). International visitor → passport.
-    Numbers are format-checked (UIDAI Verhoeff / ICAO / EPIC / DL).
-    A tourism-desk operator can complete this on the tourist's behalf.
+ 1. Opening step: Indian resident → Continue with DigiLocker (OAuth +
+    eAadhaar XML fetch after allow) or type Aadhaar / Voter ID / DL.
+    International visitor → passport. Numbers are format-checked
+    (UIDAI Verhoeff / ICAO / EPIC / DL). A tourism-desk operator can
+    complete this on the tourist's behalf.
         │
  2. POST /api/identity/issue   { kycType, kycNumber, name, nationality,
                                  emergencyContacts[], tripStart, tripEnd,

@@ -48,4 +48,22 @@ test.describe("identity issue + verify", () => {
 
     await officerContext.close();
   });
+
+  test("indian tourist fetches eAadhaar from DigiLocker demo consent", async ({
+    page,
+  }) => {
+    await expectHealthy(page);
+    await loginAsTourist(page);
+    await page.goto("/onboard");
+    await page.getByTestId("residency-indian").click();
+    await page.getByTestId("digilocker-continue").click();
+    await page.getByTestId("digilocker-allow").click();
+    await expect(page.getByTestId("digilocker-fetched")).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("kyc_number")).toHaveValue("234123412346");
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await expect(page.getByLabel(/full name/i)).toHaveValue("Priya Sharma");
+    await expect(page.getByLabel(/date of birth/i)).toHaveValue("1998-04-12");
+  });
 });

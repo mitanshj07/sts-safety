@@ -1,5 +1,6 @@
 // packages/shared/src/schemas/index.ts
 export * from "./coords"
+export * from "./digilocker"
 export * from "./enums"
 export * from "./identity"
 export * from "./incident"

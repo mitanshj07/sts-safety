@@ -2,19 +2,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   allowedKycTypes,
   defaultKycType,
+  DIGILOCKER_REASON_COPY,
   isIndianNationality,
   issueIdentityRequestSchema,
   kycIssuanceIssues,
   KYC_NUMBER_HINTS,
   KYC_NUMBER_PLACEHOLDERS,
   KYC_TYPE_LABELS,
+  type DigilockerSession,
   type IssueIdentityRequest,
   type KycType,
 } from "@sts/shared";
+import { DigilockerConnect } from "@/components/tourist/DigilockerConnect";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -160,10 +163,64 @@ export default function OnboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [issuing, setIssuing] = useState(false);
   const [result, setResult] = useState<IssueView | null>(null);
+  const [dlSession, setDlSession] = useState<DigilockerSession | null>(null);
+  const [dlNotice, setDlNotice] = useState<string | null>(null);
 
   const parsed = useMemo(() => toRequest(form), [form]);
   const residency = residencyOf(form.nationality);
   const docTypes = allowedKycTypes(form.nationality);
+
+  function applyDigilocker(profile: DigilockerSession) {
+    setDlSession(profile);
+    setError(null);
+    setForm((prev) => ({
+      ...prev,
+      nationality: "IN",
+      kycType: profile.kycType,
+      kycNumber: profile.kycNumber,
+      name: profile.name,
+      dateOfBirth: profile.dateOfBirth ?? prev.dateOfBirth,
+    }));
+  }
+
+  async function clearDigilocker() {
+    setDlSession(null);
+    setDlNotice(null);
+    await fetch("/api/identity/digilocker/session", { method: "DELETE" });
+    setForm((prev) => ({ ...prev, kycNumber: "" }));
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("digilocker");
+    const reason = params.get("reason") ?? "";
+    if (status === "ok") {
+      setDlNotice(null);
+    } else if (status === "denied") {
+      setDlNotice(DIGILOCKER_REASON_COPY.denied);
+    } else if (status === "error") {
+      const copy =
+        reason in DIGILOCKER_REASON_COPY
+          ? DIGILOCKER_REASON_COPY[reason as keyof typeof DIGILOCKER_REASON_COPY]
+          : DIGILOCKER_REASON_COPY.fetch;
+      setDlNotice(copy);
+    }
+    if (status) {
+      window.history.replaceState({}, "", "/onboard");
+    }
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/identity/digilocker/session");
+        if (!res.ok) return;
+        const json: unknown = await res.json();
+        const profile = (json as { profile?: DigilockerSession | null }).profile;
+        if (profile?.ok) applyDigilocker(profile);
+      } catch {
+        // Manual KYC remains available if the session cookie is missing.
+      }
+    })();
+  }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setError(null);
@@ -172,8 +229,23 @@ export default function OnboardPage() {
 
   function setResidency(next: Residency) {
     setError(null);
+    if (next === "international" && dlSession) {
+      setDlSession(null);
+      setDlNotice(null);
+      void fetch("/api/identity/digilocker/session", { method: "DELETE" });
+    }
     setForm((prev) => {
       if (next === "indian") {
+        if (dlSession) {
+          return {
+            ...prev,
+            nationality: "IN",
+            kycType: dlSession.kycType,
+            kycNumber: dlSession.kycNumber,
+            name: dlSession.name,
+            dateOfBirth: dlSession.dateOfBirth ?? prev.dateOfBirth,
+          };
+        }
         const kycType = (INDIAN_KEEP.has(prev.kycType) ? prev.kycType : "aadhaar") as KycType;
         return { ...prev, nationality: "IN", kycType, kycNumber: "" };
       }
@@ -184,6 +256,18 @@ export default function OnboardPage() {
         kycNumber: "",
       };
     });
+  }
+
+  function changeKycType(next: KycType) {
+    setError(null);
+    if (dlSession && next !== dlSession.kycType) {
+      setDlSession(null);
+      setDlNotice(null);
+      void fetch("/api/identity/digilocker/session", { method: "DELETE" });
+      setForm((prev) => ({ ...prev, kycType: next, kycNumber: "" }));
+      return;
+    }
+    update("kycType", next);
   }
 
   function goNext() {
@@ -427,7 +511,7 @@ export default function OnboardPage() {
                 >
                   <p className="text-sm font-semibold">Indian resident</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Aadhaar first. Voter ID or driving licence also accepted.
+                    DigiLocker fetch or typed Aadhaar. Voter ID / DL also accepted.
                   </p>
                 </button>
                 <button
@@ -474,13 +558,32 @@ export default function OnboardPage() {
               </p>
             )}
 
+            {residency === "indian" ? (
+              <DigilockerConnect
+                session={dlSession}
+                notice={dlNotice}
+                onStart={() => {
+                  window.location.assign("/api/identity/digilocker/start");
+                }}
+                onClear={() => {
+                  void clearDigilocker();
+                }}
+              />
+            ) : null}
+
+            {residency === "indian" && !dlSession ? (
+              <p className="text-center text-[11px] tracking-wide text-muted-foreground uppercase">
+                or enter the document number
+              </p>
+            ) : null}
+
             <div className="space-y-2">
               <Label htmlFor="kyc_type">Document type</Label>
               <select
                 id="kyc_type"
                 className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={form.kycType}
-                onChange={(e) => update("kycType", e.target.value as KycType)}
+                onChange={(e) => changeKycType(e.target.value as KycType)}
               >
                 {docTypes.map((type) => (
                   <option key={type} value={type}>
@@ -494,8 +597,10 @@ export default function OnboardPage() {
               <Label htmlFor="kyc_number">{kycLabel} number</Label>
               <Input
                 id="kyc_number"
+                data-testid="kyc_number"
                 value={form.kycNumber}
                 autoComplete="off"
+                readOnly={Boolean(dlSession)}
                 inputMode={form.kycType === "aadhaar" ? "numeric" : "text"}
                 placeholder={KYC_NUMBER_PLACEHOLDERS[form.kycType]}
                 onChange={(e) => update("kycNumber", e.target.value)}

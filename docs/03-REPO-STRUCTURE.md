@@ -75,6 +75,7 @@ smart-tourist-safety/
 │   │   │   │   ├── zone.ts                 # Zod: Zone, RiskLevel, TimeWindow
 │   │   │   │   ├── incident.ts             # Zod: Incident, Severity, IncidentType
 │   │   │   │   ├── identity.ts             # Zod: IssueRequest, VerifyResponse, VC
+│   │   │   │   ├── digilocker.ts           # Zod: fetched DigiLocker session
 │   │   │   │   └── notification.ts
 │   │   │   ├── types/
 │   │   │   │   └── database.ts             # generated: supabase gen types typescript
@@ -85,6 +86,8 @@ smart-tourist-safety/
 │   │   │   └── utils/
 │   │   │       ├── geo.ts                  # haversine, bbox, geojson↔wkt
 │   │   │       ├── hash.ts                 # keccak256 canonicalisation (deterministic JSON)
+│   │   │       ├── kyc.ts                  # Aadhaar Verhoeff, passport ICAO, nationality policy
+│   │   │       ├── digilocker.ts           # eAadhaar XML parse, issued-doctype map, demo profile
 │   │   │       └── time.ts
 │   │   └── tsconfig.json
 │   │
@@ -138,7 +141,8 @@ smart-tourist-safety/
 │           │   │
 │           │   ├── (tourist)/
 │           │   │   ├── layout.tsx          # bottom nav, permission prompts, SW registration
-│           │   │   ├── onboard/page.tsx    # Aadhaar (IN) / passport (intl) → digital ID
+│           │   │   ├── onboard/page.tsx    # DigiLocker or Aadhaar (IN) / passport (intl) → digital ID
+│           │   │   ├── onboard/digilocker/page.tsx  # demo DigiLocker consent (live uses MeitY authorize)
 │           │   │   ├── home/page.tsx       # safety score gauge, current zone, weather-ish banner
 │           │   │   ├── map/page.tsx        # own position + zone overlays + itinerary corridor
 │           │   │   ├── id/page.tsx         # digital ID card + QR + on-chain proof link
@@ -165,7 +169,8 @@ smart-tourist-safety/
 │           │       ├── identity/
 │           │       │   ├── issue/route.ts
 │           │       │   ├── verify/route.ts
-│           │       │   └── revoke/route.ts
+│           │       │   ├── revoke/route.ts
+│           │       │   └── digilocker/{start,callback,session}/route.ts
 │           │       ├── pipeline/
 │           │       │   └── incident/route.ts       # called by pg_net; HMAC-verified
 │           │       ├── ai/

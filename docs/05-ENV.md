@@ -29,16 +29,17 @@ cp .env.example .env                # tooling: foundry, simulator, supabase cli
 | `TELEGRAM_CONTROL_ROOM_CHAT_ID` | Add the bot to a group, then `getUpdates` and read `chat.id` (negative number) | No |
 | `RESEND_API_KEY` | resend.com → API Keys. Use `onboarding@resend.dev` as the sender until you have a domain | No |
 | Map, geocoding, routing URLs | Pre-filled. All keyless | No |
+| DigiLocker (`DIGILOCKER_CLIENT_ID` / `SECRET`) | partners.digitallocker.gov.in → register a requester app. Redirect URI: `{APP_URL}/api/identity/digilocker/callback`. Leave blank for the in-app demo consent (Priya Sharma eAadhaar). | No |
 
 ## Exposure rules
 
 `NEXT_PUBLIC_*` is compiled into the browser bundle and is world-readable. Only these belong there: the Supabase URL and **anon** key (safe by design — RLS is the actual access control), the chain id and contract addresses (public on chain anyway), the VAPID **public** key, and map style URLs.
 
-Everything else is server-only. In particular, `SUPABASE_SERVICE_ROLE_KEY`, `ISSUER_PRIVATE_KEY`, `TOURIST_HD_MNEMONIC`, `PII_ENCRYPTION_KEY`, and `PIPELINE_SECRET` bypass all security if leaked. Import `server-only` at the top of any module that reads them so a stray client import fails at build time rather than silently shipping the secret.
+Everything else is server-only. In particular, `SUPABASE_SERVICE_ROLE_KEY`, `ISSUER_PRIVATE_KEY`, `TOURIST_HD_MNEMONIC`, `PII_ENCRYPTION_KEY`, `PIPELINE_SECRET`, and `DIGILOCKER_CLIENT_SECRET` bypass all security if leaked. Import `server-only` at the top of any module that reads them so a stray client import fails at build time rather than silently shipping the secret.
 
 ## The demo switches
 
-Five variables control whether the system talks to the internet at all. Set them to their local values and the entire product runs on a laptop with no network:
+Demo switches control whether the system talks to the internet at all. Set them to their local values and the entire product runs on a laptop with no network:
 
 | Variable | Cloud value | Offline value |
 | --- | --- | --- |
@@ -47,6 +48,7 @@ Five variables control whether the system talks to the internet at all. Set them
 | `AI_MODE` | `groq` | `onnx-local` (or `rules-only`) |
 | `NEXT_PUBLIC_MAP_TILE_MODE` | `openfreemap` | `pmtiles-local` |
 | `NOTIFY_CHANNELS` | `realtime,webpush,telegram,email` | `realtime,webpush` |
+| `DIGILOCKER_MODE` | `live` (with partner credentials) | `demo` (in-app consent, no MeitY call) |
 
 Rehearse at least once in the offline column.
 
