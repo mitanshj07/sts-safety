@@ -43,6 +43,11 @@ export type DispatchContext = {
   nearest: NearestUnit[];
 };
 
+export type TouristRecipientContext = {
+  incident: NotifyIncident;
+  recipient: NotifyRecipient;
+};
+
 async function loadIncident(incidentId: string): Promise<{
   incident: NotifyIncident;
   tourist: Record<string, unknown> | null;
@@ -185,44 +190,60 @@ export async function resolveNearestUnits(
   }
 }
 
+async function touristRecipientFor(
+  incident: NotifyIncident,
+  tourist: Record<string, unknown> | null,
+): Promise<NotifyRecipient | null> {
+  if (!incident.touristId) return null;
+
+  let touristLocale = parseLocale(serverEnv.defaultLocale);
+  const profileId: string | null =
+    typeof tourist?.profile_id === "string" ? tourist.profile_id : null;
+
+  if (profileId) {
+    const admin = createAdminSupabase();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("id, locale, email, phone_e164, display_name")
+      .eq("id", profileId)
+      .maybeSingle();
+    if (profile) {
+      touristLocale = parseLocale(profile.locale);
+    }
+  }
+
+  return {
+    kind: "tourist",
+    id: incident.touristId,
+    name: incident.touristName ?? "Tourist",
+    locale: touristLocale,
+    profileId,
+    telegramChatId: null,
+    email: typeof tourist?.email === "string" ? tourist.email : null,
+    phoneE164: typeof tourist?.phone_e164 === "string" ? tourist.phone_e164 : null,
+  };
+}
+
+export async function resolveTouristRecipient(
+  incidentId: string,
+): Promise<TouristRecipientContext | null> {
+  const { incident, tourist } = await loadIncident(incidentId);
+  const recipient = await touristRecipientFor(incident, tourist);
+  if (!recipient) return null;
+  return { incident, recipient };
+}
+
 export async function resolveDispatchContext(
   incidentId: string,
 ): Promise<DispatchContext> {
   const { incident, tourist } = await loadIncident(incidentId);
   const recipients: NotifyRecipient[] = [];
 
-  let touristLocale = parseLocale(serverEnv.defaultLocale);
-  if (tourist?.profile_id && typeof tourist.profile_id === "string") {
-    const admin = createAdminSupabase();
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("id, locale, email, phone_e164, display_name")
-      .eq("id", tourist.profile_id)
-      .maybeSingle();
-    if (profile) {
-      touristLocale = parseLocale(profile.locale);
-    }
-    recipients.push({
-      kind: "tourist",
-      id: incident.touristId,
-      name: incident.touristName ?? "Tourist",
-      locale: touristLocale,
-      profileId: tourist.profile_id,
-      telegramChatId: null,
-      email: typeof tourist.email === "string" ? tourist.email : null,
-      phoneE164: typeof tourist.phone_e164 === "string" ? tourist.phone_e164 : null,
-    });
-  } else if (incident.touristId) {
-    recipients.push({
-      kind: "tourist",
-      id: incident.touristId,
-      name: incident.touristName ?? "Tourist",
-      locale: touristLocale,
-      profileId: null,
-      telegramChatId: null,
-      email: typeof tourist?.email === "string" ? tourist.email : null,
-      phoneE164: typeof tourist?.phone_e164 === "string" ? tourist.phone_e164 : null,
-    });
+  const touristRecipient = await touristRecipientFor(incident, tourist);
+  let touristLocale = touristRecipient?.locale ?? parseLocale(serverEnv.defaultLocale);
+  if (touristRecipient) {
+    touristLocale = touristRecipient.locale;
+    recipients.push(touristRecipient);
   }
 
   const nearest =

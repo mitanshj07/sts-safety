@@ -7,9 +7,10 @@ import { notifyLog } from "@/lib/notify/log";
 import { resolveNearestUnits } from "@/lib/notify/recipients";
 import { lonLatFromGeog } from "@/lib/geo/parse";
 import { asRecord } from "@/lib/geo/parse";
+import { commandNotePreset } from "@sts/shared";
 
 export type LifecycleResult =
-  | { ok: true; status: string }
+  | { ok: true; status: string; delivered?: number }
   | { ok: false; error: string };
 
 async function loadIncidentRow(incidentId: string): Promise<Record<string, unknown> | null> {
@@ -40,13 +41,15 @@ async function appendEvent(input: {
 }
 
 async function emit(input: {
-  kind: "ack" | "dispatch" | "resolve";
+  kind: "ack" | "dispatch" | "resolve" | "note";
   incidentId: string;
   touristId: string | null;
   status: string;
   severity: string;
   type: string;
   actorLabel: string;
+  title?: string;
+  body?: string;
 }): Promise<void> {
   await broadcastIncident({
     kind: input.kind,
@@ -57,6 +60,8 @@ async function emit(input: {
     type: input.type,
     actor_label: input.actorLabel,
     at: new Date().toISOString(),
+    title: input.title,
+    body: input.body,
   });
 }
 
@@ -191,4 +196,53 @@ export async function resolveIncidentLifecycle(input: {
     actorLabel: input.actorLabel,
   });
   return { ok: true, status: "resolved" };
+}
+
+export async function sendTouristNote(input: {
+  incidentId: string;
+  body: string;
+  actorLabel: string;
+  actorId?: string | null;
+  presetId?: string;
+}): Promise<LifecycleResult> {
+  const row = await loadIncidentRow(input.incidentId);
+  if (!row) return { ok: false, error: "Incident not found" };
+  const touristId = typeof row.tourist_id === "string" ? row.tourist_id : null;
+  if (!touristId) return { ok: false, error: "Incident has no tourist" };
+
+  const preset = input.presetId ? commandNotePreset(input.presetId) : undefined;
+  const body = (preset?.body ?? input.body).trim();
+  if (!body) return { ok: false, error: "Note is empty" };
+
+  try {
+    const { dispatchTouristNote } = await import("@/lib/notify/dispatcher");
+    const fanout = await dispatchTouristNote({
+      incidentId: input.incidentId,
+      body,
+      actorLabel: input.actorLabel,
+    });
+    await appendEvent({
+      incidentId: input.incidentId,
+      eventType: "note",
+      actorLabel: input.actorLabel,
+      actorId: input.actorId,
+      detail: {
+        body,
+        to: "tourist",
+        preset_id: input.presetId ?? null,
+        delivered: fanout.delivered,
+      },
+    });
+    notifyLog("notify.note", {
+      incident_id: input.incidentId,
+      actor: input.actorLabel,
+      delivered: fanout.delivered,
+    });
+    return { ok: true, status: String(row.status), delivered: fanout.delivered };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to send note",
+    };
+  }
 }

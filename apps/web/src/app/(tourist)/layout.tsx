@@ -6,6 +6,7 @@ import { GeofenceWarning } from "@/components/tourist/GeofenceWarning";
 import { PermissionPrimer } from "@/components/tourist/PermissionPrimer";
 import { ServiceWorkerRegistrar } from "@/components/tourist/ServiceWorkerRegistrar";
 import { TouristProvider } from "@/components/tourist/TouristProvider";
+import { Toaster } from "@/components/ui/sonner";
 import { requireRolePage } from "@/lib/auth/guards";
 
 export default async function TouristLayout({ children }: { children: ReactNode }) {
@@ -18,6 +19,7 @@ export default async function TouristLayout({ children }: { children: ReactNode 
         <GeofenceWarning />
         <div className="min-h-dvh pb-20">{children}</div>
         <BottomNav />
+        <Toaster theme="dark" />
       </div>
     </TouristProvider>
   );

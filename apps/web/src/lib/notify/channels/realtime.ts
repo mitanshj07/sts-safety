@@ -71,7 +71,7 @@ export const realtimeChannel: INotificationChannel = {
       throw new NotConfiguredError("realtime");
     }
     const payload: IncidentBroadcast = {
-      kind: "alert",
+      kind: input.broadcastKind ?? "alert",
       incident_id: input.incident.id,
       tourist_id: input.incident.touristId,
       status: input.incident.status,
@@ -79,6 +79,8 @@ export const realtimeChannel: INotificationChannel = {
       type: input.incident.type,
       actor_label: "dispatcher",
       at: new Date().toISOString(),
+      title: input.title,
+      body: input.body,
     };
     if (input.recipient.kind === "tourist" && input.recipient.id) {
       await sendOnChannel(touristBroadcastChannel(input.recipient.id), payload);

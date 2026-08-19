@@ -10,12 +10,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
+import { COMMAND_NOTE_PROVIDER_REF, isCommandNoteNotification } from "@sts/shared";
 import { useGeolocationTracker } from "@/hooks/useGeolocationTracker";
 import { useLocalGeofence, type ZoneHit } from "@/hooks/useLocalGeofence";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { SOS_CADENCE_WINDOW_MS } from "@/lib/config/ping";
-import { kvGet, kvSet, type ZoneCollection } from "@/lib/offline/db";
+import { kvGet, kvSet, type CachedNotification, type ZoneCollection } from "@/lib/offline/db";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   loadCachedSession,
@@ -102,9 +104,51 @@ export function TouristProvider({ children }: { children: ReactNode }) {
     if (!supabase || !touristId) return;
     const channel = supabase
       .channel(`tourist:${touristId}`)
-      .on("broadcast", { event: "incident" }, () => {
+      .on("broadcast", { event: "incident" }, (message) => {
+        const payload = (message as { payload?: Record<string, unknown> }).payload;
+        if (payload?.kind === "note" && typeof payload.body === "string") {
+          const incoming: CachedNotification = {
+            id: `live-${Date.now()}`,
+            title: typeof payload.title === "string" ? payload.title : "Control room",
+            body: payload.body,
+            channel: "realtime",
+            status: "delivered",
+            created_at: typeof payload.at === "string" ? payload.at : new Date().toISOString(),
+            incident_id: typeof payload.incident_id === "string" ? payload.incident_id : null,
+            provider_ref: COMMAND_NOTE_PROVIDER_REF,
+          };
+          if (isCommandNoteNotification(incoming)) {
+            toast.message(incoming.title ?? "Control room", { description: incoming.body ?? "" });
+          }
+          setSession((prev) => {
+            const already = prev.notifications.some(
+              (row) =>
+                isCommandNoteNotification(row) &&
+                row.body === incoming.body &&
+                (row.incident_id ?? "") === (incoming.incident_id ?? ""),
+            );
+            if (already) return prev;
+            const next = {
+              ...prev,
+              notifications: [incoming, ...prev.notifications],
+            };
+            void saveSession(next);
+            return next;
+          });
+          window.setTimeout(() => {
+            void refreshSession();
+          }, 800);
+          return;
+        }
         void refreshSession();
       })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        () => {
+          void refreshSession();
+        },
+      )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
