@@ -13,6 +13,35 @@ export type CompleteSignInResult =
   | { ok: true; role: UserRole; redirectTo: string }
   | { ok: false; message: string };
 
+export type GuestLoginResult =
+  | { ok: true; email: string; password: string }
+  | { ok: false; message: string };
+
+/** Public skip path when anonymous auth is disabled on the Supabase project. */
+export async function createGuestLogin(): Promise<GuestLoginResult> {
+  const admin = tryCreateAdminClient();
+  if (!admin) {
+    return { ok: false, message: "Guest login is not configured on this deploy." };
+  }
+  const id = crypto.randomUUID();
+  const email = `guest.${id}@demo.sts`;
+  const password = `Guest-${id.replace(/-/g, "").slice(0, 12)}-Pass123!`;
+  const { error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      display_name: "Guest traveller",
+      role: "tourist",
+    },
+    app_metadata: { provider: "email", providers: ["email"], role: "tourist" },
+  });
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+  return { ok: true, email, password };
+}
+
 async function touristLandingPath(profileId: string, role: UserRole): Promise<string> {
   if (role !== "tourist") return homePathForRole(role);
   const admin = tryCreateAdminClient();

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Mail, Shield, Smartphone } from "lucide-react";
 
-import { completeSignIn, skipToApp } from "@/lib/auth/actions";
+import { completeSignIn, createGuestLogin, skipToApp } from "@/lib/auth/actions";
 import { DEMO_OFFICER, DEMO_TOURIST, DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
 import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -94,8 +94,26 @@ export function LoginForm({ defaultTab, initialError, autoSkip = false }: LoginF
           },
         },
       });
-      if (anonError) {
-        setError(anonError.message);
+      if (anonError || !data.user) {
+        const guest = await createGuestLogin();
+        if (!guest.ok) {
+          setError(guest.message);
+          return;
+        }
+        const { error: passwordError } = await supabase.auth.signInWithPassword({
+          email: guest.email,
+          password: guest.password,
+        });
+        if (passwordError) {
+          setError(passwordError.message);
+          return;
+        }
+        const skipped = await skipToApp();
+        if (!skipped.ok) {
+          setError(skipped.message);
+          return;
+        }
+        finish(skipped.redirectTo);
         return;
       }
       // Anonymous users have no email — provision profile + tourists row server-side.
