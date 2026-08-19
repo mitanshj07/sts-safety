@@ -166,6 +166,7 @@ export default function OnboardPage() {
   const docTypes = allowedKycTypes(form.nationality);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setError(null);
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -174,12 +175,13 @@ export default function OnboardPage() {
     setForm((prev) => {
       if (next === "indian") {
         const kycType = (INDIAN_KEEP.has(prev.kycType) ? prev.kycType : "aadhaar") as KycType;
-        return { ...prev, nationality: "IN", kycType };
+        return { ...prev, nationality: "IN", kycType, kycNumber: "" };
       }
       return {
         ...prev,
         nationality: prev.nationality === "IN" ? "" : prev.nationality,
         kycType: "passport",
+        kycNumber: "",
       };
     });
   }
