@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { sanitizeNextPath, withNextParam } from "@/lib/auth/next-path";
+import { pathnameOf, sanitizeNextPath, withNextParam } from "@/lib/auth/next-path";
 import { publicEnv } from "@/lib/config/public";
 import type { CachedDigitalId, CachedItinerary, CachedTourist } from "@/lib/offline/db";
 import { PRESET_NE_ROUTES, itineraryLineString, routeById } from "@/lib/tourist/routes";
@@ -143,6 +143,12 @@ function firstSchemaError(form: FormState): string | null {
   });
   if (parsed.success) return null;
   return parsed.error.issues[0]?.message ?? "Check the form — a field is still invalid.";
+}
+
+function afterIssuePath(continueTo: string): string {
+  const path = pathnameOf(continueTo);
+  if (path === "/onboard" || path === "/" || path === "") return "/home";
+  return continueTo;
 }
 
 function documentStepError(form: FormState): string | null {
@@ -418,20 +424,13 @@ export default function OnboardPage() {
           }
         : null;
       await patchSession({ tourist, digitalId, itinerary });
+      window.location.assign(afterIssuePath(continueTo));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Issuance failed");
     } finally {
       setIssuing(false);
     }
   }
-
-  useEffect(() => {
-    if (!result) return;
-    const timer = window.setTimeout(() => {
-      window.location.assign(continueTo);
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, [result, continueTo]);
 
   if (result) {
     return (
@@ -473,8 +472,8 @@ export default function OnboardPage() {
             Chain write is queued. Your local ID card is ready offline.
           </p>
         )}
-        <Button type="button" onClick={() => window.location.assign(continueTo)}>
-          Continue
+        <Button type="button" onClick={() => window.location.assign(afterIssuePath(continueTo))}>
+          Continue to home
         </Button>
       </main>
     );
