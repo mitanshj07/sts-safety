@@ -222,13 +222,19 @@ export async function sendTouristNote(input: {
       actorLabel: input.actorLabel,
     });
     const admin = createAdminSupabase();
-    await admin.from("incident_messages").insert({
+    const { error: threadError } = await admin.from("incident_messages").insert({
       incident_id: input.incidentId,
       sender_kind: "command",
       sender_id: input.actorId ?? null,
       kind: "text",
       body,
     });
+    if (threadError) {
+      notifyLog("notify.note_thread_failed", {
+        incident_id: input.incidentId,
+        error: threadError.message,
+      });
+    }
     await appendEvent({
       incidentId: input.incidentId,
       eventType: "note",

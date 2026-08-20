@@ -97,10 +97,14 @@ export async function assertCanAccessIncident(input: {
 async function ensureVoiceBucket(): Promise<string> {
   const bucket = storageBuckets().voice
   const admin = createAdminClient()
-  await admin.storage.createBucket(bucket, {
-    public: false,
-    fileSizeLimit: VOICE_NOTE_MAX_BYTES,
-  })
+  try {
+    await admin.storage.createBucket(bucket, {
+      public: false,
+      fileSizeLimit: VOICE_NOTE_MAX_BYTES,
+    })
+  } catch {
+    // Already created by migration, or Storage will reject the upload with a clearer error.
+  }
   return bucket
 }
 
