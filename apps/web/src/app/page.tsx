@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: BadgeCheck,
     title: "Soulbound digital ID",
-    body: "Indians fetch eAadhaar via DigiLocker (or type Aadhaar). Visitors use a passport. Only a keccak256 commitment goes on-chain.",
+    body: "Indians sign in to DigiLocker, allow access, and we fetch eAadhaar. Visitors use a passport. Only a keccak256 commitment goes on-chain.",
   },
   {
     icon: Radio,

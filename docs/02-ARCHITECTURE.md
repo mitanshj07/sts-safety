@@ -102,10 +102,10 @@
 
 ```
  1. Sign-up: Indian traveller → Continue with DigiLocker on the landing
-    page or Tourist login tab (OAuth + eAadhaar XML fetch after allow).
-    Unauthenticated allow creates a tourist session and opens /onboard
-    with name / DOB / Aadhaar filled. Typed Aadhaar / Voter ID / DL
-    remain available. International visitor → passport.
+    page or Tourist login tab. In-app DigiLocker: mobile/PIN or Aadhaar
+    OTP → allow issued documents → server parses eAadhaar XML, opens a
+    tourist session if needed, and prefills /onboard. Typed Aadhaar /
+    Voter ID / DL remain available. International visitor → passport.
         │
  2. POST /api/identity/issue   { kycType, kycNumber, name, nationality,
                                  emergencyContacts[], tripStart, tripEnd,

@@ -2,7 +2,7 @@
 "use client";
 
 import { Landmark, ShieldCheck } from "lucide-react";
-import type { DigilockerSession } from "@sts/shared";
+import { KYC_TYPE_LABELS, type DigilockerSession } from "@sts/shared";
 
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,10 @@ export function DigilockerConnect({
   onClear,
 }: DigilockerConnectProps) {
   if (session) {
+    const docLabel =
+      session.kycType === "aadhaar"
+        ? "eAadhaar"
+        : KYC_TYPE_LABELS[session.kycType];
     return (
       <div
         data-testid="digilocker-fetched"
@@ -30,9 +34,8 @@ export function DigilockerConnect({
           <div>
             <p className="text-sm font-semibold">Fetched from DigiLocker</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              eAadhaar ending {session.kycLast4}
-              {session.mode === "demo" ? " · demo sandbox" : ""}. Name and date of
-              birth are filled from the issued XML.
+              {docLabel} ending {session.kycLast4}. Name and date of birth are
+              filled from the issued XML.
             </p>
           </div>
         </div>
@@ -60,8 +63,8 @@ export function DigilockerConnect({
         <div>
           <p className="text-sm font-semibold">DigiLocker</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Sign in with DigiLocker. After you allow access we pull eAadhaar (and
-            issued DL / voter ID on file) instead of typing the number.
+            Sign in, allow access, and we pull eAadhaar plus issued DL / voter ID
+            into this form.
           </p>
         </div>
       </div>

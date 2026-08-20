@@ -6,12 +6,21 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 import {
   DEMO_DIGILOCKER_CODE,
   DEMO_DIGILOCKER_PROFILE,
+  DEMO_EAADHAAR_XML,
+  extractIssuedItems,
+  issuedItemHasXml,
+  issuedItemToKyc,
   mapIssuedDocuments,
-  parseDigilockerDob,
+  mergeDigilockerUserFields,
+  parseDigilockerUserFields,
   parseEAadhaarXml,
+  parseIssuedCertificateXml,
+  resolveDigilockerKyc,
   type DigilockerFetchedProfile,
   type DigilockerIssuedItem,
+  type DigilockerParsedCertificate,
   type DigilockerSession,
+  type DigilockerUserFields,
   type KycType,
 } from "@sts/shared";
 
@@ -47,11 +56,9 @@ function trim(value: string | undefined): string {
 }
 
 export function digilockerMode(): DigilockerMode {
-  const explicit = trim(serverEnv.digilockerMode);
-  if (explicit === "live" || explicit === "demo") return explicit;
-  return trim(serverEnv.digilockerClientId) && trim(serverEnv.digilockerClientSecret)
-    ? "live"
-    : "demo";
+  const explicit = trim(serverEnv.digilockerMode).toLowerCase();
+  if (explicit === "live") return "live";
+  return "demo";
 }
 
 function signingSecret(): string {
@@ -205,7 +212,32 @@ export function buildAuthorizeUrl(args: {
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("scope", "openid");
   url.searchParams.set("acr", "aadhaar");
+  url.searchParams.set("purpose", "kyc");
   return url.toString();
+}
+
+export type DigilockerPublicStatus = {
+  mode: DigilockerMode;
+  configured: boolean;
+  host: string;
+};
+
+export function digilockerPublicStatus(): DigilockerPublicStatus {
+  const mode = digilockerMode();
+  if (mode === "demo") {
+    return { mode, configured: true, host: "in-app" };
+  }
+  let host = "digilocker.meripehchaan.gov.in";
+  try {
+    host = new URL(digilockerBaseUrl()).host;
+  } catch {
+    // keep the documented MeitY host
+  }
+  return {
+    mode,
+    configured: digilockerLiveConfigured(),
+    host,
+  };
 }
 
 export function demoConsentUrl(origin: string, state: string): string {
@@ -218,8 +250,7 @@ export function startRedirectUrl(request: Request, oauth: OAuthCookie): {
   url: string | null;
   reason?: string;
 } {
-  if (digilockerMode() === "live") {
-    if (!digilockerLiveConfigured()) return { url: null, reason: "config" };
+  if (digilockerMode() === "live" && digilockerLiveConfigured()) {
     return { url: buildAuthorizeUrl({ request, oauth }) };
   }
   return { url: demoConsentUrl(requestOrigin(request), oauth.state) };
@@ -228,7 +259,7 @@ export function startRedirectUrl(request: Request, oauth: OAuthCookie): {
 export function digilockerErrorReason(error: unknown): string {
   const msg = error instanceof Error ? error.message : "";
   if (/hmac/i.test(msg)) return "hmac";
-  if (/eAadhaar|share|Link Aadhaar/i.test(msg)) return "missing_aadhaar";
+  if (/eAadhaar|share|Link Aadhaar|did not share/i.test(msg)) return "missing_aadhaar";
   if (/not configured|credentials/i.test(msg)) return "config";
   return "fetch";
 }
@@ -282,11 +313,20 @@ function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+function bearer(token: string): HeadersInit {
+  return { authorization: `Bearer ${token}` };
+}
+
+type TokenBundle = {
+  accessToken: string;
+  fields: DigilockerUserFields;
+};
+
 async function exchangeCode(args: {
   request: Request;
   code: string;
   verifier: string;
-}): Promise<string> {
+}): Promise<TokenBundle> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code: args.code,
@@ -305,72 +345,133 @@ async function exchangeCode(args: {
   if (!res.ok || !token) {
     throw new Error(asString(json.error_description) || asString(json.error) || "token exchange failed");
   }
-  return token;
+  return { accessToken: token, fields: parseDigilockerUserFields(json) };
 }
 
-async function fetchUser(token: string): Promise<{
-  name: string;
-  dateOfBirth: string | null;
-  eaadhaar: boolean;
-  digilockerId: string;
-}> {
+async function fetchUser(token: string): Promise<DigilockerUserFields | null> {
   const res = await fetch(`${digilockerBaseUrl()}/oauth2/1/user`, {
-    headers: { authorization: `Bearer ${token}` },
+    headers: bearer(token),
   });
   const json = await readJson(res);
   if (!res.ok) {
-    throw new Error(asString(json.error_description) || "user lookup failed");
+    identityLog("digilocker_user_unavailable", { status: res.status, ok: false });
+    return null;
   }
-  return {
-    name: asString(json.name),
-    dateOfBirth: parseDigilockerDob(asString(json.dob)),
-    eaadhaar: asString(json.eaadhaar).toUpperCase() === "Y",
-    digilockerId: asString(json.digilockerid),
-  };
+  return parseDigilockerUserFields(json);
 }
 
-function verifyFileHmac(body: string, header: string | null): boolean {
-  if (!header) return true;
-  const expected = createHmac("sha256", serverEnv.digilockerClientSecret)
-    .update(body)
-    .digest("base64");
+function verifyFileHmac(body: Buffer, header: string | null): "ok" | "missing" | "mismatch" {
+  const provided = header?.trim() ?? "";
+  if (!provided) return "missing";
+  const secret = serverEnv.digilockerClientSecret;
+  const expectedB64 = createHmac("sha256", secret).update(body).digest("base64");
+  const expectedHex = createHmac("sha256", secret).update(body).digest("hex");
   try {
-    const a = Buffer.from(header);
-    const b = Buffer.from(expected);
-    return a.length === b.length && timingSafeEqual(a, b);
+    const a = Buffer.from(provided);
+    const b = Buffer.from(expectedB64);
+    if (a.length === b.length && timingSafeEqual(a, b)) return "ok";
   } catch {
-    return false;
+    // fall through to hex compare
   }
+  if (provided.toLowerCase() === expectedHex) return "ok";
+  return "mismatch";
+}
+
+async function fetchXmlBody(
+  path: string,
+  token: string,
+): Promise<{ body: Buffer; hmac: "ok" | "missing" | "mismatch" } | null> {
+  const res = await fetch(`${digilockerBaseUrl()}${path}`, {
+    headers: {
+      ...bearer(token),
+      accept: "application/xml, text/xml, */*",
+    },
+  });
+  const body = Buffer.from(await res.arrayBuffer());
+  if (!res.ok) return null;
+  const hmacHeader = res.headers.get("hmac") ?? res.headers.get("x-hmac");
+  return { body, hmac: verifyFileHmac(body, hmacHeader) };
+}
+
+function xmlFromFetched(
+  fetched: { body: Buffer; hmac: "ok" | "missing" | "mismatch" } | null,
+  event: string,
+): string | null {
+  if (!fetched) {
+    identityLog(event, { ok: false, reason: "unavailable" });
+    return null;
+  }
+  if (fetched.hmac === "mismatch") {
+    identityLog(event, { ok: false, reason: "hmac" });
+    return null;
+  }
+  if (fetched.hmac === "missing") {
+    identityLog(event, { ok: true, hmac: "missing" });
+  }
+  return fetched.body.toString("utf8");
 }
 
 async function fetchEAadhaar(token: string): Promise<ReturnType<typeof parseEAadhaarXml>> {
-  const res = await fetch(`${digilockerBaseUrl()}/oauth2/3/xml/eaadhaar`, {
-    headers: { authorization: `Bearer ${token}` },
-  });
-  const xml = await res.text();
-  if (!res.ok) {
-    identityLog("digilocker_eaadhaar_unavailable", { status: res.status, ok: false });
-    return null;
-  }
-  const hmac = res.headers.get("hmac") ?? res.headers.get("x-hmac");
-  if (!verifyFileHmac(xml, hmac)) {
-    throw new Error("eAadhaar HMAC mismatch");
-  }
-  return parseEAadhaarXml(xml);
+  const xml = xmlFromFetched(
+    await fetchXmlBody("/oauth2/3/xml/eaadhaar", token),
+    "digilocker_eaadhaar",
+  );
+  return xml ? parseEAadhaarXml(xml) : null;
 }
 
 async function fetchIssued(token: string): Promise<DigilockerIssuedItem[]> {
   const res = await fetch(`${digilockerBaseUrl()}/oauth2/2/files/issued`, {
-    headers: { authorization: `Bearer ${token}` },
+    headers: { ...bearer(token), accept: "application/json" },
   });
   const json = await readJson(res);
   if (!res.ok) {
     identityLog("digilocker_issued_unavailable", { status: res.status, ok: false });
     return [];
   }
-  const items = json.items;
-  if (!Array.isArray(items)) return [];
-  return items.filter((row): row is DigilockerIssuedItem => Boolean(row && typeof row === "object"));
+  return extractIssuedItems(json);
+}
+
+async function fetchIssuedXml(token: string, uri: string): Promise<string | null> {
+  const trimmed = uri.trim().replace(/^\/+/, "");
+  if (!trimmed) return null;
+  const path = `/oauth2/1/xml/${encodeURIComponent(trimmed)}`;
+  return xmlFromFetched(await fetchXmlBody(path, token), "digilocker_issued_xml");
+}
+
+async function fetchIssuedCertificates(
+  token: string,
+  items: DigilockerIssuedItem[],
+): Promise<DigilockerParsedCertificate[]> {
+  const out: DigilockerParsedCertificate[] = [];
+  const seen = new Set<KycType>();
+  for (const item of items) {
+    const kycType = issuedItemToKyc(item);
+    if (!kycType || seen.has(kycType) || !item.uri) continue;
+    if (!issuedItemHasXml(item) && kycType !== "aadhaar") continue;
+    const xml = await fetchIssuedXml(token, item.uri);
+    if (!xml) continue;
+    const parsed = parseIssuedCertificateXml(xml, kycType);
+    if (!parsed) continue;
+    seen.add(kycType);
+    out.push(parsed);
+  }
+  return out;
+}
+
+function withEAadhaarDocument(
+  documents: DigilockerFetchedProfile["documents"],
+  eaadhaar: boolean,
+): DigilockerFetchedProfile["documents"] {
+  if (!eaadhaar || documents.some((doc) => doc.kycType === "aadhaar")) return documents;
+  return [
+    {
+      kycType: "aadhaar",
+      label: "eAadhaar",
+      issuer: "UIDAI",
+      doctype: "ADHAR",
+    },
+    ...documents,
+  ];
 }
 
 export async function completeDigilocker(args: {
@@ -383,56 +484,64 @@ export async function completeDigilocker(args: {
     if (args.code !== DEMO_DIGILOCKER_CODE) {
       throw new Error("invalid demo code");
     }
+    const eaadhaar = parseEAadhaarXml(DEMO_EAADHAAR_XML);
     identityLog("digilocker_demo_fetch", {
       ok: true,
       docs: DEMO_DIGILOCKER_PROFILE.documents.length,
+      parsed: Boolean(eaadhaar?.uid),
     });
     return {
       ...DEMO_DIGILOCKER_PROFILE,
+      name: eaadhaar?.name || DEMO_DIGILOCKER_PROFILE.name,
+      dateOfBirth: eaadhaar?.dateOfBirth ?? DEMO_DIGILOCKER_PROFILE.dateOfBirth,
+      kycNumber: eaadhaar?.uid || DEMO_DIGILOCKER_PROFILE.kycNumber,
       mode: "demo",
     };
   }
   if (!digilockerLiveConfigured()) {
     throw new Error("DigiLocker live credentials are not configured");
   }
-  const accessToken = await exchangeCode({
+
+  const token = await exchangeCode({
     request: args.request,
     code: args.code,
     verifier: args.oauth.verifier,
   });
-  const user = await fetchUser(accessToken);
-  const eaadhaar = await fetchEAadhaar(accessToken);
-  const issued = mapIssuedDocuments(await fetchIssued(accessToken));
-  const documents = eaadhaar
-    ? [
-        {
-          kycType: "aadhaar" as const,
-          label: "eAadhaar",
-          issuer: "UIDAI",
-          doctype: "ADHAR",
-        },
-        ...issued.filter((d) => d.kycType !== "aadhaar"),
-      ]
-    : issued;
-
-  const kycType: KycType = eaadhaar ? "aadhaar" : (issued[0]?.kycType ?? "aadhaar");
-  const kycNumber = eaadhaar?.uid ?? "";
-  if (!kycNumber) {
-    throw new Error("DigiLocker did not share eAadhaar. Link Aadhaar or enter the document manually.");
+  const userFromEndpoint = await fetchUser(token.accessToken);
+  const user = mergeDigilockerUserFields(
+    userFromEndpoint ?? parseDigilockerUserFields(null),
+    token.fields,
+  );
+  const eaadhaar = await fetchEAadhaar(token.accessToken);
+  const issuedItems = await fetchIssued(token.accessToken);
+  const certificates = await fetchIssuedCertificates(token.accessToken, issuedItems);
+  const resolved = resolveDigilockerKyc({
+    name: user.name,
+    dateOfBirth: user.dateOfBirth,
+    eaadhaar,
+    certificates,
+  });
+  if (!resolved?.kycNumber || !resolved.name) {
+    throw new Error(
+      "DigiLocker did not share eAadhaar. Link Aadhaar or enter the document manually.",
+    );
   }
+
+  const documents = withEAadhaarDocument(mapIssuedDocuments(issuedItems), Boolean(eaadhaar));
 
   identityLog("digilocker_live_fetch", {
     ok: true,
     eaadhaar: Boolean(eaadhaar),
-    flagged: user.eaadhaar,
+    flagged: user.eaadhaarLinked,
     docs: documents.length,
+    kyc: resolved.kycType,
   });
 
   return {
-    name: eaadhaar?.name || user.name,
-    dateOfBirth: eaadhaar?.dateOfBirth ?? user.dateOfBirth,
-    kycType,
-    kycNumber,
+    name: resolved.name,
+    dateOfBirth: resolved.dateOfBirth,
+    kycType: resolved.kycType,
+    kycNumber: resolved.kycNumber,
     documents,
     digilockerId: user.digilockerId,
     mode: "live",

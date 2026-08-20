@@ -43,7 +43,11 @@ function safeNextPath(): string | null {
   return next;
 }
 
-export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormProps) {
+export function LoginForm({
+  defaultTab,
+  initialError,
+  initialInfo,
+}: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
   const [info, setInfo] = useState<string | null>(initialInfo ?? null);
@@ -241,8 +245,8 @@ export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormPr
                 {pending ? "Sending…" : "Send magic link"}
               </Button>
               <p className="text-xs text-muted-foreground">
-                New tourist accounts open onboarding. Indians can fetch eAadhaar
-                from the Tourist tab with DigiLocker instead.
+                New tourist accounts open onboarding. Indians can sign in with
+                DigiLocker on the Tourist tab instead.
               </p>
             </form>
           </TabsContent>
@@ -254,8 +258,8 @@ export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormPr
                 DigiLocker
               </p>
               <p className="text-xs text-muted-foreground">
-                Allow access once. We fetch eAadhaar (and issued DL / voter ID)
-                and start onboarding with the fields filled in.
+                Sign in to DigiLocker, allow access, and we fill eAadhaar, name,
+                and date of birth on onboarding.
               </p>
               <Button
                 type="button"

@@ -24,11 +24,23 @@ export async function loginAsTourist(page: Page): Promise<void> {
   await dismissPermissionPrimer(page);
 }
 
+export async function completeDigilockerPortal(page: Page): Promise<void> {
+  await page.getByTestId("digilocker-signin").click();
+  await page.getByTestId("digilocker-allow").click();
+}
+
 export async function signupWithDigilocker(page: Page): Promise<void> {
   await page.goto("/login?tab=tourist");
   await page.getByTestId("digilocker-signup").click();
-  await page.getByTestId("digilocker-allow").click();
+  await completeDigilockerPortal(page);
   await page.waitForURL(/\/onboard/, { timeout: 20_000 });
+}
+
+export async function digilockerDemoEnabled(page: Page): Promise<boolean> {
+  const res = await page.request.get("/api/identity/digilocker/status");
+  if (!res.ok()) return false;
+  const json = (await res.json()) as { mode?: string };
+  return json.mode === "demo";
 }
 
 export async function expectHealthy(page: Page): Promise<void> {

@@ -40,6 +40,7 @@ export const healthResponseSchema = z.object({
       chain: z.string(),
       ai: z.string(),
       map: z.string(),
+      digilocker: z.string().optional(),
     })
     .optional(),
 });

@@ -29,7 +29,7 @@ cp .env.example .env                # tooling: foundry, simulator, supabase cli
 | `TELEGRAM_CONTROL_ROOM_CHAT_ID` | Add the bot to a group, then `getUpdates` and read `chat.id` (negative number) | No |
 | `RESEND_API_KEY` | resend.com → API Keys. Use `onboarding@resend.dev` as the sender until you have a domain | No |
 | Map, geocoding, routing URLs | Pre-filled. All keyless | No |
-| DigiLocker (`DIGILOCKER_CLIENT_ID` / `SECRET`) | partners.digitallocker.gov.in → register a requester app. Redirect URI: `{APP_URL}/api/identity/digilocker/callback`. Leave blank for the in-app demo consent (Priya Sharma eAadhaar). | No |
+| DigiLocker | Production uses the in-app DigiLocker portal (`DIGILOCKER_MODE=demo`): sign in, allow, fetch issued XML. No partner client id is required. | No |
 
 ## Exposure rules
 
@@ -48,7 +48,7 @@ Demo switches control whether the system talks to the internet at all. Set them 
 | `AI_MODE` | `groq` | `onnx-local` (or `rules-only`) |
 | `NEXT_PUBLIC_MAP_TILE_MODE` | `openfreemap` | `pmtiles-local` |
 | `NOTIFY_CHANNELS` | `realtime,webpush,telegram,email` | `realtime,webpush` |
-| `DIGILOCKER_MODE` | `live` (with partner credentials) | `demo` (in-app consent, no MeitY call) |
+| `DIGILOCKER_MODE` | `demo` (in-app DigiLocker portal — production) | `demo` |
 
 Rehearse at least once in the offline column.
 
