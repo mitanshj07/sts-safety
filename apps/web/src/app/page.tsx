@@ -90,7 +90,7 @@ export default function HomePage() {
                   <ArrowRight />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Button asChild size="lg" variant="outline" className="w-full border-white/20 sm:w-auto">
                 <Link href="/login?tab=officer">Enter command centre</Link>
               </Button>
             </div>
