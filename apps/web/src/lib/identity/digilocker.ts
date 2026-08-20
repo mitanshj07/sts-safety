@@ -244,13 +244,6 @@ export function onboardStatusUrl(
   return url;
 }
 
-export function loginReadyUrl(request: Request): URL {
-  const url = new URL("/login", requestOrigin(request));
-  url.searchParams.set("tab", "tourist");
-  url.searchParams.set("digilocker", "ready");
-  return url;
-}
-
 export function loginStatusUrl(
   request: Request,
   status: "error" | "denied",
