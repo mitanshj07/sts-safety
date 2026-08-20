@@ -2,10 +2,9 @@ import { cn } from "@/lib/utils";
 
 export function Panel({
   className,
-  as: Comp = "section",
   ...props
-}: React.ComponentProps<"section"> & { as?: "section" | "div" | "aside" | "article" }) {
-  return <Comp className={cn("sts-panel", className)} {...props} />;
+}: React.ComponentProps<"section">) {
+  return <section className={cn("sts-panel", className)} {...props} />;
 }
 
 export function PanelHeader({
