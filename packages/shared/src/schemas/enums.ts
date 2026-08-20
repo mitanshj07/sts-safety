@@ -118,3 +118,6 @@ export type NotifyStatus = z.infer<typeof notifyStatusSchema>
 
 export const touristStatusSchema = z.enum(["active", "checked_out", "inactive"])
 export type TouristStatus = z.infer<typeof touristStatusSchema>
+
+export const suggestionStatusSchema = z.enum(["open", "accepted", "dismissed"])
+export type SuggestionStatus = z.infer<typeof suggestionStatusSchema>

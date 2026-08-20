@@ -43,6 +43,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_zone_suggestions: {
+        Row: {
+          address_text: string | null
+          centroid_lat: number
+          centroid_lon: number
+          cluster_key: string
+          covering_zone_id: string | null
+          covering_zone_name: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          dominant_type: Database["public"]["Enums"]["incident_type"]
+          first_at: string | null
+          id: string
+          incident_count: number
+          incident_ids: string[]
+          last_at: string | null
+          proposed_category: Database["public"]["Enums"]["zone_category"]
+          proposed_geom: Json
+          proposed_name: string
+          proposed_risk: Database["public"]["Enums"]["risk_level"]
+          radius_m: number
+          rationale: string
+          rationale_model: string | null
+          score: number
+          sos_count: number
+          status: Database["public"]["Enums"]["suggestion_status"]
+          tourist_ids: string[]
+          type_counts: Json
+          unique_tourists: number
+          updated_at: string
+          window_hours: number
+          zone_id: string | null
+        }
+        Insert: {
+          address_text?: string | null
+          centroid_lat: number
+          centroid_lon: number
+          cluster_key: string
+          covering_zone_id?: string | null
+          covering_zone_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dominant_type?: Database["public"]["Enums"]["incident_type"]
+          first_at?: string | null
+          id?: string
+          incident_count: number
+          incident_ids?: string[]
+          last_at?: string | null
+          proposed_category?: Database["public"]["Enums"]["zone_category"]
+          proposed_geom: Json
+          proposed_name: string
+          proposed_risk?: Database["public"]["Enums"]["risk_level"]
+          radius_m: number
+          rationale: string
+          rationale_model?: string | null
+          score?: number
+          sos_count?: number
+          status?: Database["public"]["Enums"]["suggestion_status"]
+          tourist_ids?: string[]
+          type_counts?: Json
+          unique_tourists: number
+          updated_at?: string
+          window_hours?: number
+          zone_id?: string | null
+        }
+        Update: {
+          address_text?: string | null
+          centroid_lat?: number
+          centroid_lon?: number
+          cluster_key?: string
+          covering_zone_id?: string | null
+          covering_zone_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          dominant_type?: Database["public"]["Enums"]["incident_type"]
+          first_at?: string | null
+          id?: string
+          incident_count?: number
+          incident_ids?: string[]
+          last_at?: string | null
+          proposed_category?: Database["public"]["Enums"]["zone_category"]
+          proposed_geom?: Json
+          proposed_name?: string
+          proposed_risk?: Database["public"]["Enums"]["risk_level"]
+          radius_m?: number
+          rationale?: string
+          rationale_model?: string | null
+          score?: number
+          sos_count?: number
+          status?: Database["public"]["Enums"]["suggestion_status"]
+          tourist_ids?: string[]
+          type_counts?: Json
+          unique_tourists?: number
+          updated_at?: string
+          window_hours?: number
+          zone_id?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -1170,6 +1272,7 @@ export type Database = {
       ping_source: "phone" | "band" | "simulator" | "manual"
       risk_level: "none" | "low" | "medium" | "high" | "critical"
       severity_level: "info" | "low" | "medium" | "high" | "critical"
+      suggestion_status: "open" | "accepted" | "dismissed"
       user_role: "tourist" | "responder" | "admin" | "auditor"
       zone_category:
         | "safe"

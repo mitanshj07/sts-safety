@@ -78,6 +78,7 @@ sql_paths = [
   "./seed/02_responders.sql",
   "./seed/03_demo_tourists.sql",
   "./seed/04_demo_staff.sql",
+  "./seed/05_sos_hotspot.sql",
 ]
 
 [db.network_restrictions]

@@ -182,3 +182,33 @@ export type DigitalIdCard = {
   issue_block: number | null
   holder_address: string | null
 }
+
+export type HotspotSuggestion = {
+  id: string
+  cluster_key: string
+  status: "open" | "accepted" | "dismissed"
+  lat: number
+  lon: number
+  radius_m: number
+  incident_count: number
+  unique_tourists: number
+  sos_count: number
+  dominant_type: IncidentType
+  type_counts: Record<string, number>
+  incident_ids: string[]
+  proposed_name: string
+  proposed_category: ZoneCategory
+  proposed_risk: RiskLevel
+  proposed_geom: GeoJsonPolygon
+  address_text: string | null
+  covering_zone_id: string | null
+  covering_zone_name: string | null
+  already_reserved: boolean
+  rationale: string
+  rationale_model: string | null
+  score: number
+  first_at: string | null
+  last_at: string | null
+  window_hours: number
+  zone_id: string | null
+}

@@ -104,6 +104,35 @@ export function nlQuery(question: string): string {
   ].join("\n")
 }
 
+export type HotspotSuggestionFacts = {
+  unique_tourists: number
+  incident_count: number
+  sos_count: number
+  type_counts: Record<string, number>
+  lat: number
+  lon: number
+  radius_m: number
+  address_text: string | null
+  covering_zone_name: string | null
+  lookback_hours: number
+  first_at: string
+  last_at: string
+}
+
+export function hotspotZoneSuggestion(facts: HotspotSuggestionFacts): string {
+  return [
+    "You advise a tourist-safety control room in India's North-Eastern Region.",
+    "Multiple DISTINCT tourists raised SOS or similar alerts from similar GPS coordinates.",
+    "Recommend whether to mark the cluster as a reserved / restricted geofence.",
+    "The geofencing engine already raised the individual alerts. You do not decide whether those alerts fire.",
+    "Never invent injuries, names, or landmarks that are not in the facts. If the place name is missing, use coordinates.",
+    "Return JSON only with keys: proposed_name (short, max 60 chars), rationale (exactly two sentences), category (restricted|high_risk|forest_reserve|caution), risk_level (medium|high|critical).",
+    "Prefer category=restricted and risk_level=high or critical when SOS count from distinct tourists is high.",
+    "Facts:",
+    JSON.stringify(facts),
+  ].join("\n")
+}
+
 export function rulesIncidentBrief(facts: IncidentBriefFacts): string {
   const who = facts.tourist_name ?? "Unidentified tourist"
   const zone = facts.zone_name ?? facts.address_text ?? "unknown location"
