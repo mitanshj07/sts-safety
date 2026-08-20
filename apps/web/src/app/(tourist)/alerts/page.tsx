@@ -1,12 +1,11 @@
 // apps/web/src/app/(tourist)/alerts/page.tsx
 "use client";
 
-import { Bell } from "lucide-react";
 import { isCommandNoteNotification } from "@sts/shared";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
-import { Badge } from "@/components/ui/badge";
+import { formatIst } from "@/lib/ui/format";
 import { cn } from "@/lib/utils";
 
 export default function AlertsPage() {
@@ -37,31 +36,28 @@ export default function AlertsPage() {
       />
       {rows.length === 0 ? (
         <EmptyState
-          icon={Bell}
-          title="All quiet"
-          description="No notifications yet. Restricted-zone entries, SOS receipts, and control-room notes appear here."
+          kicker="You're up to date"
+          title="No notifications"
+          description="Restricted-zone entries, SOS receipts, and control-room notes appear here."
         />
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-border border-y border-border">
           {rows.map((n) => {
             const fromControl = isCommandNoteNotification(n);
             return (
               <li
                 key={String(n.id)}
-                className={cn(
-                  "rounded-2xl border p-4 shadow-sm",
-                  fromControl
-                    ? "border-emerald-700/40 bg-emerald-950/30"
-                    : "border-border/80 bg-card/80",
-                )}
+                className={cn("py-4", fromControl && "bg-success/10 px-3 -mx-0")}
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-medium">{n.title ?? "Alert"}</p>
-                  <Badge variant="outline">{fromControl ? "control room" : n.channel}</Badge>
+                  <p className="sts-meta shrink-0">
+                    {fromControl ? "Control room" : n.channel}
+                  </p>
                 </div>
                 {n.body ? <p className="mt-1 text-sm text-muted-foreground">{n.body}</p> : null}
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {new Date(n.created_at).toLocaleString()} · {n.status}
+                <p className="sts-meta mt-2">
+                  {formatIst(n.created_at)} · {n.status}
                 </p>
               </li>
             );

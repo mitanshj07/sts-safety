@@ -151,7 +151,7 @@ export function VoiceNoteRecorder({
   if (phase === "recording") {
     return (
       <div className={cn("flex flex-wrap items-center gap-2", className)}>
-        <span className="size-2 animate-pulse rounded-full bg-red-500" aria-hidden />
+        <span className="size-2 animate-pulse rounded-full bg-danger" aria-hidden />
         <p className="font-mono text-sm">Recording {formatVoiceDuration(elapsedMs)}</p>
         <Button type="button" size="sm" variant="destructive" onClick={finishRecording}>
           <Square className="size-3.5" />

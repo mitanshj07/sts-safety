@@ -18,13 +18,13 @@ export default async function TouristLayout({ children }: { children: ReactNode 
   }
   return (
     <TouristProvider>
-      <div className="tourist-theme min-h-dvh bg-background">
+      <div className="light tourist-theme min-h-dvh bg-background">
         <ServiceWorkerRegistrar />
         <PermissionPrimer />
         <GeofenceWarning />
         <div className="min-h-dvh pb-20">{children}</div>
         <BottomNav />
-        <Toaster theme="dark" />
+        <Toaster theme="light" />
       </div>
     </TouristProvider>
   );

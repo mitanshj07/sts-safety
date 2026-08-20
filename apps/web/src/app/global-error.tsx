@@ -24,18 +24,18 @@ export default function GlobalError({
           minHeight: "100vh",
           display: "grid",
           placeItems: "center",
-          background: "#0f172a",
-          color: "#e2e8f0",
+          background: "#F4F0E4",
+          color: "#1A3A2A",
           fontFamily: "ui-sans-serif, system-ui, sans-serif",
         }}
       >
-        <main style={{ maxWidth: 420, padding: 24, textAlign: "center" }}>
-          <p style={{ letterSpacing: "0.2em", fontSize: 12, opacity: 0.7 }}>
-            MDoNER · CONTROL ROOM
+        <main style={{ maxWidth: 420, padding: 24 }}>
+          <p style={{ letterSpacing: "0.14em", fontSize: 11, textTransform: "uppercase", opacity: 0.7 }}>
+            Recoverable error
           </p>
-          <h1 style={{ fontSize: 28, margin: "8px 0 12px" }}>Something broke</h1>
-          <p style={{ opacity: 0.8, fontSize: 14 }}>
-            The safety path is still in Postgres. Refresh and continue the demo.
+          <h1 style={{ fontSize: 24, margin: "8px 0 12px" }}>This screen failed to render</h1>
+          <p style={{ opacity: 0.8, fontSize: 14, lineHeight: 1.5 }}>
+            Alerts still fire in Postgres. Refresh and continue.
             {error.digest ? ` Digest ${error.digest}.` : ""}
           </p>
           <button
@@ -43,11 +43,10 @@ export default function GlobalError({
             onClick={() => reset()}
             style={{
               marginTop: 16,
-              padding: "8px 16px",
-              borderRadius: 8,
-              border: "1px solid #334155",
-              background: "#14532d",
-              color: "white",
+              padding: "10px 16px",
+              border: "1px solid #1A3A2A",
+              background: "#1A3A2A",
+              color: "#F4F0E4",
             }}
           >
             Try again

@@ -4,32 +4,28 @@ import { cn } from "@/lib/utils";
 
 export function EmptyState({
   icon: Icon,
+  kicker,
   title,
   description,
   action,
   className,
 }: {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  kicker?: string;
   title: string;
   description: string;
   action?: React.ReactNode;
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/40 px-6 py-12 text-center",
-        className,
-      )}
-    >
-      <span className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
-        <Icon className="size-5" />
-      </span>
-      <div className="space-y-1">
-        <p className="font-medium">{title}</p>
-        <p className="max-w-sm text-sm text-muted-foreground text-pretty">{description}</p>
+    <div className={cn("flex max-w-md flex-col gap-2 py-14", className)}>
+      {kicker ? <p className="sts-kicker">{kicker}</p> : null}
+      <div className="flex items-baseline gap-2">
+        {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden /> : null}
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       </div>
-      {action}
+      <p className="text-sm leading-relaxed text-muted-foreground text-pretty">{description}</p>
+      {action ? <div className="pt-2">{action}</div> : null}
     </div>
   );
 }
