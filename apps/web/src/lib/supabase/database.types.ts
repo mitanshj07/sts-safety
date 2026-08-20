@@ -141,6 +141,34 @@ export type IncidentRow = IncidentInsert & {
   created_at: string;
 };
 
+export type IncidentMessageRow = {
+  id: string;
+  incident_id: string;
+  sender_kind: "tourist" | "command" | string;
+  sender_id: string | null;
+  kind: "text" | "voice" | string;
+  body: string | null;
+  storage_path: string | null;
+  mime_type: string | null;
+  duration_ms: number | null;
+  byte_size: number | null;
+  created_at: string;
+};
+
+export type IncidentMessageInsert = {
+  id?: string;
+  incident_id: string;
+  sender_kind: "tourist" | "command" | string;
+  sender_id?: string | null;
+  kind: "text" | "voice" | string;
+  body?: string | null;
+  storage_path?: string | null;
+  mime_type?: string | null;
+  duration_ms?: number | null;
+  byte_size?: number | null;
+  created_at?: string;
+};
+
 export type ItineraryUpdate = {
   waypoints?: Json;
   title?: string;
@@ -228,6 +256,12 @@ export type Database = {
         Row: IncidentRow;
         Insert: IncidentInsert;
         Update: Partial<IncidentInsert>;
+        Relationships: [];
+      };
+      incident_messages: {
+        Row: IncidentMessageRow;
+        Insert: IncidentMessageInsert;
+        Update: Partial<IncidentMessageInsert>;
         Relationships: [];
       };
       itineraries: {

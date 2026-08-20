@@ -5,6 +5,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { COMMAND_NOTE_MAX_LENGTH, COMMAND_NOTE_PRESETS } from "@sts/shared"
 import { sendIncidentNote } from "@/app/(command)/actions"
+import { IncidentMessageThread } from "@/components/shared/IncidentMessageThread"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -71,6 +72,9 @@ export function TouristNoteComposer({ incidentId }: { incidentId: string }) {
         >
           Send to tourist
         </Button>
+      </div>
+      <div className="mt-4 border-t border-border pt-4">
+        <IncidentMessageThread incidentId={incidentId} senderKind="command" />
       </div>
     </div>
   )

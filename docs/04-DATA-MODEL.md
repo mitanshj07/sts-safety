@@ -23,6 +23,7 @@ auth.users ──1:1── profiles ──1:1── tourists ──1:N── iti
                        │                ├──1:N── location_tracks (hourly LineStrings, long term)
                        │                └──1:N── incidents
                        │                            ├──1:N── incident_events   (append-only)
+                       │                            ├──1:N── incident_messages (text + voice)
                        │                            ├──1:N── dispatches ──N:1── responders
                        │                            ├──1:N── notifications
                        │                            ├──0:1── efir_drafts
@@ -48,6 +49,7 @@ There is deliberately **no foreign key from pings to zones**. Zone membership is
 | `location_tracks` | Hourly downsampled `LineString` | 24 rows/tourist/day |
 | `incidents` | The system's output | tens per demo |
 | `incident_events` | Append-only timeline, never updated | ~5 per incident |
+| `incident_messages` | SOS thread: optional tourist line + two-way voice notes | a few per SOS |
 | `responders`, `dispatches` | Response side | tens |
 | `notifications` | Per-channel delivery audit | ~4 per incident |
 | `efir_drafts` | LLM-drafted E-FIR + PDF pointer | rare |

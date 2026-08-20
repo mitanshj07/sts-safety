@@ -2,8 +2,12 @@
 "use client";
 
 import { useCallback, useRef, useState, type PointerEvent } from "react";
+import { SOS_MESSAGE_MAX_LENGTH } from "@sts/shared";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { pointEwkt, roundCoord } from "@/lib/geo/ewkt";
 import { persistPing } from "@/lib/offline/ping-queue";
+import { postIncidentMessage } from "@/lib/incidents/messages-client";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { cn } from "@/lib/utils";
@@ -17,6 +21,7 @@ export function PanicButton({ className }: { className?: string }) {
   const { tourist, lastFix, markSos } = useTouristRuntime();
   const [state, setState] = useState<SosState>("idle");
   const [fill, setFill] = useState(0);
+  const [note, setNote] = useState("");
   const raf = useRef<number | null>(null);
   const start = useRef(0);
   const smsHref = useRef<string | null>(null);
@@ -43,9 +48,12 @@ export function PanicButton({ className }: { className?: string }) {
       : [];
     const first = contacts[0] as { phone_e164?: string } | undefined;
     const smsNumber = first?.phone_e164?.replace(/[^\d+]/g, "") ?? "";
-    const body = encodeURIComponent(
+    const touristMessage = note.trim().slice(0, SOS_MESSAGE_MAX_LENGTH);
+    const smsLines = [
       `SOS Smart Tourist Safety. I need help. Coords ${roundCoord(lat)},${roundCoord(lon)} at ${new Date().toISOString()}`,
-    );
+    ];
+    if (touristMessage) smsLines.push(touristMessage);
+    const body = encodeURIComponent(smsLines.join(" "));
     smsHref.current = smsNumber ? `sms:${smsNumber}?body=${body}` : `sms:?body=${body}`;
 
     if (lastFix && touristId) {
@@ -66,6 +74,7 @@ export function PanicButton({ className }: { className?: string }) {
           payload: {
             source: "panic_button",
             accuracy_m: lastFix?.accuracy_m ?? null,
+            ...(touristMessage ? { tourist_message: touristMessage } : {}),
           },
           occurred_at: new Date().toISOString(),
         })
@@ -93,13 +102,20 @@ export function PanicButton({ className }: { className?: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ incident_id: incidentId }),
           });
+          if (duplicate && touristMessage) {
+            void postIncidentMessage({
+              incidentId,
+              kind: "text",
+              body: touristMessage,
+            });
+          }
         }
         setState("sent");
         return;
       }
     }
     setState("sms");
-  }, [lastFix, markSos, tourist]);
+  }, [lastFix, markSos, note, tourist]);
 
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -165,6 +181,20 @@ export function PanicButton({ className }: { className?: string }) {
         </svg>
         <span className="relative z-10 px-4 text-center">{label}</span>
       </button>
+      <div className="w-full max-w-xs space-y-1.5">
+        <Label htmlFor="sos-optional-line" className="text-xs text-muted-foreground">
+          Optional message
+        </Label>
+        <Input
+          id="sos-optional-line"
+          data-testid="sos-optional-line"
+          value={note}
+          onChange={(event) => setNote(event.target.value.slice(0, SOS_MESSAGE_MAX_LENGTH))}
+          placeholder="Where you are, or what happened"
+          maxLength={SOS_MESSAGE_MAX_LENGTH}
+          disabled={state === "sending" || state === "sent"}
+        />
+      </div>
       {state === "sms" && smsHref.current ? (
         <a
           href={smsHref.current}

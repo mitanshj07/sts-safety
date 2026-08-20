@@ -51,7 +51,8 @@ smart-tourist-safety/
 │   │   ├── 20250101000800_triggers.sql            # AFTER INSERT on location_pings / incidents
 │   │   ├── 20250101000900_rls.sql                 # policies for tourist / responder / admin
 │   │   ├── 20250101001000_cron.sql                # sweeper, downsampler, retention, anchor retry
-│   │   └── 20250101001100_views.sql               # v_live_tourists, v_open_incidents, nl-query allow-list
+│   │   ├── 20250101001100_views.sql               # v_live_tourists, v_open_incidents, nl-query allow-list
+│   │   └── 20250101001700_incident_messages.sql   # SOS text + two-way voice notes
 │   ├── seed/
 │   │   ├── 01_zones_northeast.sql          # Kaziranga, Tawang, Cherrapunji, Loktak, border strips
 │   │   ├── 02_responders.sql               # police stations + tourist-police units w/ coords

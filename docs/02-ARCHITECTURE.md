@@ -50,7 +50,7 @@
 │                 score recompute (5m) · retention purge (1h)                  │
 │                                                                              │
 │   Tables: tourists · digital_ids · zones · location_pings · location_tracks  │
-│           itineraries · incidents · incident_events · responders ·           │
+│           itineraries · incidents · incident_events · incident_messages · responders ·           │
 │           dispatches · notifications · efir_drafts · chain_anchors · audit_log│
 │   Auth · Storage (PMTiles, photos, E-FIR PDFs) · RLS on every table          │
 └───────────────┬──────────────────────────────────────────────────┬───────────┘
@@ -300,7 +300,9 @@ Tap & hold 1.5 s (prevents pocket-fires)
    → trigger fires immediately, skipping debounce for type='sos'
    → Realtime broadcast → dashboard full-screen takeover + alarm
    → pg_net → /api/notify/dispatch (Telegram + push + email, parallel)
-   → PWA opens a WebRTC-free audio note recorder (optional, uploads to Storage)
+   → PWA opens a MediaRecorder audio note (optional, uploads to private Supabase Storage)
+   → optional one-line message under the button is stored on incidents.payload.tourist_message
+   → command centre can reply with text or a voice note on the same thread
    → device switches to 2 s ping cadence for the next 30 minutes
    → offline? Service Worker Background Sync retries the insert until it lands,
      and the PWA falls back to a pre-composed SMS intent (tel: / sms: URI) that

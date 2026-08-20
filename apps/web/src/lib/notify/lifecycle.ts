@@ -221,6 +221,14 @@ export async function sendTouristNote(input: {
       body,
       actorLabel: input.actorLabel,
     });
+    const admin = createAdminSupabase();
+    await admin.from("incident_messages").insert({
+      incident_id: input.incidentId,
+      sender_kind: "command",
+      sender_id: input.actorId ?? null,
+      kind: "text",
+      body,
+    });
     await appendEvent({
       incidentId: input.incidentId,
       eventType: "note",

@@ -79,18 +79,31 @@ export function incidentBody(
     incident.lat !== null && incident.lon !== null
       ? `${incident.lat.toFixed(5)}, ${incident.lon.toFixed(5)}`
       : "n/a";
+  let base: string;
   switch (locale) {
     case "hi":
-      return `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords}). तत्काल प्रतिक्रिया आवश्यक।`;
+      base = `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords}). तत्काल प्रतिक्रिया आवश्यक।`;
+      break;
     case "as":
-      return `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। তৎক্ষণাৎ সঁহাৰিৰ প্ৰয়োজন।`;
+      base = `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। তৎক্ষণাৎ সঁহাৰিৰ প্ৰয়োজন।`;
+      break;
     case "bn":
-      return `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। তাৎক্ষণিক সাড়া প্রয়োজন।`;
+      base = `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। তাৎক্ষণিক সাড়া প্রয়োজন।`;
+      break;
     case "ne":
-      return `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। तत्काल प्रतिक्रिया आवश्यक।`;
+      base = `${who} — ${typeLabel(incident.type, locale)} · ${where} (${coords})। तत्काल प्रतिक्रिया आवश्यक।`;
+      break;
     default:
-      return `${who} — ${typeLabel(incident.type, "en")} at ${where} (${coords}). Immediate response required.`;
+      base = `${who} — ${typeLabel(incident.type, "en")} at ${where} (${coords}). Immediate response required.`;
   }
+  return withTouristLine(locale, incident, base);
+}
+
+function withTouristLine(locale: NotifyLocale, incident: NotifyIncident, base: string): string {
+  const extra = incident.touristMessage?.trim();
+  if (!extra) return base;
+  if (locale === "en") return `${base} Tourist: "${extra}"`;
+  return `${base} ${extra}`;
 }
 
 export function helpOnTheWay(locale: NotifyLocale, etaMinutes: number | null): string {

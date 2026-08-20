@@ -118,7 +118,10 @@ export function TouristProvider({ children }: { children: ReactNode }) {
             provider_ref: COMMAND_NOTE_PROVIDER_REF,
           };
           if (isCommandNoteNotification(incoming)) {
-            toast.message(incoming.title ?? "Control room", { description: incoming.body ?? "" });
+            const voice = payload.message_kind === "voice";
+            toast.message(incoming.title ?? "Control room", {
+              description: voice ? "Voice note received" : (incoming.body ?? ""),
+            });
           }
           setSession((prev) => {
             const already = prev.notifications.some(

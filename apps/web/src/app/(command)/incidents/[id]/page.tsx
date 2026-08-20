@@ -12,6 +12,7 @@ import { IncidentActions } from "@/components/command/IncidentActions"
 import { IncidentTimeline } from "@/components/command/IncidentTimeline"
 import { SeverityBadge, StatusBadge } from "@/components/command/SeverityBadge"
 import { TouristCard } from "@/components/command/TouristCard"
+import { TouristSosLine } from "@/components/command/TouristSosLine"
 import {
   fetchCommandSnapshot,
   fetchIncidentById,
@@ -87,6 +88,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
           brief={incident.ai_brief}
           model={incident.ai_brief_model}
         />
+        <TouristSosLine payload={incident.payload} />
         {touristDetail ? (
           <TouristCard
             tourist={touristDetail.tourist}

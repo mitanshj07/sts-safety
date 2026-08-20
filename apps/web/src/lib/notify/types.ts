@@ -41,6 +41,7 @@ export type NotifyIncident = {
   occurredAt: string;
   createdAt: string;
   aiBrief: string | null;
+  touristMessage?: string | null;
 };
 
 export type ChannelSendInput = {
@@ -77,4 +78,8 @@ export type IncidentBroadcast = {
   at: string;
   title?: string;
   body?: string;
+  message_kind?: "text" | "voice";
+  message_id?: string;
+  sender_kind?: "tourist" | "command";
+  duration_ms?: number | null;
 };

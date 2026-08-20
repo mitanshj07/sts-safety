@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { isCommandNoteNotification } from "@sts/shared";
+import { IncidentMessageThread } from "@/components/shared/IncidentMessageThread";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 
@@ -55,7 +56,7 @@ export function SosReplyThread({
     return () => {
       cancelled = true;
     };
-  }, [tourist?.id, notifications.length]);
+  }, [tourist?.id, notifications.length, forcedOpen]);
 
   const active = Boolean(openSos) || forcedOpen;
 
@@ -90,14 +91,18 @@ export function SosReplyThread({
       </p>
       {openSos ? (
         <p className="mt-1 text-sm text-muted-foreground">
-          SOS is {openSos.status.replaceAll("_", " ")}. Replies from officers appear here.
+          SOS is {openSos.status.replaceAll("_", " ")}. Officers can send text and voice notes here.
         </p>
       ) : (
         <p className="mt-1 text-sm text-muted-foreground">
           Replies from officers appear here.
         </p>
       )}
-      {notes.length === 0 ? (
+      {openSos ? (
+        <div className="mt-3">
+          <IncidentMessageThread incidentId={openSos.id} senderKind="tourist" />
+        </div>
+      ) : notes.length === 0 ? (
         <p className="mt-3 rounded-2xl border border-border/80 bg-card/70 p-4 text-sm text-muted-foreground">
           Waiting for a note from the control room…
         </p>

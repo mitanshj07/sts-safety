@@ -1,7 +1,7 @@
 // apps/web/src/lib/notify/recipients.ts
 import "server-only";
 
-import { emergencyContactSchema, haversine, incidentTypeSchema, severityLevelSchema } from "@sts/shared";
+import { emergencyContactSchema, haversine, incidentTypeSchema, severityLevelSchema, touristSosMessage } from "@sts/shared";
 import { z } from "zod";
 
 import { serverEnv } from "@/lib/env/server";
@@ -24,6 +24,7 @@ const incidentRowSchema = z
     occurred_at: z.string(),
     created_at: z.string(),
     ai_brief: z.string().nullable().optional(),
+    payload: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();
 
@@ -56,7 +57,7 @@ async function loadIncident(incidentId: string): Promise<{
   const { data, error } = await admin
     .from("incidents")
     .select(
-      "id, tourist_id, type, severity, status, geog, address_text, occurred_at, created_at, ai_brief, tourists(id, profile_id, full_name, email, phone_e164, emergency_contacts, nationality), zones(name)",
+      "id, tourist_id, type, severity, status, geog, address_text, occurred_at, created_at, ai_brief, payload, tourists(id, profile_id, full_name, email, phone_e164, emergency_contacts, nationality), zones(name)",
     )
     .eq("id", incidentId)
     .maybeSingle();
@@ -93,6 +94,7 @@ async function loadIncident(incidentId: string): Promise<{
       occurredAt: parsed.occurred_at,
       createdAt: parsed.created_at,
       aiBrief: parsed.ai_brief ?? null,
+      touristMessage: touristSosMessage(parsed.payload ?? {}),
     },
     tourist,
   };

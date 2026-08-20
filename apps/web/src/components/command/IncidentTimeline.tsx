@@ -27,6 +27,14 @@ export function IncidentTimeline({ events }: { events: IncidentEvent[] }) {
                 </p>
                 {event.event_type === "note" && typeof event.detail.body === "string" ? (
                   <p className="mt-1 text-sm text-pretty">{event.detail.body}</p>
+                ) : event.event_type === "message" ? (
+                  <p className="mt-1 text-sm text-pretty">
+                    {event.detail.kind === "voice"
+                      ? `Voice note${typeof event.detail.duration_ms === "number" ? ` (${Math.round(Number(event.detail.duration_ms) / 1000)}s)` : ""}`
+                      : typeof event.detail.body === "string"
+                        ? event.detail.body
+                        : "Message"}
+                  </p>
                 ) : Object.keys(event.detail).length > 0 ? (
                   <pre className="mt-1 overflow-x-auto font-mono text-[11px] text-muted-foreground">
                     {JSON.stringify(event.detail)}

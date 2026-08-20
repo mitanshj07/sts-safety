@@ -17,8 +17,9 @@ export default function SosPage() {
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">SOS</h1>
         <p className="mx-auto max-w-sm text-sm text-muted-foreground text-pretty">
-          Hold the button. An incident is written directly to Postgres (RLS). If that fails,
-          your phone opens an SMS with the last coordinates.
+          Hold the button. An incident is written directly to Postgres (RLS). An optional
+          line under the button is delivered with the SOS. After it lands, you and the
+          control room can send voice notes (browser recorder → Supabase Storage — no paid API).
         </p>
       </div>
       <div className="relative z-10">

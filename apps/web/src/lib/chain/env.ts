@@ -113,11 +113,13 @@ export function storageBuckets(): {
   docs: string;
   efir: string;
   public: string;
+  voice: string;
 } {
   return {
     docs: read("SUPABASE_BUCKET_DOCS") || "tourist-docs",
     efir: read("SUPABASE_BUCKET_EFIR") || "efir",
     public: read("SUPABASE_BUCKET_PUBLIC") || "public-assets",
+    voice: read("SUPABASE_BUCKET_VOICE") || "incident-voice",
   };
 }
 

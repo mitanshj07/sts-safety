@@ -64,7 +64,7 @@ This is the single most important pick in the stack, and it is not close.
 | Route-deviation detection | `ST_Distance` from the tourist's planned itinerary `LineString`, plus `ST_FrechetDistance` for whole-trajectory similarity. |
 | Real-time push to dashboard | **Supabase Realtime** — Postgres logical replication streamed to WebSocket subscribers. Zero servers to run. Free tier: 200 concurrent connections, 2 M messages/month. |
 | Auth | **Supabase Auth** — email magic link + anonymous sessions for demo tourists. Phone OTP is avoided because it needs a paid SMS provider. |
-| File storage | **Supabase Storage** 1 GB — PMTiles offline basemap, tourist photos, generated E-FIR PDFs. |
+| File storage | **Supabase Storage** 1 GB — PMTiles offline basemap, tourist photos, generated E-FIR PDFs, SOS voice notes (private 1 MiB objects, browser MediaRecorder — no paid STT/TTS). |
 | Row-level security | **RLS policies** so a tourist can read only their own pings and a responder only their jurisdiction's incidents. Judges *will* ask about data privacy under the DPDP Act 2023. |
 
 **Free-tier limits and the mitigation:** 500 MB database, 5 GB egress, 2 active projects, and **the project pauses after 7 days of inactivity**. Mitigations, all implemented in the repo:

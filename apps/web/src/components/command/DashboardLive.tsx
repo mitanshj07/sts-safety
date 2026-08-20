@@ -10,6 +10,7 @@ import { IncidentLayer } from "@/components/map/IncidentLayer"
 import { KpiStrip } from "@/components/command/KpiStrip"
 import { IncidentQueue } from "@/components/command/IncidentQueue"
 import { IncidentActions } from "@/components/command/IncidentActions"
+import { TouristSosLine } from "@/components/command/TouristSosLine"
 import { MapFlyTo } from "@/components/command/MapFlyTo"
 import { SeverityBadge, StatusBadge } from "@/components/command/SeverityBadge"
 import { ElapsedTimer } from "@/components/command/ElapsedTimer"
@@ -99,6 +100,7 @@ export function DashboardLive() {
                     Rules brief pending — alert already fired without the LLM.
                   </p>
                 )}
+                <TouristSosLine payload={selected.payload} />
                 <IncidentActions incidentId={selected.id} status={selected.status} />
                 <Button asChild>
                   <Link href={`/incidents/${selected.id}`}>Open incident</Link>
