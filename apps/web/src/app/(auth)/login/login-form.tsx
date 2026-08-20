@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type LoginFormProps = {
   defaultTab: LoginTab;
   initialError: string | null;
+  initialInfo?: string | null;
 };
 
 function safeNextPath(): string | null {
@@ -42,10 +43,10 @@ function safeNextPath(): string | null {
   return next;
 }
 
-export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
+export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
-  const [info, setInfo] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(initialInfo ?? null);
   const [email, setEmail] = useState("");
   const [pending, startTransition] = useTransition();
 

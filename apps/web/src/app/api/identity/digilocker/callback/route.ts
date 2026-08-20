@@ -10,6 +10,7 @@ import {
   digilockerErrorReason,
   encodeSessionCookie,
   flowStatusUrl,
+  loginReadyUrl,
 } from "@/lib/identity/digilocker";
 import { ensureTouristSessionAfterDigilocker } from "@/lib/identity/digilocker-session";
 import { identityLog } from "@/lib/identity/log";
@@ -20,6 +21,12 @@ export const dynamic = "force-dynamic";
 function clearOauth(response: NextResponse): NextResponse {
   response.cookies.set(DIGILOCKER_OAUTH_COOKIE, "", { ...cookieOptions(0), maxAge: 0 });
   return response;
+}
+
+function hasSupabaseAuthCookie(response: NextResponse): boolean {
+  return response.cookies
+    .getAll()
+    .some((cookie) => cookie.name.includes("-auth-token") && Boolean(cookie.value));
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -55,6 +62,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       response,
       displayName: session.name,
     });
+    if (intent === "signup" && !hasSupabaseAuthCookie(response)) {
+      identityLog("digilocker_session_pending_login", { ok: true });
+      const pending = NextResponse.redirect(loginReadyUrl(request));
+      response.cookies.getAll().forEach((cookie) => pending.cookies.set(cookie));
+      identityLog("digilocker_callback_ok", { ok: true, docs: session.documents.length });
+      return pending;
+    }
     identityLog("digilocker_callback_ok", { ok: true, docs: session.documents.length });
     return response;
   } catch (err) {

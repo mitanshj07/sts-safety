@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Sign in · Smart Tourist Safety",
 };
 
-function initialMessage(params: {
+function initialError(params: {
   error?: string;
   digilocker?: string;
   reason?: string;
@@ -31,6 +31,13 @@ function initialMessage(params: {
   return null;
 }
 
+function initialInfo(params: { digilocker?: string }): string | null {
+  if (params.digilocker === "ready") {
+    return "eAadhaar is ready. Continue as an anonymous tourist to open onboarding with the fields filled in.";
+  }
+  return null;
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -45,6 +52,10 @@ export default async function LoginPage({
   const tab = loginTabSchema.catch("magic").parse(params.tab ?? "magic");
 
   return (
-    <LoginForm defaultTab={tab} initialError={initialMessage(params)} />
+    <LoginForm
+      defaultTab={tab}
+      initialError={initialError(params)}
+      initialInfo={initialInfo(params)}
+    />
   );
 }
