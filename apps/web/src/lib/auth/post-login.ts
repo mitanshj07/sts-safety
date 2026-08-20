@@ -1,11 +1,14 @@
+import { tryCreateAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+import { nextPathForRole, resolvePostAuthTarget } from "./next-path";
 import { homePathForRole, type UserRole } from "./roles";
 
 const SEEDED_DEMO_EMAIL = /@demo\.sts$/i;
 
 export async function touristHasIssuedId(profileId: string): Promise<boolean> {
-  const supabase = await createClient();
+  const admin = tryCreateAdminClient();
+  const supabase = admin ?? (await createClient());
   const { data: tourist } = await supabase
     .from("tourists")
     .select("id")
@@ -19,6 +22,14 @@ export async function touristHasIssuedId(profileId: string): Promise<boolean> {
     .limit(1)
     .maybeSingle();
   return Boolean(issued?.id);
+}
+
+export async function landingPathForTouristUser(
+  profileId: string,
+  requested: string | null,
+): Promise<string> {
+  const postAuth = (await touristHasIssuedId(profileId)) ? "/home" : "/onboard";
+  return resolvePostAuthTarget(postAuth, nextPathForRole(requested, "tourist"));
 }
 
 export async function postAuthPath(args: {

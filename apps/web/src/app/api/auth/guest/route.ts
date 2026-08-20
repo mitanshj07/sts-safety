@@ -1,9 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
-import { ensureTouristSessionOnResponse } from "@/lib/auth/guest-session";
+import {
+  ensureTouristSessionOnResponse,
+  redirectWithTouristGuestSession,
+} from "@/lib/auth/guest-session";
 
 export const runtime = "nodejs";
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return redirectWithTouristGuestSession(request);
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const response = NextResponse.json({ ok: true });

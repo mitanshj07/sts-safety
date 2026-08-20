@@ -62,7 +62,9 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap">
                 <Button asChild size="lg" className="min-h-11">
-                  <Link href="/login?tab=tourist">Enter as Tourist</Link>
+                  <Link href="/home" prefetch={false}>
+                    Enter as Tourist
+                  </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="min-h-11">
                   <Link href="/login?tab=officer">Enter Command</Link>
@@ -89,7 +91,8 @@ export default function HomePage() {
 
           <section className="sts-enter grid gap-8 border-t border-border pt-10 sm:grid-cols-2">
             <Link
-              href="/login?tab=tourist"
+              href="/home"
+              prefetch={false}
               className="group block space-y-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <p className="sts-kicker">Tourist</p>

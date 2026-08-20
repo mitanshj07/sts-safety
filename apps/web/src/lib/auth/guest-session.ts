@@ -1,12 +1,16 @@
 import "server-only";
 
-import { type NextRequest, type NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
+import { DEMO_TOURIST_DISPLAY_NAME } from "@/lib/auth/demo";
 import { ensureProfileForUser } from "@/lib/auth/ensure-profile";
 import { GUEST_EMAIL_DOMAIN } from "@/lib/auth/guest-email";
 import { getPrincipal } from "@/lib/auth/guards";
+import { sanitizeNextPath } from "@/lib/auth/next-path";
+import { landingPathForTouristUser } from "@/lib/auth/post-login";
+import { homePathForRole } from "@/lib/auth/roles";
 import { identityLog } from "@/lib/identity/log";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, tryCreateAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseOnResponse } from "@/lib/supabase/route";
 
 export async function tryGetTouristUserId(request: Request): Promise<string | null> {
@@ -47,6 +51,15 @@ export async function ensureTouristSessionOnResponse(args: {
     },
   });
   if (!anonError && anon.user) {
+    const admin = tryCreateAdminClient();
+    if (admin) {
+      const { error: roleError } = await admin.auth.admin.updateUserById(anon.user.id, {
+        app_metadata: { role: "tourist" },
+      });
+      if (roleError) {
+        identityLog("guest_anon_role_failed", { ok: false, error: roleError.message });
+      }
+    }
     try {
       await ensureProfileForUser(anon.user);
     } catch {
@@ -110,4 +123,43 @@ export function copyResponseCookies(from: NextResponse, to: NextResponse): NextR
     to.cookies.set(cookie);
   });
   return to;
+}
+
+/** GET /api/auth/guest — start an anonymous (or fallback guest) tourist session and enter the app. */
+export async function redirectWithTouristGuestSession(
+  request: NextRequest,
+): Promise<NextResponse> {
+  const requested = sanitizeNextPath(request.nextUrl.searchParams.get("next"));
+
+  try {
+    const principal = await getPrincipal(request);
+    if (principal) {
+      const dest =
+        principal.role === "tourist"
+          ? await landingPathForTouristUser(principal.id, requested)
+          : homePathForRole(principal.role);
+      return NextResponse.redirect(new URL(dest, request.url));
+    }
+  } catch {
+    // Missing profile — mint a tourist session below.
+  }
+
+  const holder = NextResponse.json({ ok: true });
+  const minted = await ensureTouristSessionOnResponse({
+    request,
+    response: holder,
+    displayName: DEMO_TOURIST_DISPLAY_NAME,
+  });
+  if (!minted) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("tab", "tourist");
+    login.searchParams.set(
+      "error",
+      "Could not start a guest tourist session. Enable anonymous sign-ins in Auth providers.",
+    );
+    return copyResponseCookies(holder, NextResponse.redirect(login));
+  }
+
+  const dest = await landingPathForTouristUser(minted.userId, requested);
+  return copyResponseCookies(holder, NextResponse.redirect(new URL(dest, request.url)));
 }

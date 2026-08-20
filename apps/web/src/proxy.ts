@@ -64,6 +64,20 @@ function loginTarget(request: NextRequest): string {
   return withNextParam("/login", next);
 }
 
+const GUEST_ATTEMPT_COOKIE = "sts_guest_attempt";
+
+function guestEnterTarget(request: NextRequest): string {
+  const next = sanitizeNextPath(
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
+  return withNextParam("/api/auth/guest", next);
+}
+
+function clearGuestAttempt(response: NextResponse): NextResponse {
+  response.cookies.set(GUEST_ATTEMPT_COOKIE, "", { path: "/", maxAge: 0 });
+  return response;
+}
+
 async function readRole(
   supabase: SupabaseClient<Database>,
   userId: string,
@@ -138,6 +152,23 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       supabaseResponse.cookies.getAll().forEach((cookie) => next.cookies.set(cookie));
       return next;
     }
+    if (isTouristPath(pathname) && request.method === "GET") {
+      if (request.cookies.get(GUEST_ATTEMPT_COOKIE)?.value === "1") {
+        return redirectWithCookies(request, supabaseResponse, loginTarget(request));
+      }
+      const redirected = redirectWithCookies(
+        request,
+        supabaseResponse,
+        guestEnterTarget(request),
+      );
+      redirected.cookies.set(GUEST_ATTEMPT_COOKIE, "1", {
+        path: "/",
+        maxAge: 60,
+        sameSite: "lax",
+        httpOnly: true,
+      });
+      return redirected;
+    }
     return redirectWithCookies(request, supabaseResponse, loginTarget(request));
   }
 
@@ -147,6 +178,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     user.app_metadata["role"] ?? user.user_metadata["role"],
   );
   const home = homePathForRole(role);
+
+  clearGuestAttempt(supabaseResponse);
 
   if (pathname === "/login") {
     // Keep POST on /login so sign-in server actions can finish. Redirecting them
