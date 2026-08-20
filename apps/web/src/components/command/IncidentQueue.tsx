@@ -93,7 +93,7 @@ export function IncidentQueue() {
   return (
     <aside
       className={cn(
-        "flex h-full w-full flex-col border-l border-border bg-card/95 md:w-[22rem]",
+        "flex h-full w-full flex-col border-l border-border bg-surface md:w-[22rem]",
         flash && "critical-flash",
       )}
     >
@@ -106,9 +106,7 @@ export function IncidentQueue() {
         {liveMessage}
       </div>
       <div className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3 py-2">
-        <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          Incident queue
-        </p>
+        <p className="sts-kicker">Incident queue</p>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {open.length} open
         </span>
@@ -122,8 +120,9 @@ export function IncidentQueue() {
         className="min-h-0 flex-1 overflow-y-auto"
       >
         {open.length === 0 ? (
-            <li className="px-3 py-10 text-center text-sm text-muted-foreground">
-              No open incidents
+            <li className="px-4 py-12">
+              <p className="sts-kicker text-success">All clear</p>
+              <p className="mt-1 text-sm">No active incidents require attention.</p>
             </li>
         ) : (
           open.map((incident) => (
@@ -135,27 +134,45 @@ export function IncidentQueue() {
                 aria-selected={selectedIncidentId === incident.id}
                 onClick={() => setSelectedIncidentId(incident.id)}
                 className={cn(
-                  "flex w-full flex-col gap-1 border-b border-border px-3 py-2.5 text-left transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  "flex w-full gap-3 border-b border-border px-3 py-3 text-left transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   selectedIncidentId === incident.id && "bg-accent",
                   incident.severity === "critical" &&
                     incident.id === lastCriticalId &&
                     "critical-flash",
                 )}
               >
+                <span
+                  className={cn(
+                    "w-0.5 shrink-0",
+                    incident.severity === "critical" && "bg-severity-critical",
+                    incident.severity === "high" && "bg-severity-high",
+                    incident.severity === "medium" && "bg-severity-medium",
+                    incident.severity === "low" && "bg-severity-low",
+                    incident.severity === "info" && "bg-severity-info",
+                  )}
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <SeverityBadge severity={incident.severity} />
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {formatElapsed(incident.occurred_at)}
                   </span>
                 </div>
-                <p className="text-sm font-medium">
+                <p className="mt-1 text-sm font-medium">
                   {incident.tourist_name ?? "Unknown tourist"}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {incident.type.replaceAll("_", " ")} ·{" "}
                   {incident.zone_name ?? incident.address_text ?? "unlocated"}
                 </p>
-                <StatusBadge status={incident.status} />
+                <p className="mt-1 flex items-center gap-2">
+                  <StatusBadge status={incident.status} />
+                  <span className="sts-meta">
+                    {incident.tourist_token_id ? "Verified" : "ID pending"}
+                  </span>
+                </p>
+                </span>
               </button>
             </li>
           ))
