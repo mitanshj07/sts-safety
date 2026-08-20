@@ -31,6 +31,13 @@ export async function signupWithDigilocker(page: Page): Promise<void> {
   await page.waitForURL(/\/onboard/, { timeout: 20_000 });
 }
 
+export async function digilockerDemoEnabled(page: Page): Promise<boolean> {
+  const res = await page.request.get("/api/identity/digilocker/status");
+  if (!res.ok()) return false;
+  const json = (await res.json()) as { mode?: string };
+  return json.mode === "demo";
+}
+
 export async function expectHealthy(page: Page): Promise<void> {
   const res = await page.request.get("/api/health");
   expect(res.ok(), "GET /api/health must succeed for e2e").toBeTruthy();

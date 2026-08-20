@@ -2,7 +2,7 @@
 "use client";
 
 import { Landmark, ShieldCheck } from "lucide-react";
-import type { DigilockerSession } from "@sts/shared";
+import { KYC_TYPE_LABELS, type DigilockerSession } from "@sts/shared";
 
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ type DigilockerConnectProps = {
   notice: string | null;
   onStart: () => void;
   onClear: () => void;
+  demo?: boolean;
 };
 
 export function DigilockerConnect({
@@ -18,8 +19,13 @@ export function DigilockerConnect({
   notice,
   onStart,
   onClear,
+  demo = false,
 }: DigilockerConnectProps) {
   if (session) {
+    const docLabel =
+      session.kycType === "aadhaar"
+        ? "eAadhaar"
+        : KYC_TYPE_LABELS[session.kycType];
     return (
       <div
         data-testid="digilocker-fetched"
@@ -30,9 +36,11 @@ export function DigilockerConnect({
           <div>
             <p className="text-sm font-semibold">Fetched from DigiLocker</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              eAadhaar ending {session.kycLast4}
-              {session.mode === "demo" ? " · demo sandbox" : ""}. Name and date of
-              birth are filled from the issued XML.
+              {docLabel} ending {session.kycLast4}
+              {session.mode === "demo"
+                ? " · demo sandbox"
+                : " · MeitY DigiLocker"}. Name and date of birth are filled from
+              the issued XML.
             </p>
           </div>
         </div>
@@ -60,8 +68,9 @@ export function DigilockerConnect({
         <div>
           <p className="text-sm font-semibold">DigiLocker</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Sign in with DigiLocker. After you allow access we pull eAadhaar (and
-            issued DL / voter ID on file) instead of typing the number.
+            {demo
+              ? "Local demo sandbox. Allow access to fetch sample eAadhaar without calling MeitY."
+              : "Sign in on DigiLocker (MeitY / meripehchaan.gov.in). After you allow access we pull eAadhaar XML and issued DL / voter ID from the official API."}
           </p>
         </div>
       </div>

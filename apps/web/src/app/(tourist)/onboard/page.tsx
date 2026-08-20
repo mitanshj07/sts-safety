@@ -165,6 +165,7 @@ export default function OnboardPage() {
   const [result, setResult] = useState<IssueView | null>(null);
   const [dlSession, setDlSession] = useState<DigilockerSession | null>(null);
   const [dlNotice, setDlNotice] = useState<string | null>(null);
+  const [dlDemo, setDlDemo] = useState(false);
 
   const parsed = useMemo(() => toRequest(form), [form]);
   const residency = residencyOf(form.nationality);
@@ -214,9 +215,18 @@ export default function OnboardPage() {
 
     void (async () => {
       try {
-        const res = await fetch("/api/identity/digilocker/session");
-        if (!res.ok || cancelled) return;
-        const json: unknown = await res.json();
+        const [sessionRes, statusRes] = await Promise.all([
+          fetch("/api/identity/digilocker/session"),
+          fetch("/api/identity/digilocker/status"),
+        ]);
+        if (statusRes.ok) {
+          const status: unknown = await statusRes.json();
+          if (!cancelled && (status as { mode?: string }).mode === "demo") {
+            setDlDemo(true);
+          }
+        }
+        if (!sessionRes.ok || cancelled) return;
+        const json: unknown = await sessionRes.json();
         const profile = (json as { profile?: DigilockerSession | null }).profile;
         if (!cancelled && profile?.ok) applyDigilocker(profile);
       } catch {
@@ -570,6 +580,7 @@ export default function OnboardPage() {
               <DigilockerConnect
                 session={dlSession}
                 notice={dlNotice}
+                demo={dlDemo}
                 onStart={() => {
                   window.location.assign("/api/identity/digilocker/start?intent=onboard");
                 }}

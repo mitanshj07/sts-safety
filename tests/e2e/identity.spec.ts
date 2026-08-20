@@ -1,7 +1,7 @@
 // tests/e2e/identity.spec.ts
 import { expect, test } from "@playwright/test";
 
-import { expectHealthy, loginAsOfficer, loginAsTourist, signupWithDigilocker } from "./helpers";
+import { expectHealthy, loginAsOfficer, loginAsTourist, signupWithDigilocker, digilockerDemoEnabled } from "./helpers";
 
 test.describe("identity issue + verify", () => {
   test("tourist issues a soulbound ID and checkpoint verifies the token", async ({
@@ -52,6 +52,10 @@ test.describe("identity issue + verify", () => {
   test("signup tourist tab fetches eAadhaar from DigiLocker", async ({
     page,
   }) => {
+    test.skip(
+      !(await digilockerDemoEnabled(page)),
+      "in-app DigiLocker consent requires DIGILOCKER_MODE=demo",
+    );
     await expectHealthy(page);
     await signupWithDigilocker(page);
     await expect(page.getByTestId("digilocker-fetched")).toBeVisible({
@@ -66,6 +70,10 @@ test.describe("identity issue + verify", () => {
   test("indian tourist fetches eAadhaar from DigiLocker demo consent", async ({
     page,
   }) => {
+    test.skip(
+      !(await digilockerDemoEnabled(page)),
+      "in-app DigiLocker consent requires DIGILOCKER_MODE=demo",
+    );
     await expectHealthy(page);
     await loginAsTourist(page);
     await page.goto("/onboard");

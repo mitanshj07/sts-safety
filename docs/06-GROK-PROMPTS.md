@@ -316,18 +316,18 @@ Build the tourist experience in apps/web/src/app/(tourist)/:
    POST /api/notify/subscribe).
 4. Pages:
    - onboard/page.tsx — first step is residency: Indian → Continue with
-     DigiLocker (OAuth; after allow, fetch eAadhaar XML + issued docs) or
+     DigiLocker (live: MeitY OAuth at meripehchaan.gov.in; after allow,
+     fetch eAadhaar XML + issued docs) or
      type Aadhaar / Voter ID / DL; international → passport. Then name,
      DOB, emergency contacts, trip dates, itinerary from preset NE routes.
      Submits to /api/identity/issue. Optimistic progress UI
      with the on-chain step shown explicitly — judges like watching the tx land.
    - login/page.tsx (Tourist tab) and the landing CTA start DigiLocker
      before a session exists. Demo consent lives at login/digilocker/page.tsx
-     (public). After allow, the callback creates an anonymous tourist
-     session and redirects to /onboard with the form prefilled.
+     only when DIGILOCKER_MODE=demo. After allow, the callback creates an
+     anonymous tourist session and redirects to /onboard with the form prefilled.
    - onboard/digilocker/page.tsx — same demo consent inside the tourist
-     layout (used when DIGILOCKER_CLIENT_ID is unset and the tourist is
-     already signed in). Live mode redirects to meripehchaan.gov.in.
+     layout (DIGILOCKER_MODE=demo only). Live mode redirects to meripehchaan.gov.in.
    - home/page.tsx — SafetyScoreGauge (animated SVG arc), current zone banner
      coloured by risk, next waypoint, connection + tracking status pills.
    - map/page.tsx — own position, zone overlays, itinerary corridor as a
@@ -389,12 +389,15 @@ Implement the blockchain identity layer in apps/web:
      audit_log row.
    - GET /api/identity/digilocker/start — public for tourists (staff
      bounced). PKCE + state cookie, redirect to DigiLocker authorize
-     (live) or /login/digilocker (demo). `intent=signup` returns denied
-     users to the Tourist login tab.
-   - GET /api/identity/digilocker/callback — exchange code, fetch user +
-     eAadhaar XML + issued files, HMAC-check XML, set a short-lived KYC
-     cookie, create an anonymous tourist session when none exists, then
-     redirect to /onboard. Never log the XML or Aadhaar.
+     (live, meripehchaan.gov.in) or /login/digilocker (only if
+     DIGILOCKER_MODE=demo). Missing partner credentials return reason=config.
+     `intent=signup` returns denied users to the Tourist login tab.
+   - GET /api/identity/digilocker/callback — exchange code, parse token
+     name/dob, fetch user + eAadhaar XML + issued files (and per-URI XML),
+     HMAC-check XML bytes, set a short-lived KYC cookie, create an anonymous
+     tourist session when none exists, then redirect to /onboard. Never log
+     the XML, Aadhaar, or tokens.
+   - GET /api/identity/digilocker/status — { mode, configured, host } for UI/e2e.
    - GET/DELETE /api/identity/digilocker/session — onboard reads the fetched
      profile (name, DOB, Aadhaar) to prefill the form.
    - POST /api/chain/retry — drains chain_anchors where status in

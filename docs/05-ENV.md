@@ -29,7 +29,7 @@ cp .env.example .env                # tooling: foundry, simulator, supabase cli
 | `TELEGRAM_CONTROL_ROOM_CHAT_ID` | Add the bot to a group, then `getUpdates` and read `chat.id` (negative number) | No |
 | `RESEND_API_KEY` | resend.com → API Keys. Use `onboarding@resend.dev` as the sender until you have a domain | No |
 | Map, geocoding, routing URLs | Pre-filled. All keyless | No |
-| DigiLocker (`DIGILOCKER_CLIENT_ID` / `SECRET`) | partners.digitallocker.gov.in → register a requester app. Redirect URI: `{APP_URL}/api/identity/digilocker/callback`. Leave blank for the in-app demo consent (Priya Sharma eAadhaar). | No |
+| DigiLocker (`DIGILOCKER_CLIENT_ID` / `SECRET`) | partners.digitallocker.gov.in → register a requester app. Redirect URI **must** be `https://sts-safety.vercel.app/api/identity/digilocker/callback` (or `{APP_URL}/api/identity/digilocker/callback` locally). Production `DIGILOCKER_MODE=live` — without these two secrets the DigiLocker button returns a config error instead of a fake profile. Set `DIGILOCKER_MODE=demo` only for offline / e2e. | No |
 
 ## Exposure rules
 

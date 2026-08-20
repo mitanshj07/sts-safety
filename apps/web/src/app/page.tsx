@@ -27,7 +27,7 @@ const FEATURES = [
   {
     icon: BadgeCheck,
     title: "Soulbound digital ID",
-    body: "Indians fetch eAadhaar via DigiLocker (or type Aadhaar). Visitors use a passport. Only a keccak256 commitment goes on-chain.",
+    body: "Indians sign in on DigiLocker (MeitY). After they allow access we fetch eAadhaar XML. Visitors use a passport. Only a keccak256 commitment goes on-chain.",
   },
   {
     icon: Radio,
@@ -85,7 +85,7 @@ export default function HomePage() {
                 </span>
                 <h2 className="mt-4 text-lg font-semibold">Tourist</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  DigiLocker eAadhaar, digital ID, live map, and a 1.5s panic hold.
+                  DigiLocker (MeitY) eAadhaar, digital ID, live map, and a 1.5s panic hold.
                 </p>
                 <p className="mt-4 text-xs font-medium tracking-wide text-primary">
                   Sign in or fetch KYC →

@@ -39,7 +39,7 @@ Short answers. Do not argue. Offer a live click if it helps.
     The token is bound to a custodial wallet derived on the server (`m/44'/60'/0'/0/{hd_index}`). The tourist never holds a seed. Re-issue is an admin revoke + issue. The QR is a view of the VC, not the private key.
 
 13. **keccak256 commitments can still be brute-forced (Aadhaar).**
-    We salt per tourist (`kyc_salt`), normalise the identifier, and never put the salt on-chain. Rainbow tables of 12-digit Aadhaar without salt are irrelevant. Indian onboarding also rejects numbers that fail the UIDAI Verhoeff checksum before anything is hashed. DigiLocker is an optional fetch path for Indians — live mode pulls eAadhaar XML after OAuth consent; demo mode uses the same parser without calling MeitY. The number is still encrypted in Postgres and only a keccak256 commitment goes on-chain.
+    We salt per tourist (`kyc_salt`), normalise the identifier, and never put the salt on-chain. Rainbow tables of 12-digit Aadhaar without salt are irrelevant. Indian onboarding also rejects numbers that fail the UIDAI Verhoeff checksum before anything is hashed. DigiLocker is the Indian fetch path — live mode redirects to MeitY (`meripehchaan.gov.in`), exchanges the OAuth code, and parses eAadhaar / issued XML. Demo mode (`DIGILOCKER_MODE=demo`) uses the same parsers without calling MeitY. The number is still encrypted in Postgres and only a keccak256 commitment goes on-chain.
 
 14. **PostGIS in the hot path will melt.**
     Containment is GiST on `geography`. 10 writes/s is noise. The dangerous bug is duplicate alerts — that is a partial unique index on open `(tourist, type, zone)`, not CPU.

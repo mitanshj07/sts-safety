@@ -26,6 +26,7 @@ type LoginFormProps = {
   defaultTab: LoginTab;
   initialError: string | null;
   initialInfo?: string | null;
+  digilockerDemo?: boolean;
 };
 
 function safeNextPath(): string | null {
@@ -43,7 +44,12 @@ function safeNextPath(): string | null {
   return next;
 }
 
-export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormProps) {
+export function LoginForm({
+  defaultTab,
+  initialError,
+  initialInfo,
+  digilockerDemo = false,
+}: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
   const [info, setInfo] = useState<string | null>(initialInfo ?? null);
@@ -241,8 +247,8 @@ export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormPr
                 {pending ? "Sending…" : "Send magic link"}
               </Button>
               <p className="text-xs text-muted-foreground">
-                New tourist accounts open onboarding. Indians can fetch eAadhaar
-                from the Tourist tab with DigiLocker instead.
+                New tourist accounts open onboarding. Indians can sign in with
+                DigiLocker on the Tourist tab instead.
               </p>
             </form>
           </TabsContent>
@@ -254,8 +260,9 @@ export function LoginForm({ defaultTab, initialError, initialInfo }: LoginFormPr
                 DigiLocker
               </p>
               <p className="text-xs text-muted-foreground">
-                Allow access once. We fetch eAadhaar (and issued DL / voter ID)
-                and start onboarding with the fields filled in.
+                {digilockerDemo
+                  ? "Local demo sandbox. Allow access to fetch sample eAadhaar, then onboarding opens with the fields filled in."
+                  : "Sign in on DigiLocker (MeitY / meripehchaan.gov.in). After you allow access we fetch eAadhaar XML and issued DL / voter ID, then open onboarding with the fields filled in."}
               </p>
               <Button
                 type="button"

@@ -8,6 +8,7 @@ import {
   type HealthResponse,
 } from "@/lib/auth/schemas";
 import { serverEnv } from "@/lib/env/server";
+import { digilockerLiveConfigured, digilockerMode } from "@/lib/identity/digilocker";
 import { tryCreateAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
@@ -135,6 +136,10 @@ export async function GET(): Promise<Response> {
       chain: process.env.CHAIN_MODE ?? "amoy",
       ai: process.env.AI_MODE ?? "groq",
       map: process.env.NEXT_PUBLIC_MAP_TILE_MODE ?? "openfreemap",
+      digilocker:
+        digilockerMode() === "live" && !digilockerLiveConfigured()
+          ? "live-unconfigured"
+          : digilockerMode(),
     },
   });
 

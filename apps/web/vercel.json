@@ -7,7 +7,8 @@
     "AI_MODE": "rules-only",
     "CHAIN_MODE": "disabled",
     "DB_MODE": "supabase-cloud",
-    "DIGILOCKER_MODE": "demo",
+    "DIGILOCKER_MODE": "live",
+    "DIGILOCKER_REDIRECT_URI": "https://sts-safety.vercel.app/api/identity/digilocker/callback",
     "NEXT_PUBLIC_MAP_TILE_MODE": "openfreemap",
     "NEXT_PUBLIC_APP_NAME": "Smart Tourist Safety",
     "NEXT_PUBLIC_APP_URL": "https://sts-safety.vercel.app"

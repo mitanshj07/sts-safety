@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { DIGILOCKER_REASON_COPY } from "@sts/shared";
 
 import { loginTabSchema } from "@/lib/auth/schemas";
+import { digilockerMode } from "@/lib/identity/digilocker";
 
 import { LoginForm } from "./login-form";
 
@@ -56,6 +57,7 @@ export default async function LoginPage({
       defaultTab={tab}
       initialError={initialError(params)}
       initialInfo={initialInfo(params)}
+      digilockerDemo={digilockerMode() === "demo"}
     />
   );
 }

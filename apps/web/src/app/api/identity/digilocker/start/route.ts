@@ -36,21 +36,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const intent = oauthIntentFromRequest(request, hasTourist);
-  const oauth = newOAuthState(intent);
-  const dest = startRedirectUrl(request, oauth);
-  if (!dest.url) {
-    identityLog("digilocker_start_blocked", { ok: false, reason: dest.reason ?? "config" });
-    return NextResponse.redirect(
-      flowStatusUrl(request, intent, "error", dest.reason ?? "config"),
-    );
-  }
+  try {
+    const oauth = newOAuthState(intent);
+    const dest = startRedirectUrl(request, oauth);
+    if (!dest.url) {
+      identityLog("digilocker_start_blocked", { ok: false, reason: dest.reason ?? "config" });
+      return NextResponse.redirect(
+        flowStatusUrl(request, intent, "error", dest.reason ?? "config"),
+      );
+    }
 
-  identityLog("digilocker_start", {
-    ok: true,
-    demo: dest.url.includes("/login/digilocker"),
-    intent,
-  });
-  const response = NextResponse.redirect(dest.url);
-  response.cookies.set(DIGILOCKER_OAUTH_COOKIE, encodeOAuthCookie(oauth), cookieOptions());
-  return response;
+    identityLog("digilocker_start", {
+      ok: true,
+      demo: dest.url.includes("/login/digilocker"),
+      intent,
+    });
+    const response = NextResponse.redirect(dest.url);
+    response.cookies.set(DIGILOCKER_OAUTH_COOKIE, encodeOAuthCookie(oauth), cookieOptions());
+    return response;
+  } catch {
+    identityLog("digilocker_start_failed", { ok: false, reason: "config" });
+    return NextResponse.redirect(flowStatusUrl(request, intent, "error", "config"));
+  }
 }
