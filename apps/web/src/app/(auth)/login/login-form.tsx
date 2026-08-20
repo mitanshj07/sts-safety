@@ -11,13 +11,6 @@ import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -191,17 +184,17 @@ export function LoginForm({
   }
 
   return (
-    <Card className="sts-enter w-full max-w-md border-border/80 bg-card/80 shadow-2xl shadow-black/20 backdrop-blur-md">
-      <CardHeader className="gap-2">
-        <p className="text-xs font-medium tracking-[0.2em] text-primary uppercase">
-          SIH 2025 · MDoNER
+    <div className="sts-enter w-full max-w-md border border-border bg-surface p-6 shadow-sm sm:p-7">
+      <div className="space-y-2">
+        <p className="sts-kicker text-brand">SIH 2025 · MDoNER</p>
+        <h2 className="text-2xl font-semibold tracking-tight">Enter the system</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Indian travellers start with DigiLocker. Demo paths are labelled — they are not live
+          operations.
         </p>
-        <CardTitle className="text-2xl tracking-tight">Sign in</CardTitle>
-        <CardDescription>
-          Indian travellers start with DigiLocker. Judges can skip to a seeded demo.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      </div>
+
+      <div className="mt-5 flex flex-col gap-4">
         {error ? (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -214,23 +207,26 @@ export function LoginForm({
         ) : null}
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="magic" className="gap-1.5 text-xs sm:text-sm">
+          <TabsList className="grid h-auto w-full grid-cols-3">
+            <TabsTrigger value="magic" className="min-h-11 gap-1.5 text-xs sm:text-sm">
               <Mail className="size-3.5" />
-              Magic link
+              Magic
             </TabsTrigger>
-            <TabsTrigger value="tourist" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="tourist" className="min-h-11 gap-1.5 text-xs sm:text-sm">
               <Smartphone className="size-3.5" />
               Tourist
             </TabsTrigger>
-            <TabsTrigger value="officer" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="officer" className="min-h-11 gap-1.5 text-xs sm:text-sm">
               <Shield className="size-3.5" />
               Officer
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="magic" className="mt-4">
+          <TabsContent value="magic" className="mt-5">
             <form className="flex flex-col gap-3" onSubmit={sendMagicLink}>
+              <p className="text-sm text-muted-foreground">
+                Email sign-in for issued accounts. New addresses start as tourists.
+              </p>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -241,32 +237,39 @@ export function LoginForm({
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" disabled={pending} className="min-h-11">
                 {pending ? "Sending…" : "Send magic link"}
               </Button>
               <p className="text-xs text-muted-foreground">
-                New tourist accounts open onboarding. Indians can sign in with
-                DigiLocker on the Tourist tab instead.
+                New tourist accounts open onboarding. Indians can sign in with DigiLocker on the
+                Tourist tab instead.
               </p>
             </form>
           </TabsContent>
 
-          <TabsContent value="tourist" className="mt-4 flex flex-col gap-3">
-            <div className="space-y-2 rounded-xl border border-primary/40 bg-primary/5 px-3 py-3">
+          <TabsContent value="tourist" className="mt-5 flex flex-col gap-3">
+            <div>
+              <p className="text-sm font-medium">Tourist · DigiLocker / onboarding</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Official identity first. Demo shortcuts sit underneath, clearly labelled.
+              </p>
+            </div>
+            <div className="space-y-2 border border-primary/30 bg-primary/5 px-3 py-3">
               <p className="flex items-center gap-2 text-sm font-semibold">
                 <Landmark className="size-4 text-primary" aria-hidden />
                 DigiLocker
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 {digilockerDemo
                   ? "Local demo sandbox. Allow access to fetch sample eAadhaar, then onboarding opens with the fields filled in."
                   : "Sign in on DigiLocker (MeitY / meripehchaan.gov.in). After you allow access we fetch eAadhaar XML and issued DL / voter ID, then open onboarding with the fields filled in."}
               </p>
               <Button
                 type="button"
-                className="w-full"
+                className="min-h-11 w-full"
                 data-testid="digilocker-signup"
                 onClick={startDigilocker}
                 disabled={pending}
@@ -274,15 +277,19 @@ export function LoginForm({
                 Continue with DigiLocker
               </Button>
             </div>
-            <p className="text-center text-[11px] tracking-wide text-muted-foreground uppercase">
-              or demo shortcuts
-            </p>
+            <p className="sts-kicker">Demo path</p>
             <p className="text-sm text-muted-foreground">
               Seeded traveller{" "}
-              <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span>{" "}
-              skips KYC. Anonymous guests land on onboarding.
+              <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span> skips KYC.
+              Anonymous guests land on onboarding.
             </p>
-            <Button type="button" variant="outline" onClick={demoSeededTourist} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={demoSeededTourist}
+              disabled={pending}
+              className="min-h-11"
+            >
               {pending ? "Signing in…" : `Enter as ${DEMO_TOURIST.label}`}
             </Button>
             <Button
@@ -290,24 +297,27 @@ export function LoginForm({
               variant="secondary"
               onClick={demoTourist}
               disabled={pending}
+              className="min-h-11"
             >
               {pending ? "Entering…" : "Anonymous demo tourist"}
             </Button>
           </TabsContent>
 
-          <TabsContent value="officer" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
-              Seeded control-room admin. Credentials:{" "}
-              <span className="font-mono text-foreground">
-                {DEMO_OFFICER.email}
-              </span>
-            </p>
-            <Button type="button" onClick={demoOfficer} disabled={pending}>
+          <TabsContent value="officer" className="mt-5 flex flex-col gap-3">
+            <div>
+              <p className="text-sm font-medium">Officer · Command access</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Seeded control-room admin.{" "}
+                <span className="font-mono text-foreground">{DEMO_OFFICER.email}</span>
+              </p>
+            </div>
+            <p className="sts-kicker">Demo path</p>
+            <Button type="button" onClick={demoOfficer} disabled={pending} className="min-h-11">
               {pending ? "Signing in…" : "Enter command centre"}
             </Button>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

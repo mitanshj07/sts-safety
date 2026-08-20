@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import { IdCard } from "lucide-react";
 import { DigitalIdCard } from "@/components/tourist/DigitalIdCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -18,11 +17,11 @@ export default function DigitalIdPage() {
     return (
       <main className="sts-enter mx-auto flex max-w-lg flex-col gap-4 px-4 py-10">
         <EmptyState
-          icon={IdCard}
+          kicker="Verification required"
           title="No credential on this device"
-          description="Complete KYC to issue a soulbound digital tourist ID. KYC never goes on-chain."
+          description="Complete KYC to issue a digital tourist ID. KYC never goes on-chain."
           action={
-            <Button asChild>
+            <Button asChild className="min-h-11">
               <Link href="/onboard">Start onboarding</Link>
             </Button>
           }
@@ -51,13 +50,13 @@ export default function DigitalIdPage() {
   return (
     <main className="sts-enter mx-auto flex max-w-lg flex-col gap-6 px-4 py-6">
       <PageHeader
-        kicker="Credential"
+        kicker="Profile"
         title="Digital ID"
         description="Show this at checkpoints. Valid offline as a local commitment."
         className="mb-0"
       />
       <DigitalIdCard id={card} />
-      <div className="flex justify-center">
+      <div className="flex justify-start border-t border-border pt-4">
         <SignOutButton />
       </div>
     </main>

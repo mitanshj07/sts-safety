@@ -41,7 +41,7 @@ function DigilockerConsentInner({
       <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
         MeitY DigiLocker · demo sandbox
       </p>
-      <Card className="border-border/80 bg-card/80">
+      <Card className="border-border bg-surface">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Landmark className="size-5 text-primary" aria-hidden />
@@ -54,7 +54,7 @@ function DigilockerConsentInner({
             allow, we fetch eAadhaar XML and issued documents, then open
             onboarding with name, date of birth, and Aadhaar filled in.
           </p>
-          <ul className="space-y-2 rounded-xl border border-border/80 bg-background px-3 py-3">
+          <ul className="space-y-2 border border-border bg-background px-3 py-3">
             {DEMO_DIGILOCKER_PROFILE.documents.map((doc) => (
               <li key={doc.doctype} className="flex justify-between gap-3">
                 <span className="font-medium">{doc.label}</span>
