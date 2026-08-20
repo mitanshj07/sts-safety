@@ -42,17 +42,19 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
       contract: id.contract_address || publicEnv.touristIdRegistry,
       tokenId: id.token_id,
       vcPath: id.vc_path,
+      touristId: id.tourist_id,
     }),
-    [id.chain_id, id.contract_address, id.token_id, id.vc_path],
+    [id.chain_id, id.contract_address, id.token_id, id.vc_path, id.tourist_id],
   );
 
   useEffect(() => {
-    void QRCode.toDataURL(JSON.stringify(payload), {
+    const qrText = id.token_id ?? JSON.stringify(payload);
+    void QRCode.toDataURL(qrText, {
       margin: 1,
       width: 220,
       color: { dark: "#1A3A2A", light: "#F7F3EA" },
     }).then(setQr);
-  }, [payload]);
+  }, [payload, id.token_id]);
 
   const explorer =
     id.issue_tx_hash && id.issue_tx_hash !== "0x0"

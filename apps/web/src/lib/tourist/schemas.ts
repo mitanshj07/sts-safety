@@ -87,6 +87,7 @@ export const qrPayloadSchema = z.object({
   contract: z.string(),
   tokenId: z.string().nullable(),
   vcPath: z.string().nullable(),
+  touristId: z.string().optional(),
 });
 
 export type QrPayload = z.infer<typeof qrPayloadSchema>;
