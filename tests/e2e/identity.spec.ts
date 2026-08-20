@@ -1,7 +1,7 @@
 // tests/e2e/identity.spec.ts
 import { expect, test } from "@playwright/test";
 
-import { expectHealthy, loginAsOfficer, loginAsTourist } from "./helpers";
+import { expectHealthy, loginAsOfficer, loginAsTourist, signupWithDigilocker } from "./helpers";
 
 test.describe("identity issue + verify", () => {
   test("tourist issues a soulbound ID and checkpoint verifies the token", async ({
@@ -47,6 +47,20 @@ test.describe("identity issue + verify", () => {
     }
 
     await officerContext.close();
+  });
+
+  test("signup tourist tab fetches eAadhaar from DigiLocker", async ({
+    page,
+  }) => {
+    await expectHealthy(page);
+    await signupWithDigilocker(page);
+    await expect(page.getByTestId("digilocker-fetched")).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("kyc_number")).toHaveValue("234123412346");
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await expect(page.getByLabel(/full name/i)).toHaveValue("Priya Sharma");
+    await expect(page.getByLabel(/date of birth/i)).toHaveValue("1998-04-12");
   });
 
   test("indian tourist fetches eAadhaar from DigiLocker demo consent", async ({

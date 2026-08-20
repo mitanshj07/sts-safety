@@ -2,8 +2,8 @@
 import { NextResponse } from "next/server";
 
 import { ensureProfileForUser } from "@/lib/auth/ensure-profile";
+import { postAuthPath } from "@/lib/auth/post-login";
 import { callbackSearchSchema } from "@/lib/auth/schemas";
-import { homePathForRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -53,6 +53,13 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const profile = await ensureProfileForUser(user);
-  const destination = new URL(homePathForRole(profile.role), origin);
+  const destination = new URL(
+    await postAuthPath({
+      role: profile.role,
+      profileId: profile.id,
+      email: user.email,
+    }),
+    origin,
+  );
   return NextResponse.redirect(destination);
 }

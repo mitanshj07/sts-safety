@@ -3,7 +3,9 @@
 
 import { ensureCurrentProfile } from "./ensure-profile";
 import { AuthError } from "./errors";
-import { homePathForRole, type UserRole } from "./roles";
+import { postAuthPath } from "./post-login";
+import { type UserRole } from "./roles";
+import { createClient } from "@/lib/supabase/server";
 
 export type CompleteSignInResult =
   | { ok: true; role: UserRole; redirectTo: string }
@@ -11,11 +13,19 @@ export type CompleteSignInResult =
 
 export async function completeSignIn(): Promise<CompleteSignInResult> {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const profile = await ensureCurrentProfile();
     return {
       ok: true,
       role: profile.role,
-      redirectTo: homePathForRole(profile.role),
+      redirectTo: await postAuthPath({
+        role: profile.role,
+        profileId: profile.id,
+        email: user?.email,
+      }),
     };
   } catch (error) {
     const message =

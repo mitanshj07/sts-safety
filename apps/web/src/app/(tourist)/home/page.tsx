@@ -22,7 +22,7 @@ function useGreeting(): string {
 }
 
 export default function TouristHomePage() {
-  const { tourist, currentZones, itinerary, lastFix } = useTouristRuntime();
+  const { tourist, digitalId, currentZones, itinerary, lastFix } = useTouristRuntime();
   const greet = useGreeting();
   const zone = currentZones[0];
   const nextWp = itinerary?.waypoints.find((w) => !w.checked_in_at);
@@ -44,6 +44,22 @@ export default function TouristHomePage() {
           SOS
         </Link>
       </header>
+
+      {!digitalId ? (
+        <Link
+          href="/onboard"
+          data-testid="finish-kyc"
+          className="rounded-2xl border border-primary/40 bg-primary/10 px-4 py-3.5 text-sm shadow-sm transition-colors hover:bg-primary/15"
+        >
+          <span className="block text-xs tracking-widest text-primary uppercase">
+            Digital ID
+          </span>
+          <span className="mt-1 block font-semibold">Finish onboarding</span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Continue with DigiLocker to fetch eAadhaar, then issue your soulbound ID.
+          </span>
+        </Link>
+      ) : null}
 
       <StatusPills />
 

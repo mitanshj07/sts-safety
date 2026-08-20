@@ -24,9 +24,12 @@ const COOKIE_MAX_AGE_S = 10 * 60;
 
 export type DigilockerMode = "demo" | "live";
 
+export type DigilockerIntent = "signup" | "onboard";
+
 type OAuthCookie = {
   state: string;
   verifier: string;
+  intent?: DigilockerIntent;
 };
 
 type SessionCookie = {
@@ -131,7 +134,11 @@ export function encodeOAuthCookie(value: OAuthCookie): string {
 export function decodeOAuthCookie(token: string | undefined): OAuthCookie | null {
   const parsed = unsign<OAuthCookie>(token);
   if (!parsed?.state || !parsed.verifier) return null;
-  return parsed;
+  const intent =
+    parsed.intent === "signup" || parsed.intent === "onboard"
+      ? parsed.intent
+      : undefined;
+  return { state: parsed.state, verifier: parsed.verifier, intent };
 }
 
 export function encodeSessionCookie(value: SessionCookie): string {
@@ -167,8 +174,22 @@ function pkceChallenge(verifier: string): string {
   return createHash("sha256").update(verifier).digest("base64url");
 }
 
-export function newOAuthState(): OAuthCookie {
-  return { state: randomBytes(16).toString("hex"), verifier: pkceVerifier() };
+export function newOAuthState(intent: DigilockerIntent = "onboard"): OAuthCookie {
+  return {
+    state: randomBytes(16).toString("hex"),
+    verifier: pkceVerifier(),
+    intent,
+  };
+}
+
+export function oauthIntentFromRequest(
+  request: Request,
+  hasTourist: boolean,
+): DigilockerIntent {
+  const url = new URL(request.url);
+  const raw = url.searchParams.get("intent");
+  if (raw === "signup" || raw === "onboard") return raw;
+  return hasTourist ? "onboard" : "signup";
 }
 
 export function buildAuthorizeUrl(args: {
@@ -188,7 +209,7 @@ export function buildAuthorizeUrl(args: {
 }
 
 export function demoConsentUrl(origin: string, state: string): string {
-  const url = new URL("/onboard/digilocker", origin);
+  const url = new URL("/login/digilocker", origin);
   url.searchParams.set("state", state);
   return url.toString();
 }
@@ -221,6 +242,29 @@ export function onboardStatusUrl(
   url.searchParams.set("digilocker", status);
   if (reason) url.searchParams.set("reason", reason);
   return url;
+}
+
+export function loginStatusUrl(
+  request: Request,
+  status: "error" | "denied",
+  reason?: string,
+): URL {
+  const url = new URL("/login", requestOrigin(request));
+  url.searchParams.set("tab", "tourist");
+  url.searchParams.set("digilocker", status);
+  if (reason) url.searchParams.set("reason", reason);
+  return url;
+}
+
+export function flowStatusUrl(
+  request: Request,
+  intent: DigilockerIntent | undefined,
+  status: "ok" | "error" | "denied",
+  reason?: string,
+): URL {
+  if (status === "ok") return onboardStatusUrl(request, status, reason);
+  if (intent === "signup") return loginStatusUrl(request, status, reason);
+  return onboardStatusUrl(request, status, reason);
 }
 
 async function readJson(res: Response): Promise<Record<string, unknown>> {
