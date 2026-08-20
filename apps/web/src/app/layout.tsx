@@ -1,7 +1,8 @@
 // apps/web/src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
 
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SentryInit } from "@/components/shared/SentryInit";
 import "./globals.css";
@@ -11,9 +12,16 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s · STS Safety",
   },
   description:
-    "Smart Tourist Safety Monitoring & Incident Response System for the Ministry of Development of North Eastern Region.",
+    "Location-aware safety assistance for tourists, field officers, and emergency operators in India’s North-East.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -40,7 +48,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c1220",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F4F0E4" },
+    { media: "(prefers-color-scheme: dark)", color: "#161C28" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -53,10 +64,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable}`}
+    >
       <body className="min-h-screen font-sans antialiased">
-        <SentryInit />
-        <TooltipProvider>{children}</TooltipProvider>
+        <ThemeProvider>
+          <SentryInit />
+          <TooltipProvider>{children}</TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

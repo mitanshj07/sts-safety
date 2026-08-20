@@ -3,7 +3,7 @@
 
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
 import { Button } from "@/components/ui/button";
-import { RISK_BANNER } from "@/lib/geo/risk-colors";
+import { RISK_BANNER, RISK_LABEL } from "@/lib/geo/risk-colors";
 import { cn } from "@/lib/utils";
 
 export function GeofenceWarning() {
@@ -15,13 +15,13 @@ export function GeofenceWarning() {
       role="alert"
       aria-live="assertive"
       className={cn(
-        "fixed inset-x-3 top-3 z-50 rounded-2xl border border-white/10 p-4 shadow-2xl backdrop-blur-sm",
+        "fixed inset-x-3 top-3 z-[60] border p-4 shadow-md",
         RISK_BANNER[warning.risk_level],
       )}
     >
-      <p className="text-xs tracking-widest uppercase opacity-80">Geofence warning</p>
-      <h2 className="mt-1 text-lg font-semibold">{warning.name}</h2>
-      <p className="mt-1 text-sm opacity-90">
+      <p className="sts-kicker text-current">{RISK_LABEL[warning.risk_level]}</p>
+      <h2 className="mt-1 text-lg font-semibold tracking-tight">{warning.name}</h2>
+      <p className="mt-1 text-sm leading-relaxed">
         {warning.advisory_text ??
           `You entered a ${warning.category.replaceAll("_", " ")} zone (${warning.risk_level} risk).`}
       </p>
@@ -29,7 +29,7 @@ export function GeofenceWarning() {
         type="button"
         size="sm"
         variant="secondary"
-        className="mt-3"
+        className="mt-3 min-h-11"
         onClick={dismissWarning}
       >
         I understand

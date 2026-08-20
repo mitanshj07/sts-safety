@@ -19,13 +19,14 @@ export default function CommandError({
   }, [error]);
 
   return (
-    <main className="sts-enter flex min-h-[50vh] flex-col items-center justify-center gap-3 p-8 text-center">
-      <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">Control room</p>
+    <main className="sts-enter flex min-h-[50vh] flex-col justify-center gap-3 p-8">
+      <p className="sts-kicker">Control room</p>
       <h1 className="text-xl font-semibold tracking-tight">Command view failed</h1>
-      <p className="max-w-md text-sm text-muted-foreground">
-        Realtime may still be live. Retry, or jump back to the incident queue.
+      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+        Realtime may still be live. Incidents continue to write in Postgres. Retry, or return to
+        the queue.
       </p>
-      <div className="flex gap-2">
+      <div className="mt-2 flex gap-2">
         <Button type="button" onClick={() => reset()}>
           Retry
         </Button>

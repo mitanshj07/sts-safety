@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, MapPin } from "lucide-react";
+import { Check } from "lucide-react";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { useTouristRuntime } from "@/components/tourist/TouristProvider";
@@ -52,8 +52,8 @@ export default function TripPage() {
     return (
       <main className="sts-enter mx-auto max-w-lg px-4 py-10">
         <EmptyState
-          icon={MapPin}
-          title="No itinerary cached"
+          kicker="No itinerary"
+          title="No tourists route on this device"
           description="Finish onboarding or reconnect to sync your planned North-East route."
         />
       </main>
@@ -94,7 +94,7 @@ export default function TripPage() {
               >
                 {checked ? <Check className="size-3.5" /> : <span className="size-1.5 rounded-full bg-current" />}
               </span>
-              <div className="min-w-0 flex-1 space-y-2 rounded-2xl border border-border/80 bg-card/70 p-3.5">
+              <div className="min-w-0 flex-1 space-y-2 border border-border bg-surface p-3.5">
                 <p className="font-medium">{wp.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {wp.lat.toFixed(4)}, {wp.lon.toFixed(4)}

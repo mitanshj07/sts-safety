@@ -5,9 +5,7 @@ import { useState } from "react"
 import { z } from "zod"
 import { QrScanner } from "@/components/shared/QrScanner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { qrPayloadSchema } from "@/lib/command/schemas"
 import { cn } from "@/lib/utils"
 
@@ -57,10 +55,12 @@ export function VerifyClient() {
   )
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [reveal, setReveal] = useState(false)
 
   async function verify(tokenId: string) {
     setBusy(true)
     setError(null)
+    setReveal(false)
     try {
       const res = await fetch("/api/identity/verify", {
         method: "POST",
@@ -85,14 +85,25 @@ export function VerifyClient() {
   const tourist = result?.mirror?.tourist
   const touristRec =
     tourist && typeof tourist === "object" ? (tourist as Record<string, unknown>) : null
+  const verified = Boolean(result?.onChain.valid)
+  const identityKicker = !result
+    ? "Awaiting scan"
+    : verified
+      ? "Verified"
+      : result.onChain.source === "offline"
+        ? "Verification required"
+        : "Not valid"
 
   return (
-    <main className="sts-enter mx-auto grid max-w-4xl gap-4 p-6 md:grid-cols-2">
-      <div className="space-y-3">
-        <h1 className="text-xl font-semibold tracking-tight">Checkpoint verify</h1>
-        <p className="text-sm text-muted-foreground">
-          20-second demo beat: scan a tourist QR, show on-chain status. No PII on chain.
-        </p>
+    <main className="sts-enter mx-auto grid max-w-4xl gap-8 p-4 sm:p-6 md:grid-cols-2">
+      <div className="space-y-4">
+        <div>
+          <p className="sts-kicker">Checkpoint</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight">Checkpoint verify</h1>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            Scan a tourist QR. Only a commitment is on-chain — no Aadhaar or passport numbers.
+          </p>
+        </div>
         <QrScanner
           onDecode={(text) => {
             const token = extractToken(text)
@@ -111,41 +122,49 @@ export function VerifyClient() {
             value={manual}
             onChange={(event) => setManual(event.target.value)}
             placeholder="Or paste token id / QR JSON"
+            className="h-11"
           />
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" disabled={busy} className="min-h-11">
             Verify
           </Button>
         </form>
       </div>
-      <Card className="border-border/80 bg-card/80">
-        <CardHeader>
-          <CardTitle>On-chain card</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {error ? <p className="text-sm text-broken">{error}</p> : null}
-          {!result ? (
-            <p className="text-sm text-muted-foreground">Awaiting scan.</p>
-          ) : (
-            <>
-              <Badge
-                variant="outline"
-                className={cn(
-                  result.onChain.valid
-                    ? "border-verified/40 bg-verified/15 text-verified"
-                    : "border-broken/40 bg-broken/15 text-broken",
-                )}
-              >
-                {result.onChain.valid
-                  ? "Valid on Polygon Amoy"
-                  : result.onChain.source === "offline"
-                    ? "Chain offline"
-                    : "Not valid"}
-              </Badge>
-              <p className="text-lg font-medium">
-                {typeof touristRec?.full_name === "string"
-                  ? touristRec.full_name
-                  : `Token ${result.tokenId}`}
-              </p>
+      <section className="border border-border bg-surface p-5">
+        <p className="sts-kicker">Identity state</p>
+        <p
+          className={cn(
+            "mt-3 text-3xl font-semibold tracking-tight",
+            verified && "text-success",
+            result && !verified && "text-danger",
+          )}
+        >
+          {identityKicker}
+        </p>
+        {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        {!result ? (
+          <p className="mt-3 text-sm text-muted-foreground">Scan or paste a token to begin.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            <p className="text-lg font-medium">
+              {typeof touristRec?.full_name === "string"
+                ? touristRec.full_name
+                : `Token ${result.tokenId}`}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {result.onChain.source === "offline"
+                ? "Chain unreachable. Showing the last known registry status."
+                : verified
+                  ? "Credential matches the on-chain commitment."
+                  : "This token is not valid for travel."}
+            </p>
+            <button
+              type="button"
+              className="text-sm font-medium underline-offset-4 hover:underline"
+              onClick={() => setReveal((v) => !v)}
+            >
+              {reveal ? "Hide technical detail" : "Show technical detail"}
+            </button>
+            {reveal ? (
               <dl className="space-y-1 font-mono text-[11px] text-muted-foreground">
                 <div>token {result.tokenId}</div>
                 <div>status {result.onChain.status}</div>
@@ -157,20 +176,20 @@ export function VerifyClient() {
                 </div>
                 <div className="truncate">commitment {result.onChain.commitment}</div>
               </dl>
-              {result.onChain.explorerUrl ? (
-                <a
-                  className="text-sm underline"
-                  href={result.onChain.explorerUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open explorer
-                </a>
-              ) : null}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            ) : null}
+            {result.onChain.explorerUrl ? (
+              <a
+                className="block text-sm underline underline-offset-4"
+                href={result.onChain.explorerUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open explorer
+              </a>
+            ) : null}
+          </div>
+        )}
+      </section>
     </main>
   )
 }

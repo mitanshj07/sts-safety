@@ -64,14 +64,15 @@ export default async function IncidentDetailPage({ params }: PageProps) {
   return (
     <main className="sts-enter grid gap-4 p-6 xl:grid-cols-[1.4fr_1fr]">
       <div className="space-y-4">
-        <header className="flex flex-wrap items-center gap-2">
+        <header className="flex flex-wrap items-center gap-3">
           <div className="mr-auto">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Incident
-            </p>
+            <p className="sts-kicker">Incident {incident.id.replace(/-/g, "").slice(0, 8).toUpperCase()}</p>
             <h1 className="text-xl font-semibold tracking-tight">
               {incident.type.replaceAll("_", " ")}
             </h1>
+            <p className="sts-meta mt-1">
+              {incident.tourist_token_id ? "Verified tourist" : "Verification required"}
+            </p>
           </div>
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} />
@@ -95,7 +96,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
             photoUrl={photoUrl}
           />
         ) : null}
-        <div className="relative h-[28rem] overflow-hidden rounded-2xl border border-border">
+        <div className="relative h-[28rem] overflow-hidden border border-border">
           <MapCanvas
             className="h-full"
             initialCenter={

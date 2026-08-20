@@ -57,7 +57,7 @@ export function DashboardLive() {
           <IncidentQueue />
         </div>
       </div>
-      <div className="h-48 border-t border-border md:hidden">
+      <div className="h-40 border-t border-border md:hidden">
         <IncidentQueue />
       </div>
       <Sheet

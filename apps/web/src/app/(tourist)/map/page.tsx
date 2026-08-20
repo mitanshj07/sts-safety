@@ -40,7 +40,7 @@ export default function TouristMapPage() {
   return (
     <main className="relative h-[calc(100dvh-5rem)]">
       <div className="pointer-events-none absolute top-3 left-3 z-10">
-        <div className="pointer-events-auto rounded-2xl border border-border/80 bg-background/80 p-2.5 shadow-lg backdrop-blur-md">
+        <div className="pointer-events-auto border border-border bg-surface/95 p-3 shadow-sm">
           <StatusPills />
         </div>
       </div>

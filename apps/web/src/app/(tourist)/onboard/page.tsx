@@ -439,7 +439,7 @@ export default function OnboardPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Issuing digital ID</h1>
         <ol className="space-y-3">
           {result.steps.map((s) => (
-            <li key={s.id} className="rounded-2xl border border-border/80 bg-card/80 px-4 py-3">
+            <li key={s.id} className="border border-border bg-surface px-4 py-3">
               <p className="text-xs tracking-widest text-muted-foreground uppercase">
                 {s.status}
               </p>
@@ -507,7 +507,7 @@ export default function OnboardPage() {
       </div>
 
       {step === 0 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card className="border-border bg-surface">
           <CardHeader>
             <CardTitle>Travel document</CardTitle>
           </CardHeader>
@@ -631,7 +631,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 1 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card className="border-border bg-surface">
           <CardHeader>
             <CardTitle>Traveller</CardTitle>
           </CardHeader>
@@ -667,7 +667,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 2 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card className="border-border bg-surface">
           <CardHeader>
             <CardTitle>Emergency contact</CardTitle>
           </CardHeader>
@@ -695,7 +695,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 3 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card className="border-border bg-surface">
           <CardHeader>
             <CardTitle>Trip & route</CardTitle>
           </CardHeader>
