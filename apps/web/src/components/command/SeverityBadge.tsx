@@ -36,7 +36,7 @@ export function SeverityBadge({ severity }: { severity: SeverityLevel }) {
 export function StatusBadge({ status }: { status: IncidentStatus }) {
   return (
     <Badge variant="secondary" className="font-mono uppercase" aria-label={`Status ${status}`}>
-      {status.replaceAll("_", " ")}
+      {(status ?? "unknown").replaceAll("_", " ")}
     </Badge>
   )
 }

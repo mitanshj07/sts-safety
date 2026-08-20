@@ -1,9 +1,9 @@
 // apps/web/src/app/(command)/incidents/[id]/page.tsx
 import { notFound } from "next/navigation"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { ZoneLayer } from "@/components/map/ZoneLayer"
-import { IncidentLayer } from "@/components/map/IncidentLayer"
-import { TrackReplay } from "@/components/map/TrackReplay"
+import { MapCanvas } from "@/components/map/lazy"
+import { ZoneLayer } from "@/components/map/lazy"
+import { IncidentLayer } from "@/components/map/lazy"
+import { TrackReplay } from "@/components/map/lazy"
 import { AiBriefPanel } from "@/components/command/AiBriefPanel"
 import { ChainProofBadge } from "@/components/command/ChainProofBadge"
 import { DispatchPanel } from "@/components/command/DispatchPanel"
@@ -71,7 +71,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
               Incident
             </p>
             <h1 className="text-xl font-semibold tracking-tight">
-              {incident.type.replaceAll("_", " ")}
+              {(incident.type ?? "incident").replaceAll("_", " ")}
             </h1>
           </div>
           <SeverityBadge severity={incident.severity} />

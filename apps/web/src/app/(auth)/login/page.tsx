@@ -49,7 +49,8 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const tab = loginTabSchema.catch("magic").parse(params.tab ?? "magic");
+  const parsedTab = loginTabSchema.safeParse(params.tab ?? "magic");
+  const tab = parsedTab.success ? parsedTab.data : "magic";
 
   return (
     <LoginForm

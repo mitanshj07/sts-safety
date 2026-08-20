@@ -1,7 +1,6 @@
 // apps/web/src/app/(auth)/login/login-form.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Landmark, Mail, Shield, Smartphone } from "lucide-react";
 
@@ -48,21 +47,37 @@ export function LoginForm({
   initialError,
   initialInfo,
 }: LoginFormProps) {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
   const [info, setInfo] = useState<string | null>(initialInfo ?? null);
   const [email, setEmail] = useState("");
   const [pending, startTransition] = useTransition();
 
   function finish(redirectTo: string) {
-    router.push(safeNextPath() ?? redirectTo);
-    router.refresh();
+    // Full navigation avoids the auth error boundary: router.push + refresh
+    // re-renders /login while middleware redirects an authenticated session.
+    window.location.assign(safeNextPath() ?? redirectTo);
+  }
+
+  function fail(message: string) {
+    setError(message);
+  }
+
+  function runAuth(work: () => Promise<void>) {
+    setError(null);
+    setInfo(null);
+    startTransition(async () => {
+      try {
+        await work();
+      } catch (err) {
+        fail(err instanceof Error ? err.message : "Sign-in failed. Retry.");
+      }
+    });
   }
 
   function requireSupabase() {
     const supabase = getBrowserSupabase();
     if (!supabase) {
-      setError(
+      fail(
         "This public deploy shows the product UI. Demo logins need the seeded Supabase project (local or cloud).",
       );
       return null;
@@ -76,14 +91,12 @@ export function LoginForm({
 
   function sendMagicLink(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setInfo(null);
     const parsed = magicLinkSchema.safeParse({ email });
     if (!parsed.success) {
-      setError("Enter a valid email address.");
+      fail("Enter a valid email address.");
       return;
     }
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -95,7 +108,7 @@ export function LoginForm({
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        fail(otpError.message);
         return;
       }
       setInfo("Check your inbox for the magic link. Local Inbucket: :54324.");
@@ -103,9 +116,7 @@ export function LoginForm({
   }
 
   function demoTourist() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { data, error: anonError } = await supabase.auth.signInAnonymously({
@@ -117,13 +128,13 @@ export function LoginForm({
         },
       });
       if (anonError) {
-        setError(anonError.message);
+        fail(anonError.message);
         return;
       }
       if (data.user && (data.user.is_anonymous || !data.user.email)) {
         const result = await completeSignIn();
         if (!result.ok) {
-          setError(result.message);
+          fail(result.message);
           return;
         }
         finish(result.redirectTo);
@@ -131,7 +142,7 @@ export function LoginForm({
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
@@ -139,9 +150,7 @@ export function LoginForm({
   }
 
   function demoSeededTourist() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
@@ -149,14 +158,12 @@ export function LoginForm({
         password: DEMO_TOURIST.password,
       });
       if (passwordError) {
-        setError(
-          `${passwordError.message} Seed tourists first (pnpm demo:reset).`,
-        );
+        fail(`${passwordError.message} Seed tourists first (pnpm demo:reset).`);
         return;
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
@@ -164,9 +171,7 @@ export function LoginForm({
   }
 
   function demoOfficer() {
-    setError(null);
-    setInfo(null);
-    startTransition(async () => {
+    runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
       const { error: passwordError } = await supabase.auth.signInWithPassword({
@@ -174,14 +179,14 @@ export function LoginForm({
         password: DEMO_OFFICER.password,
       });
       if (passwordError) {
-        setError(
+        fail(
           `${passwordError.message} Seed the staff user (supabase db reset) first.`,
         );
         return;
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        setError(result.message);
+        fail(result.message);
         return;
       }
       finish(result.redirectTo);
@@ -211,7 +216,7 @@ export function LoginForm({
           </Alert>
         ) : null}
 
-        <Tabs defaultValue={defaultTab} className="w-full">
+        <Tabs defaultValue={defaultTab || "magic"} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="magic" className="gap-1.5 text-xs sm:text-sm">
               <Mail className="size-3.5" />

@@ -4,8 +4,8 @@
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { setResponderDuty } from "@/app/(command)/actions"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { ResponderLayer } from "@/components/map/ResponderLayer"
+import { MapCanvas } from "@/components/map/lazy"
+import { ResponderLayer } from "@/components/map/lazy"
 import { Switch } from "@/components/ui/switch"
 import { useCommandRealtime } from "@/components/shared/RealtimeProvider"
 
