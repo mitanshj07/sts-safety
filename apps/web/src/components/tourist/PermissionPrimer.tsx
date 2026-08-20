@@ -11,15 +11,17 @@ export function PermissionPrimer() {
 
   return (
     <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur-sm">
-      <Card className="max-w-md border-border/80 bg-card/90 shadow-2xl backdrop-blur-md">
+      <Card className="max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle>Enable safety tracking</CardTitle>
+          <p className="sts-kicker">Consent</p>
+          <CardTitle className="mt-1">Enable safety tracking</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <p>
-            This PWA warns you <em>before</em> the server round-trip when you walk into a
-            restricted North-East zone. Location stays on your device queue when you are
-            offline. Your name and KYC never go on-chain — only a keccak256 commitment.
+            This app warns you before the server round-trip when you walk into a
+            restricted North-East zone. Location stays on your device queue when
+            you are offline. Your name and KYC never go on-chain — only a keccak256
+            commitment.
           </p>
           <ul className="list-disc space-y-1 pl-4">
             <li>GPS is used for geofence warnings and SOS coordinates.</li>

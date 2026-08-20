@@ -20,8 +20,8 @@ export default function TouristError({
 
   return (
     <main className="sts-enter mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center gap-3 px-4 text-center">
-      <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">Tourist PWA</p>
-      <h1 className="text-xl font-semibold tracking-tight">Tourist screen failed</h1>
+      <p className="sts-kicker">Tourist PWA</p>
+      <h1 className="text-xl font-semibold tracking-tight">This screen failed</h1>
       <p className="text-sm text-muted-foreground">
         SOS still works from the panic button if this page recovers.
       </p>
@@ -29,7 +29,7 @@ export default function TouristError({
         <Button type="button" onClick={() => reset()}>
           Retry
         </Button>
-        <Button asChild variant="outline">
+        <Button asChild variant="sos">
           <Link href="/sos">Open SOS</Link>
         </Button>
       </div>

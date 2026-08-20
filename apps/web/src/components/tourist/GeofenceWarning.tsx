@@ -15,12 +15,12 @@ export function GeofenceWarning() {
       role="alert"
       aria-live="assertive"
       className={cn(
-        "fixed inset-x-3 top-3 z-50 rounded-2xl border border-white/10 p-4 shadow-2xl backdrop-blur-sm",
+        "fixed inset-x-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-50 rounded-xl p-4 shadow-lg",
         RISK_BANNER[warning.risk_level],
       )}
     >
-      <p className="text-xs tracking-widest uppercase opacity-80">Geofence warning</p>
-      <h2 className="mt-1 text-lg font-semibold">{warning.name}</h2>
+      <p className="text-xs font-semibold tracking-wide uppercase opacity-80">Geofence warning</p>
+      <h2 className="mt-1 text-lg font-semibold tracking-tight">{warning.name}</h2>
       <p className="mt-1 text-sm opacity-90">
         {warning.advisory_text ??
           `You entered a ${warning.category.replaceAll("_", " ")} zone (${warning.risk_level} risk).`}

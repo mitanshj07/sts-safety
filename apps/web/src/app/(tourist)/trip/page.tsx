@@ -94,7 +94,7 @@ export default function TripPage() {
               >
                 {checked ? <Check className="size-3.5" /> : <span className="size-1.5 rounded-full bg-current" />}
               </span>
-              <div className="min-w-0 flex-1 space-y-2 rounded-2xl border border-border/80 bg-card/70 p-3.5">
+              <div className="min-w-0 flex-1 space-y-2 rounded-xl border border-border bg-card p-3.5 shadow-xs">
                 <p className="font-medium">{wp.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {wp.lat.toFixed(4)}, {wp.lon.toFixed(4)}

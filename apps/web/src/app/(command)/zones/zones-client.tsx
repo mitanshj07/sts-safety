@@ -78,7 +78,7 @@ export function ZonesClient() {
 
   return (
     <main className="sts-enter grid h-full min-h-0 gap-4 p-4 xl:grid-cols-[1.4fr_22rem]">
-      <div className="relative min-h-[28rem] overflow-hidden rounded-2xl border border-border">
+      <div className="relative min-h-[28rem] overflow-hidden rounded-xl border border-border">
         <MapCanvas className="h-full">
           <ZoneLayer zones={toZoneInputs(snapshot.zones)} />
           <ZoneDrawEditor
@@ -87,7 +87,7 @@ export function ZonesClient() {
         </MapCanvas>
       </div>
       <form
-        className="space-y-3 rounded-2xl border border-border bg-card/80 p-4"
+        className="space-y-3 rounded-xl border border-border bg-card p-4"
         onSubmit={(event) => {
           event.preventDefault()
           if (!geom) {
@@ -118,7 +118,8 @@ export function ZonesClient() {
           })
         }}
       >
-        <h1 className="text-xl font-semibold tracking-tight">Zone editor</h1>
+        <p className="sts-kicker">Geofence</p>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight">Zone editor</h1>
         <p className="text-sm text-muted-foreground">
           Draw a polygon. Geometry is validated before save.
         </p>

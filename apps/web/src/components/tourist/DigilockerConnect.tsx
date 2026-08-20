@@ -23,7 +23,7 @@ export function DigilockerConnect({
     return (
       <div
         data-testid="digilocker-fetched"
-        className="space-y-3 rounded-xl border border-primary/40 bg-primary/5 px-3 py-3"
+        className="space-y-3 rounded-xl border border-primary/30 bg-primary/6 px-3 py-3"
       >
         <div className="flex items-start gap-2">
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
@@ -40,7 +40,7 @@ export function DigilockerConnect({
           {session.documents.map((doc) => (
             <li
               key={`${doc.kycType}-${doc.doctype}`}
-              className="rounded-full border border-border/80 bg-background px-2.5 py-0.5 text-[11px]"
+              className="rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px]"
             >
               {doc.label}
             </li>
@@ -54,7 +54,7 @@ export function DigilockerConnect({
   }
 
   return (
-    <div className="space-y-2 rounded-xl border border-border/80 bg-background px-3 py-3">
+    <div className="space-y-2 rounded-xl border border-border bg-background px-3 py-3">
       <div className="flex items-start gap-2">
         <Landmark className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
         <div>

@@ -20,7 +20,7 @@ export default function CommandError({
 
   return (
     <main className="sts-enter flex min-h-[50vh] flex-col items-center justify-center gap-3 p-8 text-center">
-      <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">Control room</p>
+      <p className="sts-kicker">Control room</p>
       <h1 className="text-xl font-semibold tracking-tight">Command view failed</h1>
       <p className="max-w-md text-sm text-muted-foreground">
         Realtime may still be live. Retry, or jump back to the incident queue.

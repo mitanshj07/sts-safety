@@ -21,12 +21,10 @@ export function AiBriefPanel({
   const [optimisticBrief, apply] = useOptimistic(value)
 
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-            AI brief
-          </p>
+          <p className="sts-kicker">AI brief</p>
           <p className="font-mono text-[11px] text-muted-foreground">
             {modelName ?? "rules-only"} · never on the hot path
           </p>

@@ -18,7 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LiveIncident } from "@/lib/command/types"
 
-const COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#64748b", "#38bdf8"]
+const COLORS = ["#e05a45", "#d97706", "#c9a227", "#2f9d6a", "#64748b", "#3d8ea8"]
 
 export function AnalyticsClient({
   incidents,
@@ -85,49 +85,47 @@ export function AnalyticsClient({
   return (
     <main className="sts-enter grid gap-4 p-6 lg:grid-cols-2">
       <div className="lg:col-span-2">
-        <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-          Intelligence
-        </p>
+        <p className="sts-kicker">Intelligence</p>
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
         <p className="text-sm text-muted-foreground">
           Zone pressure, response times, and incident mix for the last window.
         </p>
       </div>
-      <Card className="border-border/80 bg-card/80">
+      <Card>
         <CardHeader>
           <CardTitle>Incidents by zone</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={byZone}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 92 / 12%)" />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-25} />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" fill="#f59e0b" />
-              <Bar dataKey="severe" fill="#ef4444" />
+              <Bar dataKey="count" fill="#c9a227" />
+              <Bar dataKey="severe" fill="#e05a45" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card>
         <CardHeader>
           <CardTitle>MTTA / MTTR trend</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={byDay}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 92 / 12%)" />
               <XAxis dataKey="day" tick={{ fontSize: 10 }} />
               <YAxis />
               <Tooltip />
-              <Line dataKey="mtta" stroke="#38bdf8" dot={false} />
-              <Line dataKey="mttr" stroke="#f97316" dot={false} />
+              <Line dataKey="mtta" stroke="#3d8ea8" dot={false} />
+              <Line dataKey="mttr" stroke="#d97706" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card>
         <CardHeader>
           <CardTitle>Incident type distribution</CardTitle>
         </CardHeader>
@@ -144,7 +142,7 @@ export function AnalyticsClient({
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card>
         <CardHeader>
           <CardTitle>Zone risk ranking</CardTitle>
         </CardHeader>

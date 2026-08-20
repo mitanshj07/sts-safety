@@ -56,13 +56,13 @@ export default async function TouristDetailPage({ params }: PageProps) {
           digitalId={detail.digitalId}
           photoUrl={photoUrl}
         />
-        <div className="rounded-2xl border border-border bg-card/80 p-4">
-          <p className="mb-2 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="sts-kicker mb-2">
             Safety score history
           </p>
           <ScoreSparkline data={spark} />
         </div>
-        <div className="relative h-[28rem] overflow-hidden rounded-2xl border border-border">
+        <div className="relative h-[28rem] overflow-hidden rounded-xl border border-border">
           <MapCanvas
             className="h-full"
             initialCenter={
@@ -83,8 +83,8 @@ export default async function TouristDetailPage({ params }: PageProps) {
         </div>
       </div>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-border bg-card/80 p-4">
-          <p className="mb-2 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="sts-kicker mb-2">
             ID verification
           </p>
           <ChainProofBadge

@@ -29,7 +29,7 @@ export function MapFoundationPreview() {
         initialCenter={[91.7362, 26.1445]}
         initialZoom={12}
         cooperativeGestures
-        className="min-h-[28rem] overflow-hidden rounded-2xl border border-border/80 shadow-2xl shadow-black/20"
+        className="min-h-[28rem] overflow-hidden rounded-xl border border-border shadow-md"
       >
         <ZoneLayer zones={SAMPLE_ZONES} />
         <TouristLayer tourists={SAMPLE_TOURISTS} />

@@ -89,7 +89,8 @@ export function VerifyClient() {
   return (
     <main className="sts-enter mx-auto grid max-w-4xl gap-4 p-6 md:grid-cols-2">
       <div className="space-y-3">
-        <h1 className="text-xl font-semibold tracking-tight">Checkpoint verify</h1>
+        <p className="sts-kicker">Checkpoint</p>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight">Verify ID</h1>
         <p className="text-sm text-muted-foreground">
           20-second demo beat: scan a tourist QR, show on-chain status. No PII on chain.
         </p>
@@ -117,7 +118,7 @@ export function VerifyClient() {
           </Button>
         </form>
       </div>
-      <Card className="border-border/80 bg-card/80">
+      <Card>
         <CardHeader>
           <CardTitle>On-chain card</CardTitle>
         </CardHeader>

@@ -43,6 +43,7 @@ export default function TouristsPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search name / nationality"
+            aria-label="Search tourists"
             className="max-w-xs"
           />
         }
@@ -58,7 +59,7 @@ export default function TouristsPage() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/60">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

@@ -1,28 +1,39 @@
 // apps/web/src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Instrument_Serif, Manrope } from "next/font/google";
 
+import { SkipLink } from "@/components/shared/SkipLink";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SentryInit } from "@/components/shared/SentryInit";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Smart Tourist Safety",
+    default: "STS Safety",
     template: "%s · STS Safety",
   },
   description:
-    "Smart Tourist Safety Monitoring & Incident Response System for the Ministry of Development of North Eastern Region.",
+    "Smart Tourist Safety for India’s North-East — offline geofencing, hold-to-SOS, and a live command room. Alerts fire even when AI and the chain are down.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -40,7 +51,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0c1220",
+  themeColor: "#0f1a24",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -53,8 +64,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`dark ${manrope.variable} ${instrument.variable} ${plexMono.variable}`}
+    >
       <body className="min-h-screen font-sans antialiased">
+        <SkipLink />
         <SentryInit />
         <TooltipProvider>{children}</TooltipProvider>
       </body>

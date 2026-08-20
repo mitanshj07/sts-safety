@@ -426,11 +426,12 @@ export default function OnboardPage() {
   if (result) {
     return (
       <main className="sts-enter mx-auto flex max-w-lg flex-col gap-5 px-4 py-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Issuing digital ID</h1>
+        <p className="sts-kicker">Issuance</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Digital ID issued</h1>
         <ol className="space-y-3">
           {result.steps.map((s) => (
-            <li key={s.id} className="rounded-2xl border border-border/80 bg-card/80 px-4 py-3">
-              <p className="text-xs tracking-widest text-muted-foreground uppercase">
+            <li key={s.id} className="sts-panel px-4 py-3">
+              <p className="sts-kicker">
                 {s.status}
               </p>
               <p className="font-medium">{s.label}</p>
@@ -475,11 +476,9 @@ export default function OnboardPage() {
   return (
     <main className="sts-enter mx-auto flex max-w-lg flex-col gap-5 px-4 py-6">
       <div>
-        <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-          KYC
-        </p>
-        <h1 className="text-2xl font-semibold tracking-tight">Onboarding</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="sts-kicker">KYC</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Onboarding</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Step {step + 1} of {STEPS.length} · {STEPS[step]}
         </p>
       </div>
@@ -497,7 +496,7 @@ export default function OnboardPage() {
       </div>
 
       {step === 0 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card>
           <CardHeader>
             <CardTitle>Travel document</CardTitle>
           </CardHeader>
@@ -511,10 +510,10 @@ export default function OnboardPage() {
                   aria-pressed={residency === "indian"}
                   onClick={() => setResidency("indian")}
                   className={cn(
-                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    "min-h-20 rounded-xl border px-3 py-3 text-left transition-colors",
                     residency === "indian"
-                      ? "border-primary bg-primary/10"
-                      : "border-border/80 bg-background hover:border-primary/40",
+                      ? "border-primary bg-primary/8"
+                      : "border-border bg-background hover:border-primary/40",
                   )}
                 >
                   <p className="text-sm font-semibold">Indian resident</p>
@@ -528,10 +527,10 @@ export default function OnboardPage() {
                   aria-pressed={residency === "international"}
                   onClick={() => setResidency("international")}
                   className={cn(
-                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    "min-h-20 rounded-xl border px-3 py-3 text-left transition-colors",
                     residency === "international"
-                      ? "border-primary bg-primary/10"
-                      : "border-border/80 bg-background hover:border-primary/40",
+                      ? "border-primary bg-primary/8"
+                      : "border-border bg-background hover:border-primary/40",
                   )}
                 >
                   <p className="text-sm font-semibold">International visitor</p>
@@ -589,7 +588,7 @@ export default function OnboardPage() {
               <Label htmlFor="kyc_type">Document type</Label>
               <select
                 id="kyc_type"
-                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 value={form.kycType}
                 onChange={(e) => changeKycType(e.target.value as KycType)}
               >
@@ -620,7 +619,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 1 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card>
           <CardHeader>
             <CardTitle>Traveller</CardTitle>
           </CardHeader>
@@ -656,7 +655,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 2 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card>
           <CardHeader>
             <CardTitle>Emergency contact</CardTitle>
           </CardHeader>
@@ -684,7 +683,7 @@ export default function OnboardPage() {
       ) : null}
 
       {step === 3 ? (
-        <Card className="border-border/80 bg-card/80">
+        <Card>
           <CardHeader>
             <CardTitle>Trip & route</CardTitle>
           </CardHeader>
@@ -706,7 +705,7 @@ export default function OnboardPage() {
             <Label htmlFor="route">Preset North-East itinerary</Label>
             <select
               id="route"
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
               value={form.itineraryId}
               onChange={(e) => update("itineraryId", e.target.value)}
             >
