@@ -28,7 +28,7 @@ function playCriticalChime(): void {
 
 function announceText(incident: LiveIncident | undefined): string {
   if (!incident) return ""
-  return `New ${incident.severity} incident: ${incident.type.replaceAll("_", " ")} for ${incident.tourist_name ?? "unknown tourist"}`
+  return `New ${incident.severity} incident: ${(incident.type ?? "alert").replaceAll("_", " ")} for ${incident.tourist_name ?? "unknown tourist"}`
 }
 
 export function IncidentQueue() {
@@ -152,7 +152,7 @@ export function IncidentQueue() {
                   {incident.tourist_name ?? "Unknown tourist"}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {incident.type.replaceAll("_", " ")} ·{" "}
+                  {(incident.type ?? "incident").replaceAll("_", " ")} ·{" "}
                   {incident.zone_name ?? incident.address_text ?? "unlocated"}
                 </p>
                 <StatusBadge status={incident.status} />

@@ -1,8 +1,8 @@
 // apps/web/src/app/(command)/tourists/[id]/page.tsx
 import { notFound } from "next/navigation"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { TrackReplay } from "@/components/map/TrackReplay"
-import { TouristLayer } from "@/components/map/TouristLayer"
+import { MapCanvas } from "@/components/map/lazy"
+import { TrackReplay } from "@/components/map/lazy"
+import { TouristLayer } from "@/components/map/lazy"
 import { ChainProofBadge } from "@/components/command/ChainProofBadge"
 import { ScoreSparkline } from "@/components/command/ScoreSparkline"
 import { TouristCard } from "@/components/command/TouristCard"

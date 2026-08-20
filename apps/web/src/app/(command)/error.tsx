@@ -25,12 +25,18 @@ export default function CommandError({
       <p className="max-w-md text-sm text-muted-foreground">
         Realtime may still be live. Retry, or jump back to the incident queue.
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         <Button type="button" onClick={() => reset()}>
           Retry
         </Button>
-        <Button asChild variant="outline">
+        <Button asChild>
           <Link href="/dashboard">Dashboard</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/incidents">Incidents</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/login?tab=officer">Sign in</Link>
         </Button>
       </div>
     </main>

@@ -26,7 +26,7 @@ export function computeKpis(
 
   const openBySeverity = emptySeverityCounts()
   for (const incident of incidents) {
-    if (OPEN_STATUSES.has(incident.status)) {
+    if (OPEN_STATUSES.has(incident.status) && incident.severity in openBySeverity) {
       openBySeverity[incident.severity] += 1
     }
   }

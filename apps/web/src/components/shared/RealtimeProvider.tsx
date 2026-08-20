@@ -204,7 +204,7 @@ export function RealtimeProvider({
         snapshot.tourists,
         snapshot.incidents,
         snapshot.responders,
-        snapshot.kpis.anchoredIncidents,
+        snapshot.kpis?.anchoredIncidents ?? 0,
       ),
     }
   }, [snapshot])

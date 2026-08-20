@@ -134,6 +134,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const home = homePathForRole(role);
 
   if (pathname === "/login") {
+    // Keep POST on /login so sign-in server actions can finish. Redirecting them
+    // to /home or /dashboard yields an empty action payload and a failed login.
+    if (request.method !== "GET") {
+      return supabaseResponse;
+    }
     return redirectWithCookies(request, supabaseResponse, home);
   }
 
