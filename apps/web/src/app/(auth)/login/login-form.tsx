@@ -123,12 +123,17 @@ export function LoginForm({
         },
       });
       if (anonError) {
-        fail(anonError.message);
-        return;
+        const guest = await fetch("/api/auth/guest", { method: "POST" });
+        const json: unknown = await guest.json().catch(() => null);
+        if (!guest.ok) {
+          const rec = json && typeof json === "object" ? (json as { error?: unknown }) : null;
+          fail(typeof rec?.error === "string" ? rec.error : anonError.message);
+          return;
+        }
       }
       const result = await completeSignIn();
       if (!result.ok) {
-        fail(result.message);
+        window.location.assign("/onboard");
         return;
       }
       finish(result.redirectTo, result.role);

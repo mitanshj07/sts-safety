@@ -74,6 +74,7 @@ export function isPublicApiPath(pathname: string): boolean {
   if (!pathname.startsWith("/api/")) return false;
   return (
     pathname === "/api/health" ||
+    pathname === "/api/auth/guest" ||
     pathname.startsWith("/api/identity/") ||
     pathname.startsWith("/api/notify/telegram-webhook") ||
     pathname.startsWith("/api/notify/subscribe") ||

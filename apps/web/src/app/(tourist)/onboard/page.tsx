@@ -1,7 +1,7 @@
 // apps/web/src/app/(tourist)/onboard/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   allowedKycTypes,
   defaultKycType,
@@ -166,7 +166,6 @@ export default function OnboardPage() {
   const [dlNotice, setDlNotice] = useState<string | null>(null);
   const [continueTo, setContinueTo] = useState("/home");
 
-  const parsed = useMemo(() => toRequest(form), [form]);
   const residency = residencyOf(form.nationality);
   const docTypes = allowedKycTypes(form.nationality);
 
@@ -312,6 +311,7 @@ export default function OnboardPage() {
     try {
       const res = await fetch("/api/identity/issue", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -744,7 +744,7 @@ export default function OnboardPage() {
           <Button
             type="button"
             className="flex-1"
-            disabled={issuing || !parsed}
+            disabled={issuing}
             onClick={() => void submit()}
           >
             {issuing ? "Issuing…" : "Issue digital ID"}

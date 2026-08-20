@@ -1,36 +1,57 @@
 // apps/web/src/app/api/identity/issue/route.ts
 import { issueIdentityRequestSchema } from "@sts/shared";
+import { type NextRequest, NextResponse } from "next/server";
 
-import { getPrincipal } from "@/lib/auth/guards";
+import {
+  copyResponseCookies,
+  ensureTouristSessionOnResponse,
+  tryGetTouristUserId,
+} from "@/lib/auth/guest-session";
 import { issueTouristIdentity } from "@/lib/identity/issuance";
 import { identityLog } from "@/lib/identity/log";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return Response.json({ ok: false, error: "invalid json" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "invalid json" }, { status: 400 });
   }
 
   const parsed = issueIdentityRequestSchema.safeParse(body);
   if (!parsed.success) {
     const first = parsed.error.issues[0]?.message ?? "validation_failed";
-    return Response.json(
+    return NextResponse.json(
       { ok: false, error: first, details: parsed.error.flatten() },
       { status: 400 },
     );
   }
 
+  const sessionCookies = NextResponse.json({ ok: true });
   const input = { ...parsed.data };
   if (!input.profileId) {
-    const principal = await getPrincipal(request);
-    if (principal?.role === "tourist") {
-      input.profileId = principal.id;
-    }
+    input.profileId = (await tryGetTouristUserId(request)) ?? undefined;
+  }
+  if (!input.profileId) {
+    const minted = await ensureTouristSessionOnResponse({
+      request,
+      response: sessionCookies,
+      displayName: input.name,
+    });
+    if (minted) input.profileId = minted.userId;
+  }
+  if (!input.profileId) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Could not start a tourist session. Use DigiLocker or Anonymous demo tourist, then issue the ID again.",
+      },
+      { status: 401 },
+    );
   }
 
   try {
@@ -40,10 +61,14 @@ export async function POST(request: Request): Promise<Response> {
       status: result.status,
       idempotent: result.idempotent,
     });
-    return Response.json(result, { status: result.status === "active" ? 201 : 202 });
+    const response = NextResponse.json(result, {
+      status: result.status === "active" ? 201 : 202,
+    });
+    return copyResponseCookies(sessionCookies, response);
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "issue failed";
     identityLog("issue_http_error", { ok: false, error: message });
-    return Response.json({ ok: false, error: message }, { status: 500 });
+    const response = NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return copyResponseCookies(sessionCookies, response);
   }
 }

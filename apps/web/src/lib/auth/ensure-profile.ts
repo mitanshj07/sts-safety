@@ -6,11 +6,16 @@ import { createClient } from "@/lib/supabase/server";
 import type { ProfileRow, UserRole } from "@/lib/supabase/database.types";
 
 import { AuthError } from "./errors";
+import { isGuestTouristEmail } from "./guest-email";
 import { parseUserRole } from "./roles";
 import { profileRowSchema } from "./schemas";
 
 function isAnonymousUser(user: User): boolean {
   return user.is_anonymous === true || !user.email;
+}
+
+function needsDemoTouristRow(user: User): boolean {
+  return isAnonymousUser(user) || isGuestTouristEmail(user.email);
 }
 
 function displayNameFor(user: User): string {
@@ -58,7 +63,9 @@ function localeFor(user: User): string {
  */
 export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
   const supabase = await createClient();
-  const { data: existing, error: readError } = await supabase
+  const admin = tryCreateAdminClient();
+  const reader = admin ?? supabase;
+  const { data: existing, error: readError } = await reader
     .from("profiles")
     .select("*")
     .eq("id", user.id)
@@ -75,13 +82,12 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
         `Failed to read profile: ${parsed.error.issues[0]?.message ?? "invalid row"}`,
       );
     }
-    if (isAnonymousUser(user)) {
+    if (needsDemoTouristRow(user)) {
       await ensureDemoTouristRow(user.id);
     }
     return parsed.data;
   }
 
-  const admin = tryCreateAdminClient();
   const writer = admin ?? supabase;
   const insert = {
     id: user.id,
@@ -109,7 +115,7 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
     );
   }
 
-  if (isAnonymousUser(user)) {
+  if (needsDemoTouristRow(user)) {
     await ensureDemoTouristRow(user.id);
   }
 
