@@ -2,20 +2,14 @@
 /* Smart Tourist Safety — tourist PWA service worker.
    Offline app shell, Web Push, Background Sync for the ping queue. */
 
-const SHELL = "sts-shell-v1";
+const SHELL = "sts-shell-v2";
+// Do not precache HTML routes — they change every deploy and a frozen /sos
+// shell hides new SOS fields (optional message, voice notes) for returning PWAs.
 const PRECACHE = [
-  "/",
-  "/home",
-  "/map",
-  "/id",
-  "/trip",
-  "/alerts",
-  "/onboard",
-  "/sos",
-          "/offline/northeast-outline.geojson",
-          "/offline/zones.geojson",
-          "/icons/icon-192.png",
-          "/icons/icon-512.png",
+  "/offline/northeast-outline.geojson",
+  "/offline/zones.geojson",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
   "/manifest.webmanifest",
   "/icons/icon.svg",
 ];
@@ -50,18 +44,17 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
       const cached = await caches.match(req);
+      const isNavigate = req.mode === "navigate";
       try {
         const fresh = await fetch(req);
-        const copy = fresh.clone();
-        const cache = await caches.open(SHELL);
-        void cache.put(req, copy);
+        if (!isNavigate && fresh.ok) {
+          const copy = fresh.clone();
+          const cache = await caches.open(SHELL);
+          void cache.put(req, copy);
+        }
         return fresh;
       } catch {
         if (cached) return cached;
-        if (req.mode === "navigate") {
-          const home = await caches.match("/home");
-          if (home) return home;
-        }
         return new Response("Offline", { status: 503, statusText: "Offline" });
       }
     })(),
