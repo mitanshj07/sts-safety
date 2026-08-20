@@ -1,7 +1,6 @@
 // apps/web/src/app/(tourist)/onboard/page.tsx
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   allowedKycTypes,
@@ -23,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeNextPath, withNextParam } from "@/lib/auth/next-path";
 import { publicEnv } from "@/lib/config/public";
 import type { CachedDigitalId, CachedItinerary, CachedTourist } from "@/lib/offline/db";
 import { PRESET_NE_ROUTES, itineraryLineString, routeById } from "@/lib/tourist/routes";
@@ -155,7 +155,6 @@ function documentStepError(form: FormState): string | null {
 }
 
 export default function OnboardPage() {
-  const router = useRouter();
   const { patchSession } = useTouristRuntime();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -165,6 +164,7 @@ export default function OnboardPage() {
   const [result, setResult] = useState<IssueView | null>(null);
   const [dlSession, setDlSession] = useState<DigilockerSession | null>(null);
   const [dlNotice, setDlNotice] = useState<string | null>(null);
+  const [continueTo, setContinueTo] = useState("/home");
 
   const parsed = useMemo(() => toRequest(form), [form]);
   const residency = residencyOf(form.nationality);
@@ -192,10 +192,12 @@ export default function OnboardPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const next = sanitizeNextPath(params.get("next"));
+    if (next) setContinueTo(next);
     const status = params.get("digilocker");
     const reason = params.get("reason") ?? "";
-    if (status) {
-      window.history.replaceState({}, "", "/onboard");
+    if (status || next) {
+      window.history.replaceState({}, "", withNextParam("/onboard", next));
     }
 
     const notice =
@@ -423,6 +425,14 @@ export default function OnboardPage() {
     }
   }
 
+  useEffect(() => {
+    if (!result) return;
+    const timer = window.setTimeout(() => {
+      window.location.assign(continueTo);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [result, continueTo]);
+
   if (result) {
     return (
       <main className="sts-enter mx-auto flex max-w-lg flex-col gap-5 px-4 py-8">
@@ -463,8 +473,8 @@ export default function OnboardPage() {
             Chain write is queued. Your local ID card is ready offline.
           </p>
         )}
-        <Button type="button" onClick={() => router.push("/home")}>
-          Continue to home
+        <Button type="button" onClick={() => window.location.assign(continueTo)}>
+          Continue
         </Button>
       </main>
     );

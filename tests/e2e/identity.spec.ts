@@ -24,18 +24,17 @@ test.describe("identity issue + verify", () => {
     });
 
     const tokenLocator = page.getByTestId("issued-token");
-    const hasToken = await tokenLocator
-      .waitFor({ state: "visible", timeout: 5_000 })
-      .then(() => true)
-      .catch(() => false);
+    const tokenText = await tokenLocator
+      .textContent({ timeout: 2_000 })
+      .catch(() => null);
+    const hasToken = Boolean(tokenText);
 
     const officerContext = await browser.newContext();
     const officer = await officerContext.newPage();
     await loginAsOfficer(officer);
     await officer.goto("/verify");
 
-    if (hasToken) {
-      const tokenText = await tokenLocator.innerText();
+    if (hasToken && tokenText) {
       const token = tokenText.replace(/token/i, "").trim();
       await officer.getByPlaceholder(/paste token/i).fill(token);
       await officer.getByRole("button", { name: /^verify$/i }).click();

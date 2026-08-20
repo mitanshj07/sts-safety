@@ -3,6 +3,11 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import {
+  nextPathForRole,
+  sanitizeNextPath,
+  withNextParam,
+} from "@/lib/auth/next-path";
+import {
   homePathForRole,
   isCommandPath,
   isPublicPath,
@@ -40,13 +45,23 @@ function copyCookies(
 function redirectWithCookies(
   request: NextRequest,
   supabaseResponse: NextResponse,
-  pathname: string,
+  target: string,
 ): NextResponse {
   const url = request.nextUrl.clone();
-  url.pathname = pathname;
-  url.search = "";
+  const query = target.indexOf("?");
+  url.pathname = query === -1 ? target : target.slice(0, query);
+  url.search = query === -1 ? "" : target.slice(query);
   const redirectResponse = NextResponse.redirect(url);
   return copyCookies(supabaseResponse, redirectResponse);
+}
+
+/** Carries the blocked destination so sign-in can land the user where they aimed. */
+function loginTarget(request: NextRequest): string {
+  if (request.method !== "GET") return "/login";
+  const next = sanitizeNextPath(
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
+  return withNextParam("/login", next);
 }
 
 async function readRole(
@@ -123,7 +138,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       supabaseResponse.cookies.getAll().forEach((cookie) => next.cookies.set(cookie));
       return next;
     }
-    return redirectWithCookies(request, supabaseResponse, "/login");
+    return redirectWithCookies(request, supabaseResponse, loginTarget(request));
   }
 
   const role = await readRole(
@@ -139,7 +154,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     if (request.method !== "GET") {
       return supabaseResponse;
     }
-    return redirectWithCookies(request, supabaseResponse, home);
+    const next = nextPathForRole(
+      request.nextUrl.searchParams.get("next"),
+      role,
+    );
+    return redirectWithCookies(request, supabaseResponse, next ?? home);
   }
 
   if (role === "tourist" && isCommandPath(pathname)) {

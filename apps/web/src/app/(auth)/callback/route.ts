@@ -2,6 +2,11 @@
 import { NextResponse } from "next/server";
 
 import { ensureProfileForUser } from "@/lib/auth/ensure-profile";
+import {
+  nextPathForRole,
+  resolvePostAuthTarget,
+  sanitizeNextPath,
+} from "@/lib/auth/next-path";
 import { postAuthPath } from "@/lib/auth/post-login";
 import { callbackSearchSchema } from "@/lib/auth/schemas";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +28,11 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.redirect(login);
   }
 
-  const { code, error, error_description } = parsed.data;
+  const { code, error, error_description, next } = parsed.data;
+  if (next) {
+    const preserved = sanitizeNextPath(next);
+    if (preserved) login.searchParams.set("next", preserved);
+  }
   if (error) {
     login.searchParams.set("error", error_description ?? error);
     return NextResponse.redirect(login);
@@ -53,13 +62,12 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const profile = await ensureProfileForUser(user);
-  const destination = new URL(
-    await postAuthPath({
-      role: profile.role,
-      profileId: profile.id,
-      email: user.email,
-    }),
-    origin,
-  );
-  return NextResponse.redirect(destination);
+  const home = await postAuthPath({
+    role: profile.role,
+    profileId: profile.id,
+    email: user.email,
+  });
+  const requested = nextPathForRole(next, profile.role);
+  const target = resolvePostAuthTarget(home, requested);
+  return NextResponse.redirect(new URL(target, origin));
 }
