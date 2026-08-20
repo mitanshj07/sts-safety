@@ -1,0 +1,14 @@
+{
+  "name": "Smart Tourist Safety",
+  "user": "ubuntu",
+  "snapshot": "snapshot-20260819-1509bd0c-3142-4a11-9238-32fce0842fdb",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "web",
+      "command": "bash .cursor/web-dev.sh"
+    }
+  ],
+  "ports": [3000, 54321, 54322, 54323]
+}
