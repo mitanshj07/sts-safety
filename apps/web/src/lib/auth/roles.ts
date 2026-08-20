@@ -39,7 +39,7 @@ export const COMMAND_PATHS = [
   "/analytics",
 ] as const;
 
-export const PUBLIC_PATHS = ["/", "/login", "/callback"] as const;
+export const PUBLIC_PATHS = ["/", "/login", "/callback", "/sw.js"] as const;
 
 export function isUserRole(value: string): value is UserRole {
   return (USER_ROLES as readonly string[]).includes(value);
