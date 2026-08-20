@@ -39,11 +39,29 @@ export async function POST(request: Request): Promise<Response> {
 
   const { data: incident } = await admin
     .from("incidents")
-    .select("id, tourist_id")
+    .select("id, tourist_id, type, status")
     .eq("id", parsed.data.incident_id)
     .maybeSingle()
   if (!incident || incident.tourist_id !== tourist.id) {
     return jsonError("incident not found", 404)
+  }
+
+  // Re-pressing SOS while an open/ack/dispatched row exists is a unique-index
+  // hit, not a new insert. Reopen so Command sees a fresh critical alert.
+  if (
+    incident.type === "sos" &&
+    ["open", "acknowledged", "dispatched"].includes(String(incident.status))
+  ) {
+    await admin
+      .from("incidents")
+      .update({
+        status: "open",
+        severity: "critical",
+        occurred_at: new Date().toISOString(),
+        acknowledged_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", incident.id)
   }
 
   try {

@@ -63,55 +63,82 @@ export function PanicButton({ className }: { className?: string }) {
     }
 
     const supabase = getBrowserSupabase();
-    if (supabase && touristId) {
-      const { data, error } = await supabase
-        .from("incidents")
-        .insert({
-          tourist_id: touristId,
-          type: "sos",
-          severity: "critical",
-          detected_by: "device",
-          status: "open",
-          geog: lastFix ? pointEwkt(roundCoord(lastFix.lon), roundCoord(lastFix.lat)) : null,
-          payload: {
-            source: "panic_button",
-            accuracy_m: lastFix?.accuracy_m ?? null,
-            ...(touristMessage ? { tourist_message: touristMessage } : {}),
-          },
-          occurred_at: new Date().toISOString(),
-        })
-        .select("id")
-        .maybeSingle();
-      const duplicate =
-        Boolean(error) &&
-        /incidents_open_dedupe|duplicate key/i.test(error?.message ?? "");
-      let resolvedId = data?.id ?? null;
-      if (duplicate && !resolvedId) {
-        const { data: existing } = await supabase
-          .from("incidents")
-          .select("id")
-          .eq("tourist_id", touristId)
-          .eq("type", "sos")
-          .in("status", ["open", "acknowledged", "dispatched"])
-          .limit(1)
-          .maybeSingle();
-        resolvedId = existing?.id ?? null;
+    if (supabase) {
+      let resolvedId: string | null = null;
+      let retriggered = false;
+
+      const { data: raised, error: rpcError } = await supabase.rpc("raise_sos", {
+        p_lon: lastFix ? roundCoord(lastFix.lon) : null,
+        p_lat: lastFix ? roundCoord(lastFix.lat) : null,
+        p_accuracy_m: lastFix?.accuracy_m ?? null,
+        p_message: touristMessage || null,
+      });
+      if (!rpcError && raised != null) {
+        try {
+          const rec =
+            typeof raised === "string"
+              ? (JSON.parse(raised) as { id?: unknown; retriggered?: unknown })
+              : (raised as { id?: unknown; retriggered?: unknown });
+          if (typeof rec.id === "string") resolvedId = rec.id;
+          retriggered = rec.retriggered === true;
+        } catch {
+          resolvedId = null;
+        }
       }
-      if (!error || duplicate) {
-        if (resolvedId) {
-          setIncidentId(resolvedId);
-          void fetch("/api/notify/mine", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ incident_id: resolvedId }),
+
+      if (!resolvedId && touristId) {
+        const { data, error } = await supabase
+          .from("incidents")
+          .insert({
+            tourist_id: touristId,
+            type: "sos",
+            severity: "critical",
+            detected_by: "device",
+            status: "open",
+            geog: lastFix ? pointEwkt(roundCoord(lastFix.lon), roundCoord(lastFix.lat)) : null,
+            payload: {
+              source: "panic_button",
+              accuracy_m: lastFix?.accuracy_m ?? null,
+              ...(touristMessage ? { tourist_message: touristMessage } : {}),
+            },
+            occurred_at: new Date().toISOString(),
+          })
+          .select("id")
+          .maybeSingle();
+        const duplicate =
+          Boolean(error) &&
+          /incidents_open_dedupe|duplicate key/i.test(error?.message ?? "");
+        retriggered = duplicate;
+        resolvedId = data?.id ?? null;
+        if (duplicate && !resolvedId) {
+          const { data: existing } = await supabase
+            .from("incidents")
+            .select("id")
+            .eq("tourist_id", touristId)
+            .eq("type", "sos")
+            .in("status", ["open", "acknowledged", "dispatched"])
+            .limit(1)
+            .maybeSingle();
+          resolvedId = existing?.id ?? null;
+        }
+        if (error && !duplicate) {
+          resolvedId = null;
+        }
+      }
+
+      if (resolvedId) {
+        setIncidentId(resolvedId);
+        void fetch("/api/notify/mine", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ incident_id: resolvedId }),
+        });
+        if (retriggered && touristMessage) {
+          void postIncidentMessage({
+            incidentId: resolvedId,
+            kind: "text",
+            body: touristMessage,
           });
-          if (duplicate && touristMessage) {
-            void postIncidentMessage({
-              incidentId: resolvedId,
-              kind: "text",
-              body: touristMessage,
-            });
-          }
         }
         setState("sent");
         return;
@@ -160,7 +187,7 @@ export function PanicButton({ className }: { className?: string }) {
           onPointerDown={onPointerDown}
           onPointerUp={stopHold}
           onPointerCancel={stopHold}
-          disabled={state === "sending" || state === "sent"}
+          disabled={state === "sending"}
           className={cn(
             "relative grid size-36 place-items-center rounded-full text-sm font-semibold tracking-[0.18em] text-white",
             "focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -203,7 +230,7 @@ export function PanicButton({ className }: { className?: string }) {
           onChange={(event) => setNote(event.target.value.slice(0, SOS_MESSAGE_MAX_LENGTH))}
           placeholder="Where you are, or what happened"
           maxLength={SOS_MESSAGE_MAX_LENGTH}
-          disabled={state === "sending" || state === "sent"}
+          disabled={state === "sending"}
         />
       </div>
 

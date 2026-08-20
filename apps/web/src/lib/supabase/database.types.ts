@@ -307,6 +307,15 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      raise_sos: {
+        Args: {
+          p_lon?: number | null;
+          p_lat?: number | null;
+          p_accuracy_m?: number | null;
+          p_message?: string | null;
+        };
+        Returns: Json;
+      };
       nearest_responders: {
         Args: { p_lon: number; p_lat: number; p_limit?: number };
         Returns: Array<{

@@ -76,6 +76,9 @@ export function RealtimeProvider({
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null)
   const [lastCriticalId, setLastCriticalId] = useState<string | null>(null)
   const knownIds = useRef(new Set((initial?.incidents ?? []).map((i) => i.id)))
+  const knownOccurredAt = useRef(
+    new Map((initial?.incidents ?? []).map((i) => [i.id, i.occurred_at])),
+  )
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const refresh = useCallback(async () => {
@@ -83,14 +86,17 @@ export function RealtimeProvider({
       const next = await loadSnapshot()
       setSnapshot(next)
       for (const incident of next.incidents) {
-        if (
-          !knownIds.current.has(incident.id) &&
+        const isLiveCritical =
           incident.severity === "critical" &&
           ["open", "acknowledged", "dispatched"].includes(incident.status)
-        ) {
+        const prevOccurredAt = knownOccurredAt.current.get(incident.id)
+        const isNew = !knownIds.current.has(incident.id)
+        const retriggered = Boolean(prevOccurredAt && prevOccurredAt !== incident.occurred_at)
+        if (isLiveCritical && (isNew || retriggered)) {
           setLastCriticalId(incident.id)
         }
         knownIds.current.add(incident.id)
+        knownOccurredAt.current.set(incident.id, incident.occurred_at)
       }
     } catch {
       setConnection((prev) => (prev === "live" ? prev : "polling"))
