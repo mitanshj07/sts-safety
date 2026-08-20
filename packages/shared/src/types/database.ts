@@ -435,6 +435,63 @@ export type Database = {
           },
         ]
       }
+      incident_messages: {
+        Row: {
+          body: string | null
+          byte_size: number | null
+          created_at: string
+          duration_ms: number | null
+          id: string
+          incident_id: string
+          kind: string
+          mime_type: string | null
+          sender_id: string | null
+          sender_kind: string
+          storage_path: string | null
+        }
+        Insert: {
+          body?: string | null
+          byte_size?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          incident_id: string
+          kind: string
+          mime_type?: string | null
+          sender_id?: string | null
+          sender_kind: string
+          storage_path?: string | null
+        }
+        Update: {
+          body?: string | null
+          byte_size?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          incident_id?: string
+          kind?: string
+          mime_type?: string | null
+          sender_id?: string | null
+          sender_kind?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_messages_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_messages_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "v_open_incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incidents: {
         Row: {
           acknowledged_at: string | null
