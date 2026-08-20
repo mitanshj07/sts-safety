@@ -56,7 +56,7 @@ const PROOFS = [
 
 export default function HomePage() {
   return (
-    <div className="sts-mesh sts-ridge relative min-h-screen overflow-x-hidden">
+    <div className="dark sts-mesh sts-ridge relative min-h-screen overflow-x-hidden">
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-6">
         <AppMark />
         <nav className="flex items-center gap-2" aria-label="Primary">

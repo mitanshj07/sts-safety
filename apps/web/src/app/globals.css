@@ -110,6 +110,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.168 0.02 232);
   --foreground: oklch(0.955 0.01 92);
   --surface: oklch(0.2 0.022 232);
@@ -207,7 +208,6 @@
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
   }
 
   body {

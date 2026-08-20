@@ -66,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${manrope.variable} ${instrument.variable} ${plexMono.variable}`}
+      className={`${manrope.variable} ${instrument.variable} ${plexMono.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
         <SkipLink />

@@ -22,7 +22,7 @@ export default function ErrorPage({
   return (
     <main
       id="main"
-      className="sts-mesh relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center gap-4 px-6 text-center"
+      className="dark sts-mesh relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center gap-4 px-6 text-center"
     >
       <AppMark />
       <p className="sts-kicker">Recoverable error</p>

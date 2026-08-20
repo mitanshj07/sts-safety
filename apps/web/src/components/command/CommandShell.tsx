@@ -121,7 +121,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div className="flex h-dvh min-h-0 bg-background text-foreground">
+    <div className="dark flex h-dvh min-h-0 bg-background text-foreground">
       <nav
         aria-label="Command"
         className="hidden w-16 flex-col border-r border-border bg-card py-3 md:flex lg:w-60"

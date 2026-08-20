@@ -9,7 +9,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="sts-mesh sts-ridge relative flex min-h-screen flex-col">
+    <div className="dark sts-mesh sts-ridge relative flex min-h-screen flex-col">
       <header className="relative z-10 flex items-center justify-between px-5 py-5 sm:px-6">
         <Link
           href="/"
