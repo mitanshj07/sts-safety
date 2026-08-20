@@ -20,17 +20,18 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="sts-mesh relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center gap-4 px-6 text-center">
+    <main
+      id="main"
+      className="sts-mesh relative mx-auto flex min-h-[70vh] max-w-lg flex-col items-center justify-center gap-4 px-6 text-center"
+    >
       <AppMark />
-      <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
-        Recoverable error
-      </p>
-      <h1 className="text-2xl font-semibold tracking-tight">This screen failed to render</h1>
+      <p className="sts-kicker">Recoverable error</p>
+      <h1 className="sts-display text-4xl">This screen failed to render</h1>
       <p className="text-sm text-muted-foreground text-pretty">
         Alerts still fire in Postgres. Open the dashboard or retry this page.
         {error.digest ? ` (${error.digest})` : ""}
       </p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         <Button type="button" onClick={() => reset()}>
           Retry
         </Button>

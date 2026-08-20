@@ -93,7 +93,7 @@ export function IncidentQueue() {
   return (
     <aside
       className={cn(
-        "flex h-full w-full flex-col border-l border-border bg-card/95 md:w-[22rem]",
+        "flex h-full w-full flex-col border-l border-border bg-card md:w-[22rem]",
         flash && "critical-flash",
       )}
     >
@@ -105,10 +105,8 @@ export function IncidentQueue() {
       >
         {liveMessage}
       </div>
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3 py-2">
-        <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          Incident queue
-        </p>
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3">
+        <p className="sts-kicker">Incident queue</p>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {open.length} open
         </span>
@@ -135,7 +133,7 @@ export function IncidentQueue() {
                 aria-selected={selectedIncidentId === incident.id}
                 onClick={() => setSelectedIncidentId(incident.id)}
                 className={cn(
-                  "flex w-full flex-col gap-1 border-b border-border px-3 py-2.5 text-left transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  "flex w-full flex-col gap-1 border-b border-border px-3 py-3 text-left transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   selectedIncidentId === incident.id && "bg-accent",
                   incident.severity === "critical" &&
                     incident.id === lastCriticalId &&

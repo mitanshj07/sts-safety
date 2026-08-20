@@ -13,7 +13,7 @@ export function CommandClock() {
 
   if (!now) {
     return (
-      <span className="hidden font-mono text-[11px] tabular-nums text-muted-foreground xl:inline">
+      <span className="hidden font-mono text-[11px] tabular-nums text-muted-foreground lg:inline">
         IST
       </span>
     );
@@ -22,7 +22,7 @@ export function CommandClock() {
   return (
     <time
       dateTime={now.toISOString()}
-      className="hidden font-mono text-[11px] tabular-nums text-muted-foreground xl:inline"
+          className="hidden font-mono text-[11px] tabular-nums text-muted-foreground lg:inline"
     >
       {now.toLocaleString("en-IN", {
         hour12: false,

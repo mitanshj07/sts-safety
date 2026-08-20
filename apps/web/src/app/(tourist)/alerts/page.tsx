@@ -49,10 +49,8 @@ export default function AlertsPage() {
               <li
                 key={String(n.id)}
                 className={cn(
-                  "rounded-2xl border p-4 shadow-sm",
-                  fromControl
-                    ? "border-emerald-700/40 bg-emerald-950/30"
-                    : "border-border/80 bg-card/80",
+                  "sts-panel p-4",
+                  fromControl && "border-primary/25 bg-primary/6",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">

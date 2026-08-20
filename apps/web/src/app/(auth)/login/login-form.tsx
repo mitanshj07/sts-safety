@@ -11,13 +11,6 @@ import { magicLinkSchema, type LoginTab } from "@/lib/auth/schemas";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -96,7 +89,6 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
         setError(anonError.message);
         return;
       }
-      // Anonymous users have no email — provision profile + tourists row server-side.
       if (data.user && (data.user.is_anonymous || !data.user.email)) {
         const result = await completeSignIn();
         if (!result.ok) {
@@ -166,33 +158,54 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
   }
 
   return (
-    <Card className="sts-enter w-full max-w-md border-border/80 bg-card/80 shadow-2xl shadow-black/20 backdrop-blur-md">
-      <CardHeader className="gap-2">
-        <p className="text-xs font-medium tracking-[0.2em] text-primary uppercase">
-          SIH 2025 · MDoNER
-        </p>
-        <CardTitle className="text-2xl tracking-tight">Sign in</CardTitle>
-        <CardDescription>
-          Three ways in. Judges: use a demo button — do not wait for email.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+    <div className="sts-enter grid w-full max-w-4xl overflow-hidden rounded-2xl border border-border bg-card shadow-lg lg:grid-cols-[1.05fr_1fr]">
+      <aside className="hidden flex-col justify-between bg-elevated p-8 lg:flex">
+        <div>
+          <p className="sts-kicker text-primary">SIH 2025 · MDoNER</p>
+          <h1 className="sts-display mt-4 text-4xl">Sign in to the safety stack.</h1>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Judges: use a demo button. Do not wait for email. Live officers and
+            travellers can still take a magic link.
+          </p>
+        </div>
+        <dl className="space-y-4 text-sm">
+          <div>
+            <dt className="sts-kicker">Tourist demo</dt>
+            <dd className="mt-1 font-mono text-xs">{DEMO_TOURIST.email}</dd>
+          </div>
+          <div>
+            <dt className="sts-kicker">Command demo</dt>
+            <dd className="mt-1 font-mono text-xs">{DEMO_OFFICER.email}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div className="flex flex-col gap-5 p-6 sm:p-8">
+        <div className="lg:hidden">
+          <p className="sts-kicker text-primary">SIH 2025 · MDoNER</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Sign in</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Demo buttons for the pitch. Magic link for a real session.
+          </p>
+        </div>
+        <h2 className="hidden text-xl font-semibold tracking-tight lg:block">Choose a way in</h2>
+
         {error ? (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
         {info ? (
-          <Alert>
+          <Alert variant="success">
             <AlertDescription>{info}</AlertDescription>
           </Alert>
         ) : null}
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid h-11 w-full grid-cols-3">
             <TabsTrigger value="magic" className="gap-1.5 text-xs sm:text-sm">
               <Mail className="size-3.5" />
-              Magic link
+              Magic
             </TabsTrigger>
             <TabsTrigger value="tourist" className="gap-1.5 text-xs sm:text-sm">
               <Smartphone className="size-3.5" />
@@ -204,8 +217,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="magic" className="mt-4">
-            <form className="flex flex-col gap-3" onSubmit={sendMagicLink}>
+          <TabsContent value="magic" className="mt-5">
+            <form className="flex flex-col gap-4" onSubmit={sendMagicLink}>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -224,8 +237,8 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
             </form>
           </TabsContent>
 
-          <TabsContent value="tourist" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
+          <TabsContent value="tourist" className="mt-5 flex flex-col gap-3">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Seeded traveller{" "}
               <span className="font-mono text-foreground">{DEMO_TOURIST.email}</span>{" "}
               or an anonymous guest for a cold start.
@@ -243,19 +256,17 @@ export function LoginForm({ defaultTab, initialError }: LoginFormProps) {
             </Button>
           </TabsContent>
 
-          <TabsContent value="officer" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">
-              Seeded control-room admin. Credentials:{" "}
-              <span className="font-mono text-foreground">
-                {DEMO_OFFICER.email}
-              </span>
+          <TabsContent value="officer" className="mt-5 flex flex-col gap-3">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Seeded control-room admin.{" "}
+              <span className="font-mono text-foreground">{DEMO_OFFICER.email}</span>
             </p>
             <Button type="button" onClick={demoOfficer} disabled={pending}>
               {pending ? "Signing in…" : "Enter command centre"}
             </Button>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

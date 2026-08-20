@@ -35,7 +35,7 @@ export default function IncidentsPage() {
           description="SOS, geofence, and anomaly events land here as soon as they open."
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/60">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

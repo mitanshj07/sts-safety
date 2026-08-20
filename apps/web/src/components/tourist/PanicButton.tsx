@@ -133,23 +133,24 @@ export function PanicButton({ className }: { className?: string }) {
       <button
         type="button"
         aria-label="Hold for 1.5 seconds to send SOS"
+        aria-live="polite"
         onPointerDown={onPointerDown}
         onPointerUp={stopHold}
         onPointerCancel={stopHold}
         disabled={state === "sending" || state === "sent"}
         className={cn(
-          "relative grid size-40 place-items-center rounded-full text-sm font-semibold tracking-widest text-white",
-          state === "sent" ? "bg-emerald-700" : "bg-red-700 sos-glow",
-          "disabled:opacity-80",
+          "relative grid size-40 place-items-center rounded-full text-sm font-semibold tracking-[0.16em] text-white",
+          state === "sent" ? "bg-success" : "bg-sos sos-glow",
+          "focus-visible:ring-sos/40 disabled:opacity-80",
         )}
       >
-        <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90">
+        <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90" aria-hidden>
           <circle
             cx="50"
             cy="50"
             r="46"
             fill="none"
-            stroke="rgba(255,255,255,0.2)"
+            stroke="rgba(255,255,255,0.22)"
             strokeWidth="6"
           />
           <circle
@@ -168,14 +169,14 @@ export function PanicButton({ className }: { className?: string }) {
       {state === "sms" && smsHref.current ? (
         <a
           href={smsHref.current}
-          className="text-sm text-red-300 underline underline-offset-4"
+          className="text-sos text-sm font-medium underline underline-offset-4"
         >
           Open SMS with coordinates
         </a>
       ) : (
-        <p className="max-w-xs text-center text-xs text-muted-foreground">
-          Hold 1.5s to confirm. Works offline — queued until the network returns, then SMS
-          fallback if the insert fails.
+        <p className="text-muted-foreground max-w-xs text-center text-xs leading-relaxed">
+          Hold 1.5s to confirm. Works offline — queued until the network returns,
+          then SMS if the insert fails.
         </p>
       )}
     </div>

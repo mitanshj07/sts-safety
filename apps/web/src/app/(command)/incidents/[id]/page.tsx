@@ -66,9 +66,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
       <div className="space-y-4">
         <header className="flex flex-wrap items-center gap-2">
           <div className="mr-auto">
-            <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Incident
-            </p>
+            <p className="sts-kicker">Incident</p>
             <h1 className="text-xl font-semibold tracking-tight">
               {incident.type.replaceAll("_", " ")}
             </h1>
@@ -95,7 +93,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
             photoUrl={photoUrl}
           />
         ) : null}
-        <div className="relative h-[28rem] overflow-hidden rounded-2xl border border-border">
+        <div className="relative h-[28rem] overflow-hidden rounded-xl border border-border">
           <MapCanvas
             className="h-full"
             initialCenter={

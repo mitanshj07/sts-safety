@@ -16,19 +16,17 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "mb-5 flex flex-wrap items-end justify-between gap-3",
+        "mb-6 flex flex-wrap items-end justify-between gap-3",
         className,
       )}
     >
-      <div className="min-w-0 space-y-1">
-        {kicker ? (
-          <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            {kicker}
-          </p>
-        ) : null}
+      <div className="min-w-0 space-y-1.5">
+        {kicker ? <p className="sts-kicker">{kicker}</p> : null}
         <h1 className="text-2xl font-semibold tracking-tight text-balance">{title}</h1>
         {description ? (
-          <p className="max-w-2xl text-sm text-muted-foreground text-pretty">{description}</p>
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground text-pretty">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}

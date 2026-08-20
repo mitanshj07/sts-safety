@@ -1,4 +1,3 @@
-// apps/web/src/components/tourist/BottomNav.tsx
 "use client";
 
 import Link from "next/link";
@@ -21,7 +20,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Tourist"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5 px-1">
         {TABS.map((tab) => {
@@ -31,18 +30,19 @@ export function BottomNav() {
             <li key={tab.href}>
               <Link
                 href={tab.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
+                  "flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <span
                   className={cn(
                     "grid size-9 place-items-center rounded-xl transition-colors",
-                    active && "bg-primary/15",
+                    active && "bg-primary/12",
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon className="size-5" aria-hidden />
                 </span>
                 {tab.label}
               </Link>

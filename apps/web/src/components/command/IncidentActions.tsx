@@ -43,8 +43,8 @@ export function IncidentActions({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4">
-      <p className="mb-3 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="sts-kicker mb-3">
         Actions · {optimisticStatus.replaceAll("_", " ")}
       </p>
       <div className="mb-3 grid gap-2">

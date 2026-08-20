@@ -15,14 +15,15 @@ export function RespondersClient() {
 
   return (
     <main className="sts-enter grid h-full min-h-0 gap-4 p-4 xl:grid-cols-[1.3fr_24rem]">
-      <div className="relative min-h-[28rem] overflow-hidden rounded-2xl border border-border">
+      <div className="relative min-h-[28rem] overflow-hidden rounded-xl border border-border">
         <MapCanvas className="h-full">
           <ResponderLayer responders={snapshot.responders} />
         </MapCanvas>
       </div>
-      <div className="rounded-2xl border border-border bg-card/80">
+      <div className="rounded-xl border border-border bg-card">
         <div className="border-b border-border px-4 py-3">
-          <h1 className="text-xl font-semibold tracking-tight">Duty roster</h1>
+          <p className="sts-kicker">Coverage</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight">Duty roster</h1>
           <p className="text-sm text-muted-foreground">Coverage circles on the map. Toggle units on duty.</p>
         </div>
         <ul className="divide-y divide-border">

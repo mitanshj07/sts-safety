@@ -28,11 +28,10 @@ export function DispatchPanel({
   )
 
   return (
-    <div className="rounded-2xl border border-border bg-card/80">
-      <div className="border-b border-border px-4 py-2">
-        <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          Nearest units · one-click dispatch
-        </p>
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-4 py-3">
+        <p className="sts-kicker">Nearest units</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">One-click dispatch</p>
       </div>
       <ul className="divide-y divide-border">
         {optimistic.length === 0 ? (

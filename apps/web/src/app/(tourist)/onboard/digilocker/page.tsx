@@ -31,10 +31,8 @@ function DigilockerConsentInner() {
 
   return (
     <main className="mx-auto flex max-w-lg flex-col gap-5 px-4 py-8">
-      <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-        MeitY DigiLocker · demo sandbox
-      </p>
-      <Card className="border-border/80 bg-card/80">
+      <p className="sts-kicker">MeitY DigiLocker · demo sandbox</p>
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Landmark className="size-5 text-primary" aria-hidden />
@@ -47,7 +45,7 @@ function DigilockerConsentInner() {
             allow, the app fetches eAadhaar XML and the issued-documents list —
             the same steps as the partner API once credentials are set.
           </p>
-          <ul className="space-y-2 rounded-xl border border-border/80 bg-background px-3 py-3">
+          <ul className="space-y-2 rounded-xl border border-border bg-background px-3 py-3">
             {DEMO_DIGILOCKER_PROFILE.documents.map((doc) => (
               <li key={doc.doctype} className="flex justify-between gap-3">
                 <span className="font-medium">{doc.label}</span>

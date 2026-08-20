@@ -38,9 +38,9 @@ export default function TouristMapPage() {
       : undefined;
 
   return (
-    <main className="relative h-[calc(100dvh-5rem)]">
+    <main className="relative h-[calc(100dvh-9.5rem)] min-h-[22rem]">
       <div className="pointer-events-none absolute top-3 left-3 z-10">
-        <div className="pointer-events-auto rounded-2xl border border-border/80 bg-background/80 p-2.5 shadow-lg backdrop-blur-md">
+        <div className="pointer-events-auto rounded-xl border border-border bg-background/90 p-2.5 shadow-md backdrop-blur-md">
           <StatusPills />
         </div>
       </div>
