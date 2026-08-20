@@ -52,6 +52,7 @@ truncate table
   notifications,
   efir_drafts,
   incidents,
+  ai_zone_suggestions,
   chain_anchors,
   audit_log,
   geocode_cache,
@@ -100,5 +101,6 @@ echo ">> restoring seeded zones, responders, tourists, staff"
 "${PSQL[@]}" -f "$ROOT/supabase/seed/02_responders.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/seed/03_demo_tourists.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/seed/04_demo_staff.sql"
+"${PSQL[@]}" -f "$ROOT/supabase/seed/05_sos_hotspot.sql"
 
 echo "demo reset complete"

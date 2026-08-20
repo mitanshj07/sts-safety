@@ -16,6 +16,7 @@ import {
   escalateSchema,
   falsePositiveSchema,
   generateEfirSchema,
+  hotspotSuggestionIdSchema,
   regenerateBriefSchema,
   resolveSchema,
   saveZoneSchema,
@@ -38,8 +39,8 @@ function fail(error: string): ActionResult {
   return { ok: false, error }
 }
 
-function ok(message?: string): ActionResult {
-  return { ok: true, message }
+function ok(message?: string, id?: string): ActionResult {
+  return id ? { ok: true, message, id } : { ok: true, message }
 }
 
 function revalidateIncident(id: string) {
@@ -388,9 +389,98 @@ export async function saveZone(raw: unknown): Promise<ActionResult> {
   })
   revalidatePath("/zones")
   revalidatePath("/dashboard")
+  revalidatePath("/suggestions")
   const overlapNote =
     overlaps.length > 0 ? ` Overlaps existing: ${overlaps.join(", ")}.` : ""
-  return ok(`Zone saved.${overlapNote}`)
+  return ok(`Zone saved.${overlapNote}`, entityId)
+}
+
+export async function listHotspotSuggestions(refresh = true) {
+  const { fetchCommandSnapshot } = await import("@/lib/command/queries")
+  const { listStoredSuggestions, scanHotspotSuggestions } = await import(
+    "@/lib/command/hotspots"
+  )
+  try {
+    if (!refresh) return await listStoredSuggestions()
+    const snapshot = await fetchCommandSnapshot()
+    return await scanHotspotSuggestions(snapshot.zones)
+  } catch (cause) {
+    console.error("listHotspotSuggestions", cause)
+    return []
+  }
+}
+
+export async function acceptHotspotSuggestion(raw: unknown): Promise<ActionResult> {
+  const parsed = hotspotSuggestionIdSchema.safeParse(raw)
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid suggestion")
+  const { fetchSuggestionById } = await import("@/lib/command/hotspots")
+  const suggestion = await fetchSuggestionById(parsed.data.suggestionId)
+  if (!suggestion) return fail("Suggestion not found")
+  if (suggestion.status !== "open") return fail("Suggestion is no longer open")
+  if (suggestion.already_reserved) {
+    return fail(
+      suggestion.covering_zone_name
+        ? `Already inside reserved zone ${suggestion.covering_zone_name}`
+        : "Already inside a reserved zone",
+    )
+  }
+
+  const saved = await saveZone({
+    name: suggestion.proposed_name,
+    category: suggestion.proposed_category,
+    risk_level: suggestion.proposed_risk,
+    description: suggestion.rationale,
+    advisory_text: suggestion.rationale,
+    requires_permit: true,
+    geom: suggestion.proposed_geom,
+  })
+  if (!saved.ok) return saved
+
+  const admin = createAdminSupabase()
+  const { error } = await admin
+    .from("ai_zone_suggestions")
+    .update({
+      status: "accepted",
+      zone_id: saved.id ?? null,
+      decided_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", suggestion.id)
+  if (error) return fail(error.message)
+  await writeAudit({
+    action: "suggestion.accept_zone",
+    entity: "ai_zone_suggestions",
+    entityId: suggestion.id,
+    after: { zone_id: saved.id ?? null, name: suggestion.proposed_name },
+  })
+  revalidatePath("/suggestions")
+  revalidatePath("/zones")
+  revalidatePath("/dashboard")
+  return ok(saved.message ?? "Reserved zone created", saved.id)
+}
+
+export async function dismissHotspotSuggestion(raw: unknown): Promise<ActionResult> {
+  const parsed = hotspotSuggestionIdSchema.safeParse(raw)
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid suggestion")
+  const admin = createAdminSupabase()
+  const { error } = await admin
+    .from("ai_zone_suggestions")
+    .update({
+      status: "dismissed",
+      decided_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", parsed.data.suggestionId)
+    .eq("status", "open")
+  if (error) return fail(error.message)
+  await writeAudit({
+    action: "suggestion.dismiss",
+    entity: "ai_zone_suggestions",
+    entityId: parsed.data.suggestionId,
+  })
+  revalidatePath("/suggestions")
+  revalidatePath("/dashboard")
+  return ok("Suggestion dismissed")
 }
 
 export async function setResponderDuty(

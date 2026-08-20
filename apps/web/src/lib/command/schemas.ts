@@ -125,6 +125,10 @@ export const sendNoteSchema = z.object({
   presetId: z.string().max(40).optional(),
 })
 
+export const hotspotSuggestionIdSchema = z.object({
+  suggestionId: uuidSchema,
+})
+
 export const saveZoneSchema = z.object({
   id: uuidSchema.optional(),
   name: z.string().min(1).max(120),
@@ -167,7 +171,7 @@ export const qrPayloadSchema = z.union([
 ])
 
 export const actionResultSchema = z.discriminatedUnion("ok", [
-  z.object({ ok: z.literal(true), message: z.string().optional() }),
+  z.object({ ok: z.literal(true), message: z.string().optional(), id: z.string().optional() }),
   z.object({ ok: z.literal(false), error: z.string() }),
 ])
 

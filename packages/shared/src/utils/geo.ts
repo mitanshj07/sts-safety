@@ -202,6 +202,46 @@ function unwrapParens(body: string): string {
   return trimmed
 }
 
+/** Destination point after travelling `distanceM` along `bearingDeg` (0 = north). */
+export function destination(from: LonLat, distanceM: number, bearingDeg: number): LonLat {
+  const angular = distanceM / EARTH_RADIUS_M
+  const brng = toRadians(bearingDeg)
+  const lat1 = toRadians(from.lat)
+  const lon1 = toRadians(from.lon)
+  const sinLat1 = Math.sin(lat1)
+  const cosLat1 = Math.cos(lat1)
+  const sinAng = Math.sin(angular)
+  const cosAng = Math.cos(angular)
+  const lat2 = Math.asin(sinLat1 * cosAng + cosLat1 * sinAng * Math.cos(brng))
+  const lon2 =
+    lon1 +
+    Math.atan2(
+      Math.sin(brng) * sinAng * cosLat1,
+      cosAng - sinLat1 * Math.sin(lat2),
+    )
+  return {
+    lat: roundCoordinate(toDegrees(lat2)),
+    lon: roundCoordinate(((toDegrees(lon2) + 540) % 360) - 180),
+  }
+}
+
+/** Approximate circle as a closed GeoJSON polygon (lon, lat). */
+export function circlePolygon(
+  center: LonLat,
+  radiusM: number,
+  steps = 24,
+): GeoJsonPolygon {
+  const count = Math.max(8, Math.round(steps))
+  const ring: GeoJsonPosition[] = []
+  for (let i = 0; i < count; i += 1) {
+    const point = destination(center, radiusM, (i / count) * 360)
+    ring.push([point.lon, point.lat])
+  }
+  const first = ring[0]
+  if (first) ring.push([...first])
+  return { type: "Polygon", coordinates: [ring] }
+}
+
 /** Parse POINT / LINESTRING / POLYGON WKT (optional `SRID=4326;` prefix). */
 export function wktToGeojson(wkt: string): GeoJsonGeometry {
   const raw = wkt.trim().replace(/^SRID=\d+\s*;\s*/i, "")

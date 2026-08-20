@@ -37,6 +37,7 @@ export const COMMAND_PATHS = [
   "/responders",
   "/verify",
   "/analytics",
+  "/suggestions",
 ] as const;
 
 export const PUBLIC_PATHS = ["/", "/login", "/callback"] as const;

@@ -10,6 +10,7 @@ import {
   MapPinned,
   Radio,
   ShieldAlert,
+  Sparkles,
   Users,
   Waypoints,
 } from "lucide-react"
@@ -25,6 +26,7 @@ import type { CommandSnapshot, ConnectionStatus } from "@/lib/command/types"
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/incidents", label: "Incidents", icon: ShieldAlert },
+  { href: "/suggestions", label: "AI Suggest", icon: Sparkles },
   { href: "/tourists", label: "Tourists", icon: Users },
   { href: "/zones", label: "Zones", icon: MapPinned },
   { href: "/responders", label: "Responders", icon: Radio },
@@ -66,6 +68,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { connection, presence } = useCommandRealtime()
   const isDashboard = pathname === "/dashboard"
+  const fillHeight = isDashboard || pathname === "/suggestions"
 
   return (
     <div className="flex h-dvh min-h-0 bg-background text-foreground">
@@ -112,7 +115,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
             <SignOutButton />
           </div>
         </header>
-        <div className={cn("min-h-0 flex-1", isDashboard ? "overflow-hidden" : "overflow-auto")}>
+        <div className={cn("min-h-0 flex-1", fillHeight ? "overflow-hidden" : "overflow-auto")}>
           {children}
         </div>
       </div>

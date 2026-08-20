@@ -8,6 +8,7 @@ import { ZoneLayer } from "@/components/map/ZoneLayer"
 import { TouristLayer } from "@/components/map/TouristLayer"
 import { IncidentLayer } from "@/components/map/IncidentLayer"
 import { KpiStrip } from "@/components/command/KpiStrip"
+import { SuggestionsBanner } from "@/components/command/SuggestionsBanner"
 import { IncidentQueue } from "@/components/command/IncidentQueue"
 import { IncidentActions } from "@/components/command/IncidentActions"
 import { MapFlyTo } from "@/components/command/MapFlyTo"
@@ -39,6 +40,7 @@ export function DashboardLive() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <SuggestionsBanner />
       <KpiStrip />
       <div className="flex min-h-0 flex-1">
         <div className="relative min-h-0 min-w-0 flex-1">
