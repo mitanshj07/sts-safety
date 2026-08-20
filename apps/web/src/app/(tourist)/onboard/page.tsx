@@ -571,7 +571,7 @@ export default function OnboardPage() {
                 session={dlSession}
                 notice={dlNotice}
                 onStart={() => {
-                  window.location.assign("/api/identity/digilocker/start");
+                  window.location.assign("/api/identity/digilocker/start?intent=onboard");
                 }}
                 onClear={() => {
                   void clearDigilocker();

@@ -24,6 +24,13 @@ export async function loginAsTourist(page: Page): Promise<void> {
   await dismissPermissionPrimer(page);
 }
 
+export async function signupWithDigilocker(page: Page): Promise<void> {
+  await page.goto("/login?tab=tourist");
+  await page.getByTestId("digilocker-signup").click();
+  await page.getByTestId("digilocker-allow").click();
+  await page.waitForURL(/\/onboard/, { timeout: 20_000 });
+}
+
 export async function expectHealthy(page: Page): Promise<void> {
   const res = await page.request.get("/api/health");
   expect(res.ok(), "GET /api/health must succeed for e2e").toBeTruthy();

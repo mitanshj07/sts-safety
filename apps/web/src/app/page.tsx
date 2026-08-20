@@ -62,7 +62,12 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Button asChild size="lg">
-                  <Link href="/login?tab=tourist">Open tourist app</Link>
+                  <a href="/api/identity/digilocker/start?intent=signup">
+                    Continue with DigiLocker
+                  </a>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/login?tab=tourist">Tourist sign in</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
                   <Link href="/login?tab=officer">Command centre</Link>
@@ -80,10 +85,10 @@ export default function HomePage() {
                 </span>
                 <h2 className="mt-4 text-lg font-semibold">Tourist</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Digital ID, live map, trip check-ins, and a 1.5s panic hold.
+                  DigiLocker eAadhaar, digital ID, live map, and a 1.5s panic hold.
                 </p>
                 <p className="mt-4 text-xs font-medium tracking-wide text-primary">
-                  Enter as traveller →
+                  Sign in or fetch KYC →
                 </p>
               </Link>
               <Link

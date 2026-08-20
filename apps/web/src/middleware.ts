@@ -19,6 +19,14 @@ import { tryGetSupabasePublicConfig } from "@/lib/supabase/config";
 import type { Database } from "@/lib/supabase/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+function isOnboardPath(pathname: string): boolean {
+  return pathname === "/onboard" || pathname.startsWith("/onboard/");
+}
+
+function hasDigilockerKycCookie(request: NextRequest): boolean {
+  return Boolean(request.cookies.get("sts_dl_kyc")?.value);
+}
+
 function copyCookies(
   from: NextResponse,
   to: NextResponse,
@@ -107,6 +115,13 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   if (!user) {
     if (isPublicPath(pathname)) {
       return supabaseResponse;
+    }
+    if (isOnboardPath(pathname) && hasDigilockerKycCookie(request)) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-sts-digilocker-onboard", "1");
+      const next = NextResponse.next({ request: { headers: requestHeaders } });
+      supabaseResponse.cookies.getAll().forEach((cookie) => next.cookies.set(cookie));
+      return next;
     }
     return redirectWithCookies(request, supabaseResponse, "/login");
   }

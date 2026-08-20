@@ -7,8 +7,9 @@ import {
   DIGILOCKER_OAUTH_COOKIE,
   cookieOptions,
   encodeOAuthCookie,
+  flowStatusUrl,
   newOAuthState,
-  requestOrigin,
+  oauthIntentFromRequest,
   startRedirectUrl,
 } from "@/lib/identity/digilocker";
 import { identityLog } from "@/lib/identity/log";
@@ -18,7 +19,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const origin = requestOrigin(request);
+  let hasTourist = false;
   if (tryGetSupabasePublicConfig()) {
     let principal = null;
     try {
@@ -27,28 +28,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       principal = null;
     }
     if (principal && principal.role !== "tourist") {
-      return NextResponse.redirect(new URL(homePathForRole(principal.role), origin));
+      return NextResponse.redirect(
+        new URL(homePathForRole(principal.role), request.url),
+      );
     }
-    if (!principal) {
-      const login = new URL("/login", origin);
-      login.searchParams.set("next", "/onboard");
-      return NextResponse.redirect(login);
-    }
+    hasTourist = principal?.role === "tourist";
   }
 
-  const oauth = newOAuthState();
+  const intent = oauthIntentFromRequest(request, hasTourist);
+  const oauth = newOAuthState(intent);
   const dest = startRedirectUrl(request, oauth);
   if (!dest.url) {
     identityLog("digilocker_start_blocked", { ok: false, reason: dest.reason ?? "config" });
-    const fail = new URL("/onboard", origin);
-    fail.searchParams.set("digilocker", "error");
-    fail.searchParams.set("reason", dest.reason ?? "config");
-    return NextResponse.redirect(fail);
+    return NextResponse.redirect(
+      flowStatusUrl(request, intent, "error", dest.reason ?? "config"),
+    );
   }
 
   identityLog("digilocker_start", {
     ok: true,
-    demo: dest.url.includes("/onboard/digilocker"),
+    demo: dest.url.includes("/login/digilocker"),
+    intent,
   });
   const response = NextResponse.redirect(dest.url);
   response.cookies.set(DIGILOCKER_OAUTH_COOKIE, encodeOAuthCookie(oauth), cookieOptions());

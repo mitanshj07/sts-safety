@@ -9,8 +9,9 @@ import {
   decodeOAuthCookie,
   digilockerErrorReason,
   encodeSessionCookie,
-  onboardStatusUrl,
+  flowStatusUrl,
 } from "@/lib/identity/digilocker";
+import { ensureTouristSessionAfterDigilocker } from "@/lib/identity/digilocker-session";
 import { identityLog } from "@/lib/identity/log";
 
 export const runtime = "nodejs";
@@ -26,31 +27,41 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const error = request.nextUrl.searchParams.get("error");
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
+  const intent = oauth?.intent;
 
   if (error) {
     identityLog("digilocker_denied", { ok: false });
-    return clearOauth(NextResponse.redirect(onboardStatusUrl(request, "denied")));
+    return clearOauth(NextResponse.redirect(flowStatusUrl(request, intent, "denied")));
   }
 
   if (!oauth || !code || state !== oauth.state) {
     identityLog("digilocker_state_mismatch", { ok: false });
-    return clearOauth(NextResponse.redirect(onboardStatusUrl(request, "error", "state")));
+    return clearOauth(
+      NextResponse.redirect(flowStatusUrl(request, intent, "error", "state")),
+    );
   }
 
   try {
     const session = await completeDigilocker({ request, code, oauth });
-    const response = NextResponse.redirect(onboardStatusUrl(request, "ok"));
+    const response = NextResponse.redirect(flowStatusUrl(request, intent, "ok"));
     clearOauth(response);
     response.cookies.set(
       DIGILOCKER_SESSION_COOKIE,
       encodeSessionCookie(session),
       cookieOptions(),
     );
+    await ensureTouristSessionAfterDigilocker({
+      request,
+      response,
+      displayName: session.name,
+    });
     identityLog("digilocker_callback_ok", { ok: true, docs: session.documents.length });
     return response;
   } catch (err) {
     const reason = digilockerErrorReason(err);
     identityLog("digilocker_callback_failed", { ok: false, reason });
-    return clearOauth(NextResponse.redirect(onboardStatusUrl(request, "error", reason)));
+    return clearOauth(
+      NextResponse.redirect(flowStatusUrl(request, intent, "error", reason)),
+    );
   }
 }

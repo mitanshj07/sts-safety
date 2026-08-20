@@ -321,8 +321,13 @@ Build the tourist experience in apps/web/src/app/(tourist)/:
      DOB, emergency contacts, trip dates, itinerary from preset NE routes.
      Submits to /api/identity/issue. Optimistic progress UI
      with the on-chain step shown explicitly — judges like watching the tx land.
-   - onboard/digilocker/page.tsx — demo DigiLocker consent (used when
-     DIGILOCKER_CLIENT_ID is unset). Live mode redirects to meripehchaan.gov.in.
+   - login/page.tsx (Tourist tab) and the landing CTA start DigiLocker
+     before a session exists. Demo consent lives at login/digilocker/page.tsx
+     (public). After allow, the callback creates an anonymous tourist
+     session and redirects to /onboard with the form prefilled.
+   - onboard/digilocker/page.tsx — same demo consent inside the tourist
+     layout (used when DIGILOCKER_CLIENT_ID is unset and the tourist is
+     already signed in). Live mode redirects to meripehchaan.gov.in.
    - home/page.tsx — SafetyScoreGauge (animated SVG arc), current zone banner
      coloured by risk, next waypoint, connection + tracking status pills.
    - map/page.tsx — own position, zone overlays, itinerary corridor as a
@@ -382,11 +387,14 @@ Implement the blockchain identity layer in apps/web:
    - POST /api/identity/verify-kyc — selective disclosure via verifyKyc().
    - POST /api/identity/revoke — admin only, on-chain revoke + status update +
      audit_log row.
-   - GET /api/identity/digilocker/start — PKCE + state cookie, redirect to
-     DigiLocker authorize (live) or /onboard/digilocker (demo).
+   - GET /api/identity/digilocker/start — public for tourists (staff
+     bounced). PKCE + state cookie, redirect to DigiLocker authorize
+     (live) or /login/digilocker (demo). `intent=signup` returns denied
+     users to the Tourist login tab.
    - GET /api/identity/digilocker/callback — exchange code, fetch user +
      eAadhaar XML + issued files, HMAC-check XML, set a short-lived KYC
-     cookie, redirect to /onboard. Never log the XML or Aadhaar.
+     cookie, create an anonymous tourist session when none exists, then
+     redirect to /onboard. Never log the XML or Aadhaar.
    - GET/DELETE /api/identity/digilocker/session — onboard reads the fetched
      profile (name, DOB, Aadhaar) to prefill the form.
    - POST /api/chain/retry — drains chain_anchors where status in

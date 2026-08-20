@@ -138,12 +138,13 @@ smart-tourist-safety/
 │           │   │
 │           │   ├── (auth)/
 │           │   │   ├── login/page.tsx
+│           │   │   ├── login/digilocker/page.tsx  # public demo DigiLocker consent (signup)
 │           │   │   └── callback/route.ts
 │           │   │
 │           │   ├── (tourist)/
 │           │   │   ├── layout.tsx          # bottom nav, permission prompts, SW registration
 │           │   │   ├── onboard/page.tsx    # DigiLocker or Aadhaar (IN) / passport (intl) → digital ID
-│           │   │   ├── onboard/digilocker/page.tsx  # demo DigiLocker consent (live uses MeitY authorize)
+│           │   │   ├── onboard/digilocker/page.tsx  # same demo consent inside tourist layout
 │           │   │   ├── home/page.tsx       # safety score gauge, current zone, weather-ish banner
 │           │   │   ├── map/page.tsx        # own position + zone overlays + itinerary corridor
 │           │   │   ├── id/page.tsx         # digital ID card + QR + on-chain proof link

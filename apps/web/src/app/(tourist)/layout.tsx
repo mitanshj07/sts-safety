@@ -1,5 +1,6 @@
 // apps/web/src/app/(tourist)/layout.tsx
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 
 import { BottomNav } from "@/components/tourist/BottomNav";
 import { GeofenceWarning } from "@/components/tourist/GeofenceWarning";
@@ -10,7 +11,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { requireRolePage } from "@/lib/auth/guards";
 
 export default async function TouristLayout({ children }: { children: ReactNode }) {
-  await requireRolePage("tourist");
+  const onboardFromDigilocker =
+    (await headers()).get("x-sts-digilocker-onboard") === "1";
+  if (!onboardFromDigilocker) {
+    await requireRolePage("tourist");
+  }
   return (
     <TouristProvider>
       <div className="tourist-theme min-h-dvh bg-background">
