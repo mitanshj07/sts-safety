@@ -26,7 +26,6 @@ type LoginFormProps = {
   defaultTab: LoginTab;
   initialError: string | null;
   initialInfo?: string | null;
-  digilockerDemo?: boolean;
 };
 
 function safeNextPath(): string | null {
@@ -48,7 +47,6 @@ export function LoginForm({
   defaultTab,
   initialError,
   initialInfo,
-  digilockerDemo = false,
 }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(initialError);
@@ -260,9 +258,8 @@ export function LoginForm({
                 DigiLocker
               </p>
               <p className="text-xs text-muted-foreground">
-                {digilockerDemo
-                  ? "Local demo sandbox. Allow access to fetch sample eAadhaar, then onboarding opens with the fields filled in."
-                  : "Sign in on DigiLocker (MeitY / meripehchaan.gov.in). After you allow access we fetch eAadhaar XML and issued DL / voter ID, then open onboarding with the fields filled in."}
+                Sign in to DigiLocker, allow access, and we fill eAadhaar, name,
+                and date of birth on onboarding.
               </p>
               <Button
                 type="button"

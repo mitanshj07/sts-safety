@@ -16,7 +16,7 @@ Measured SOS figure to quote: **Realtime first-channel typically 180–450 ms** 
 
 ## 0:20–1:10 — Digital ID (issue)
 
-**Phone:** `/login?tab=tourist` → **Continue with DigiLocker** → sign in on DigiLocker (MeitY) → allow access → onboarding opens with eAadhaar / name / DOB from the issued XML. Seeded **Enter as Priya Sharma** skips this and lands on `/home`. Manual Aadhaar is the backup if DigiLocker is denied. Local rehearsals with `DIGILOCKER_MODE=demo` still use the in-app Allow screen (Priya Sharma `2341 2341 2346`).
+**Phone:** `/login?tab=tourist` → **Continue with DigiLocker** → Sign in → Allow → onboarding opens with eAadhaar / name / DOB from the issued XML (Priya Sharma `2341 2341 2346`). Seeded **Enter as Priya Sharma** skips this and lands on `/home`. Manual Aadhaar is the backup if DigiLocker is denied.
 
 **Say while the transaction confirms:** “KYC is encrypted in Postgres with pgcrypto. The chain only stores a keccak256 commitment and a soulbound token — no name, no passport, no GPS. If Amoy is slow we are on Anvil; the card is valid offline either way.”
 

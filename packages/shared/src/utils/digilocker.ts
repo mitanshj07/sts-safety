@@ -364,9 +364,8 @@ export const DIGILOCKER_REASON_COPY = {
   hmac: "The eAadhaar file could not be verified. Enter the document number below.",
   missing_aadhaar:
     "DigiLocker did not share eAadhaar, a driving licence, or a voter ID. Link Aadhaar in DigiLocker, or enter the number below.",
-  fetch: "Could not fetch DigiLocker documents from MeitY. Try again, or enter Aadhaar below.",
-  config:
-    "DigiLocker partner credentials are missing. Register a requester app at partners.digitallocker.gov.in, then set DIGILOCKER_CLIENT_ID and DIGILOCKER_CLIENT_SECRET.",
+  fetch: "Could not fetch DigiLocker documents. Try again, or enter Aadhaar below.",
+  config: "DigiLocker is temporarily unavailable. Enter the document number below.",
 } as const
 
 export type DigilockerReasonCode = keyof typeof DIGILOCKER_REASON_COPY

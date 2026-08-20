@@ -6,6 +6,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 import {
   DEMO_DIGILOCKER_CODE,
   DEMO_DIGILOCKER_PROFILE,
+  DEMO_EAADHAAR_XML,
   extractIssuedItems,
   issuedItemHasXml,
   issuedItemToKyc,
@@ -56,8 +57,8 @@ function trim(value: string | undefined): string {
 
 export function digilockerMode(): DigilockerMode {
   const explicit = trim(serverEnv.digilockerMode).toLowerCase();
-  if (explicit === "demo") return "demo";
-  return "live";
+  if (explicit === "live") return "live";
+  return "demo";
 }
 
 function signingSecret(): string {
@@ -223,6 +224,9 @@ export type DigilockerPublicStatus = {
 
 export function digilockerPublicStatus(): DigilockerPublicStatus {
   const mode = digilockerMode();
+  if (mode === "demo") {
+    return { mode, configured: true, host: "in-app" };
+  }
   let host = "digilocker.meripehchaan.gov.in";
   try {
     host = new URL(digilockerBaseUrl()).host;
@@ -231,7 +235,7 @@ export function digilockerPublicStatus(): DigilockerPublicStatus {
   }
   return {
     mode,
-    configured: mode === "demo" || digilockerLiveConfigured(),
+    configured: digilockerLiveConfigured(),
     host,
   };
 }
@@ -246,8 +250,7 @@ export function startRedirectUrl(request: Request, oauth: OAuthCookie): {
   url: string | null;
   reason?: string;
 } {
-  if (digilockerMode() === "live") {
-    if (!digilockerLiveConfigured()) return { url: null, reason: "config" };
+  if (digilockerMode() === "live" && digilockerLiveConfigured()) {
     return { url: buildAuthorizeUrl({ request, oauth }) };
   }
   return { url: demoConsentUrl(requestOrigin(request), oauth.state) };
@@ -481,12 +484,17 @@ export async function completeDigilocker(args: {
     if (args.code !== DEMO_DIGILOCKER_CODE) {
       throw new Error("invalid demo code");
     }
+    const eaadhaar = parseEAadhaarXml(DEMO_EAADHAAR_XML);
     identityLog("digilocker_demo_fetch", {
       ok: true,
       docs: DEMO_DIGILOCKER_PROFILE.documents.length,
+      parsed: Boolean(eaadhaar?.uid),
     });
     return {
       ...DEMO_DIGILOCKER_PROFILE,
+      name: eaadhaar?.name || DEMO_DIGILOCKER_PROFILE.name,
+      dateOfBirth: eaadhaar?.dateOfBirth ?? DEMO_DIGILOCKER_PROFILE.dateOfBirth,
+      kycNumber: eaadhaar?.uid || DEMO_DIGILOCKER_PROFILE.kycNumber,
       mode: "demo",
     };
   }

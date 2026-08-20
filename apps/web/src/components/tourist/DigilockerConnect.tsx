@@ -11,7 +11,6 @@ type DigilockerConnectProps = {
   notice: string | null;
   onStart: () => void;
   onClear: () => void;
-  demo?: boolean;
 };
 
 export function DigilockerConnect({
@@ -19,7 +18,6 @@ export function DigilockerConnect({
   notice,
   onStart,
   onClear,
-  demo = false,
 }: DigilockerConnectProps) {
   if (session) {
     const docLabel =
@@ -36,11 +34,8 @@ export function DigilockerConnect({
           <div>
             <p className="text-sm font-semibold">Fetched from DigiLocker</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {docLabel} ending {session.kycLast4}
-              {session.mode === "demo"
-                ? " · demo sandbox"
-                : " · MeitY DigiLocker"}. Name and date of birth are filled from
-              the issued XML.
+              {docLabel} ending {session.kycLast4}. Name and date of birth are
+              filled from the issued XML.
             </p>
           </div>
         </div>
@@ -68,9 +63,8 @@ export function DigilockerConnect({
         <div>
           <p className="text-sm font-semibold">DigiLocker</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {demo
-              ? "Local demo sandbox. Allow access to fetch sample eAadhaar without calling MeitY."
-              : "Sign in on DigiLocker (MeitY / meripehchaan.gov.in). After you allow access we pull eAadhaar XML and issued DL / voter ID from the official API."}
+            Sign in, allow access, and we pull eAadhaar plus issued DL / voter ID
+            into this form.
           </p>
         </div>
       </div>
