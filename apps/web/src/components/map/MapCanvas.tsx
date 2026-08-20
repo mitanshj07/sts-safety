@@ -18,6 +18,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { cn } from "@/lib/utils";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import { publicEnv } from "@/lib/config/public";
 import { registerPmtilesProtocol } from "@/lib/geo/pmtiles";
 import { resolveMapStyle } from "@/lib/geo/style";
@@ -59,7 +60,7 @@ export function MapCanvas({
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const onMapLoadRef = useRef(onMapLoad);
+  const onMapLoadRef = useLatestRef(onMapLoad);
   const initialsRef = useRef({
     center: initialCenter,
     zoom: initialZoom,
@@ -69,8 +70,6 @@ export function MapCanvas({
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [styleEpoch, setStyleEpoch] = useState(0);
-
-  onMapLoadRef.current = onMapLoad;
 
   useEffect(() => {
     const node = containerRef.current;
@@ -158,7 +157,7 @@ export function MapCanvas({
       instance?.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [onMapLoadRef]);
 
   const contextValue = useMemo<MapContextValue>(
     () => ({ map, loaded, isLoaded: loaded, styleEpoch }),

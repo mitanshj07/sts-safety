@@ -4,11 +4,9 @@ import type { IncidentEvent } from "@/lib/command/types"
 
 export function IncidentTimeline({ events }: { events: IncidentEvent[] }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/80">
+    <div className="border border-border bg-surface">
       <div className="border-b border-border px-4 py-2">
-        <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          Timeline · append-only
-        </p>
+        <p className="sts-kicker">Timeline · append-only</p>
       </div>
       <ScrollArea className="h-64">
         <ol className="space-y-3 p-4">

@@ -1,148 +1,143 @@
 // apps/web/src/app/page.tsx
 import Link from "next/link";
-import {
-  BadgeCheck,
-  MapPinned,
-  Radio,
-  ShieldAlert,
-  Smartphone,
-  WifiOff,
-} from "lucide-react";
 
 import { MapFoundationPreviewLazy as MapFoundationPreview } from "@/components/map/MapFoundationPreviewLazy";
 import { AppMark } from "@/components/shared/AppMark";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { TopoField } from "@/components/shared/TopoField";
 import { Button } from "@/components/ui/button";
 
-const FEATURES = [
+const CAPABILITIES = [
   {
-    icon: WifiOff,
-    title: "Offline geofence",
-    body: "Restricted-zone warnings fire on-device before the server round-trip.",
+    title: "On-device geofence",
+    body: "Restricted-zone warnings fire on the phone before the server round-trip.",
   },
   {
-    icon: ShieldAlert,
     title: "Hold-to-SOS",
-    body: "Incident written to Postgres. If the insert fails, SMS with last coordinates.",
+    body: "An incident is written to Postgres. If the insert fails, SMS carries last coordinates.",
   },
   {
-    icon: BadgeCheck,
-    title: "Soulbound digital ID",
-    body: "Indians sign in to DigiLocker, allow access, and we fetch eAadhaar. Visitors use a passport. Only a keccak256 commitment goes on-chain.",
+    title: "Verified tourist ID",
+    body: "Indians sign in to DigiLocker and we fetch eAadhaar. Visitors use a passport. Only a keccak256 commitment goes on-chain.",
   },
   {
-    icon: Radio,
-    title: "Live command room",
-    body: "Critical-first queue, nearest-unit dispatch, MTTA/MTTR on a shared map.",
+    title: "Live dispatch",
+    body: "A shared operations map for checkpoints, police, and tourism officers.",
   },
 ] as const;
 
 export default function HomePage() {
   return (
-    <div className="sts-mesh sts-grain relative min-h-screen overflow-hidden">
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-6">
+    <div className="sts-topo relative min-h-screen overflow-hidden">
+      <a
+        href="#enter"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:bg-surface focus:px-3 focus:py-2 focus:text-sm"
+      >
+        Skip to enter
+      </a>
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-5 sm:px-6">
         <header className="flex items-center justify-between gap-4">
           <AppMark />
-          <Button asChild variant="outline" size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Button asChild variant="outline" size="sm">
+              <Link href="/login">Sign in</Link>
+            </Button>
+          </div>
         </header>
 
-        <main className="flex flex-1 flex-col justify-center gap-12 py-12 lg:py-16">
-          <section className="sts-enter grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <main className="flex flex-1 flex-col justify-center gap-14 py-10 lg:py-14">
+          <section
+            id="enter"
+            className="sts-enter grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14"
+          >
             <div className="space-y-6">
-              <p className="text-xs font-medium tracking-[0.28em] text-primary uppercase">
-                SIH 2025 · MDoNER · North-East
-              </p>
-              <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                Safety that works when the hills go dark.
+              <p className="sts-kicker text-brand">Public safety · North-East India</p>
+              <h1 className="sts-display text-[2.35rem] text-balance sm:text-5xl lg:text-[3.25rem]">
+                Smart Tourist Safety
               </h1>
-              <p className="max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
-                A tourist PWA with offline geofencing, SOS, and a soulbound ID — paired with
-                a live control room for checkpoints, police, and tourism officers.
+              <p className="max-w-xl text-base leading-7 text-muted-foreground text-pretty">
+                Location-aware assistance when something goes wrong. Built for travellers
+                on the ground, and for the officers who respond.
               </p>
-              <div className="flex flex-wrap gap-3 pt-1">
-                <Button asChild size="lg">
-                  <a href="/api/identity/digilocker/start?intent=signup">
-                    Continue with DigiLocker
-                  </a>
+              <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap">
+                <Button asChild size="lg" className="min-h-11">
+                  <Link href="/login?tab=tourist">Enter as Tourist</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/login?tab=tourist">Tourist sign in</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/login?tab=officer">Command centre</Link>
+                <Button asChild size="lg" variant="outline" className="min-h-11">
+                  <Link href="/login?tab=officer">Enter Command</Link>
                 </Button>
               </div>
+              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-1 border-t border-border pt-5 text-sm sm:grid-cols-3">
+                <div className="py-2">
+                  <dt className="sts-kicker">For</dt>
+                  <dd className="mt-1 text-foreground">Tourists, responders, authorities</dd>
+                </div>
+                <div className="py-2">
+                  <dt className="sts-kicker">When</dt>
+                  <dd className="mt-1 text-foreground">A zone warning, a missed check-in, an SOS</dd>
+                </div>
+                <div className="py-2">
+                  <dt className="sts-kicker">Steward</dt>
+                  <dd className="mt-1 text-foreground">MDoNER · SIH 2025</dd>
+                </div>
+              </dl>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link
-                href="/login?tab=tourist"
-                className="group rounded-2xl border border-border/80 bg-card/70 p-5 shadow-sm backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
-              >
-                <span className="grid size-10 place-items-center rounded-xl bg-live/15 text-live">
-                  <Smartphone className="size-5" />
-                </span>
-                <h2 className="mt-4 text-lg font-semibold">Tourist</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  DigiLocker eAadhaar, digital ID, live map, and a 1.5s panic hold.
-                </p>
-                <p className="mt-4 text-xs font-medium tracking-wide text-primary">
-                  Sign in or fetch KYC →
-                </p>
-              </Link>
-              <Link
-                href="/login?tab=officer"
-                className="group rounded-2xl border border-border/80 bg-card/70 p-5 shadow-sm backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
-              >
-                <span className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
-                  <MapPinned className="size-5" />
-                </span>
-                <h2 className="mt-4 text-lg font-semibold">Command</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Ops map, incident queue, dispatch, and checkpoint verify.
-                </p>
-                <p className="mt-4 text-xs font-medium tracking-wide text-primary">
-                  Enter control room →
-                </p>
-              </Link>
-            </div>
+            <TopoField className="hidden min-h-[22rem] lg:block" />
           </section>
 
-          <section className="sts-enter grid gap-3 sm:grid-cols-2 lg:grid-cols-4" style={{ animationDelay: "80ms" }}>
-            {FEATURES.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <article
-                  key={feature.title}
-                  className="rounded-2xl border border-border/70 bg-card/50 p-4 backdrop-blur-sm"
-                >
-                  <Icon className="size-4 text-primary" />
-                  <h3 className="mt-3 text-sm font-semibold">{feature.title}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {feature.body}
-                  </p>
-                </article>
-              );
-            })}
+          <section className="sts-enter grid gap-8 border-t border-border pt-10 sm:grid-cols-2">
+            <Link
+              href="/login?tab=tourist"
+              className="group block space-y-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <p className="sts-kicker">Tourist</p>
+              <h2 className="text-xl font-semibold tracking-tight group-hover:text-brand">
+                Digital ID, live zone, hold-to-SOS
+              </h2>
+              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                DigiLocker eAadhaar, daylight-first PWA, one-handed SOS. Works when the hills go dark.
+              </p>
+            </Link>
+            <Link
+              href="/login?tab=officer"
+              className="group block space-y-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <p className="sts-kicker">Command</p>
+              <h2 className="text-xl font-semibold tracking-tight group-hover:text-brand">
+                Triage, dispatch, checkpoint verify
+              </h2>
+              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                A control room that answers what needs attention right now.
+              </p>
+            </Link>
           </section>
 
-          <section className="sts-enter space-y-3" style={{ animationDelay: "140ms" }}>
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-                  Shared map stack
-                </p>
-                <h2 className="text-lg font-semibold tracking-tight">
-                  MapLibre · OpenFreeMap · same canvas for both personas
-                </h2>
-              </div>
+          <section className="sts-enter grid gap-0 border-y border-border sm:grid-cols-2 lg:grid-cols-4">
+            {CAPABILITIES.map((item) => (
+              <article
+                key={item.title}
+                className="border-border py-6 sm:px-5 sm:py-7 sm:odd:border-r lg:border-r lg:last:border-r-0"
+              >
+                <h3 className="text-sm font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+              </article>
+            ))}
+          </section>
+
+          <section className="sts-enter space-y-3">
+            <div>
+              <p className="sts-kicker">Shared operations map</p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight">
+                Same canvas for tourists and the control room
+              </h2>
             </div>
             <MapFoundationPreview />
           </section>
         </main>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 py-5 text-xs text-muted-foreground">
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border py-5 text-xs text-muted-foreground">
           <p>Smart Tourist Safety Monitoring & Incident Response</p>
           <p>Ministry of Development of North Eastern Region</p>
         </footer>

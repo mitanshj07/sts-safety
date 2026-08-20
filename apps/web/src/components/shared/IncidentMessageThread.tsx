@@ -114,11 +114,9 @@ export function IncidentMessageThread({
       aria-label="SOS voice and text thread"
       data-testid="incident-message-thread"
     >
-      <p className="mb-2 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-        Voice notes
-      </p>
+      <p className="sts-kicker mb-2">Voice notes</p>
       {messages.length === 0 ? (
-        <p className="rounded-2xl border border-border/80 bg-card/70 p-3 text-sm text-muted-foreground">
+        <p className="border border-border bg-surface px-3 py-3 text-sm text-muted-foreground">
           No voice notes yet. Record after SOS — command can reply the same way.
         </p>
       ) : (
@@ -129,13 +127,13 @@ export function IncidentMessageThread({
               <li
                 key={row.id}
                 className={cn(
-                  "rounded-2xl border p-3",
+                  "border px-3 py-3",
                   row.sender_kind === "command"
-                    ? "border-emerald-700/40 bg-emerald-950/30"
-                    : "border-red-700/30 bg-red-950/20",
+                    ? "border-success/25 bg-success/10"
+                    : "border-danger/25 bg-danger/10",
                 )}
               >
-                <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+                <p className="sts-kicker">
                   {row.sender_kind === "command" ? "Control room" : "Tourist"}
                   {mine ? " · you" : ""}
                   {row.kind === "voice" ? " · voice" : ""}

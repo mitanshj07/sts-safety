@@ -69,11 +69,16 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
   }
 
   if (existing) {
-    const parsed = profileRowSchema.parse(existing);
+    const parsed = profileRowSchema.safeParse(existing);
+    if (!parsed.success) {
+      throw new Error(
+        `Failed to read profile: ${parsed.error.issues[0]?.message ?? "invalid row"}`,
+      );
+    }
     if (isAnonymousUser(user)) {
       await ensureDemoTouristRow(user.id);
     }
-    return parsed;
+    return parsed.data;
   }
 
   const admin = tryCreateAdminClient();
@@ -97,11 +102,18 @@ export async function ensureProfileForUser(user: User): Promise<ProfileRow> {
     );
   }
 
+  const createdParsed = profileRowSchema.safeParse(created);
+  if (!createdParsed.success) {
+    throw new Error(
+      `Failed to create profile: ${createdParsed.error.issues[0]?.message ?? "invalid row"}`,
+    );
+  }
+
   if (isAnonymousUser(user)) {
     await ensureDemoTouristRow(user.id);
   }
 
-  return profileRowSchema.parse(created);
+  return createdParsed.data;
 }
 
 async function ensureDemoTouristRow(profileId: string): Promise<void> {

@@ -37,9 +37,7 @@ export function TouristNoteComposer({ incidentId }: { incidentId: string }) {
 
   return (
     <div>
-      <p className="mb-3 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-        Reply to tourist
-      </p>
+      <p className="sts-kicker mb-3">Reply to tourist</p>
       <div className="mb-3 flex flex-wrap gap-1.5">
         {COMMAND_NOTE_PRESETS.map((preset) => (
           <Button

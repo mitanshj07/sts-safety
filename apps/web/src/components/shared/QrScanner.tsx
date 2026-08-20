@@ -1,20 +1,22 @@
 // apps/web/src/components/shared/QrScanner.tsx
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useId } from "react"
 import { Html5Qrcode } from "html5-qrcode"
+
+import { useLatestRef } from "@/hooks/useLatestRef"
 
 export function QrScanner({
   onDecode,
 }: {
   onDecode: (text: string) => void
 }) {
-  const hostId = useRef(`qr-${Math.random().toString(36).slice(2)}`)
-  const onDecodeRef = useRef(onDecode)
-  onDecodeRef.current = onDecode
+  const reactId = useId()
+  const hostId = `qr-${reactId.replace(/:/g, "")}`
+  const onDecodeRef = useLatestRef(onDecode)
 
   useEffect(() => {
-    const scanner = new Html5Qrcode(hostId.current)
+    const scanner = new Html5Qrcode(hostId)
     let stopped = false
     void scanner
       .start(
@@ -33,11 +35,11 @@ export function QrScanner({
       stopped = true
       void scanner.stop().catch(() => undefined)
     }
-  }, [])
+  }, [hostId, onDecodeRef])
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-black">
-      <div id={hostId.current} className="min-h-64 w-full" />
+    <div className="overflow-hidden border border-border bg-black">
+      <div id={hostId} className="min-h-64 w-full" />
     </div>
   )
 }

@@ -1,8 +1,6 @@
 // apps/web/src/app/(command)/tourists/[id]/page.tsx
 import { notFound } from "next/navigation"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { TrackReplay } from "@/components/map/TrackReplay"
-import { TouristLayer } from "@/components/map/TouristLayer"
+import { MapCanvas, TrackReplay, TouristLayer } from "@/components/map/lazy"
 import { ChainProofBadge } from "@/components/command/ChainProofBadge"
 import { ScoreSparkline } from "@/components/command/ScoreSparkline"
 import { TouristCard } from "@/components/command/TouristCard"
@@ -56,13 +54,13 @@ export default async function TouristDetailPage({ params }: PageProps) {
           digitalId={detail.digitalId}
           photoUrl={photoUrl}
         />
-        <div className="rounded-2xl border border-border bg-card/80 p-4">
+        <div className="border border-border bg-surface p-4">
           <p className="mb-2 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
             Safety score history
           </p>
           <ScoreSparkline data={spark} />
         </div>
-        <div className="relative h-[28rem] overflow-hidden rounded-2xl border border-border">
+        <div className="relative h-[28rem] overflow-hidden border border-border">
           <MapCanvas
             className="h-full"
             initialCenter={
@@ -83,22 +81,21 @@ export default async function TouristDetailPage({ params }: PageProps) {
         </div>
       </div>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-border bg-card/80 p-4">
-          <p className="mb-2 text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-            ID verification
+        <div className="border border-border bg-surface p-4">
+          <p className="sts-kicker">Identity state</p>
+          <p className="mt-2 text-xl font-semibold tracking-tight">
+            {detail.digitalId.status === "active" ? "Verified" : "Verification required"}
           </p>
+          <div className="mt-3">
           <ChainProofBadge
             kind="identity"
             tokenId={detail.digitalId.token_id}
             idStatus={detail.digitalId.status}
           />
+          </div>
           <dl className="mt-3 space-y-1 font-mono text-[11px] text-muted-foreground">
             <div>token {detail.digitalId.token_id ?? "—"}</div>
-            <div>commitment {detail.digitalId.kyc_commitment ?? "—"}</div>
-            <div>holder {detail.digitalId.holder_address ?? "—"}</div>
-            <div>
-              valid {detail.digitalId.valid_from ?? "—"} → {detail.digitalId.valid_until ?? "—"}
-            </div>
+            <div>valid {detail.digitalId.valid_from ?? "—"} → {detail.digitalId.valid_until ?? "—"}</div>
           </dl>
         </div>
       </div>

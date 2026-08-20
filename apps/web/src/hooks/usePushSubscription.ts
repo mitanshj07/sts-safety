@@ -69,7 +69,10 @@ export function usePushSubscription(enabled: boolean): {
 
   useEffect(() => {
     if (!enabled) return;
-    void subscribe();
+    const frame = window.requestAnimationFrame(() => {
+      void subscribe();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [enabled, subscribe]);
 
   return { state, subscribe };

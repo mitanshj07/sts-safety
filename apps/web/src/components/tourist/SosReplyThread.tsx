@@ -86,9 +86,7 @@ export function SosReplyThread({
       aria-label="Messages from control room"
       data-testid="sos-reply-thread"
     >
-      <p className="text-xs font-medium tracking-[0.2em] text-emerald-300/80 uppercase">
-        Control room
-      </p>
+      <p className="sts-kicker">Control room</p>
       {openSos ? (
         <p className="mt-1 text-sm text-muted-foreground">
           SOS is {openSos.status.replaceAll("_", " ")}. Officers can send text and voice notes here.
@@ -103,7 +101,7 @@ export function SosReplyThread({
           <IncidentMessageThread incidentId={openSos.id} senderKind="tourist" />
         </div>
       ) : notes.length === 0 ? (
-        <p className="mt-3 rounded-2xl border border-border/80 bg-card/70 p-4 text-sm text-muted-foreground">
+        <p className="mt-3 border border-border bg-surface px-4 py-4 text-sm text-muted-foreground">
           Waiting for a note from the control room…
         </p>
       ) : (
@@ -111,7 +109,7 @@ export function SosReplyThread({
           {notes.map((note) => (
             <li
               key={String(note.id)}
-              className="rounded-2xl border border-emerald-700/40 bg-emerald-950/30 p-4"
+              className="border border-success/25 bg-success/10 px-4 py-4"
             >
               <p className="text-sm font-medium">{note.title ?? "Control room"}</p>
               {note.body ? <p className="mt-1 text-sm text-pretty">{note.body}</p> : null}

@@ -28,7 +28,7 @@ export function DispatchPanel({
   )
 
   return (
-    <div className="rounded-2xl border border-border bg-card/80">
+    <div className="border border-border bg-surface">
       <div className="border-b border-border px-4 py-2">
         <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
           Nearest units · one-click dispatch

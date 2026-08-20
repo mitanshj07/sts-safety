@@ -15,13 +15,12 @@ export function AiBriefPanel({
   brief: string | null
   model: string | null
 }) {
-  const [value, setValue] = useState(brief)
   const [modelName, setModelName] = useState(model)
   const [pending, start] = useTransition()
-  const [optimisticBrief, apply] = useOptimistic(value)
+  const [optimisticBrief, apply] = useOptimistic(brief)
 
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4">
+    <div className="border border-border bg-surface p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div>
           <p className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">

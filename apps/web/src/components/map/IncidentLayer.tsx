@@ -1,7 +1,8 @@
 // apps/web/src/components/map/IncidentLayer.tsx
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import type { MapLayerMouseEvent } from "maplibre-gl";
 
@@ -58,12 +59,10 @@ export function IncidentLayer({
   onSelect,
 }: IncidentLayerProps) {
   const { map, isLoaded, styleEpoch } = useMap();
-  const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  const onSelectRef = useLatestRef(onSelect);
 
   const geojson = useMemo(() => buildCollection(incidents), [incidents]);
-  const geojsonRef = useRef(geojson);
-  geojsonRef.current = geojson;
+  const geojsonRef = useLatestRef(geojson);
 
   useEffect(() => {
     if (!map || !isLoaded || !mapHasStyle(map)) {
@@ -160,7 +159,7 @@ export function IncidentLayer({
       removeLayerIfPresent(map, HALO_LAYER_ID);
       removeSourceIfPresent(map, SOURCE_ID);
     };
-  }, [map, isLoaded, styleEpoch, selectedId]);
+  }, [map, isLoaded, styleEpoch, selectedId, geojsonRef, onSelectRef]);
 
   useEffect(() => {
     if (!map || !isLoaded) {

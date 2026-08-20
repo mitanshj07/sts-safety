@@ -295,7 +295,6 @@ export function extractFeatures(
 
   const speedMean = speeds.reduce((a, b) => a + b, 0) / speeds.length
   const itineraryCoords = itinerary?.coordinates ?? []
-  const corridorM = itinerary?.corridor_m ?? 2000
   let itineraryDistanceM = 0
   if (itineraryCoords.length > 0) {
     const dists = ordered.map((p) =>

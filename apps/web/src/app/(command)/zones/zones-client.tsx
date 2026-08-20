@@ -5,9 +5,7 @@ import { useMemo, useState, useTransition } from "react"
 import type { Feature, Polygon } from "geojson"
 import { toast } from "sonner"
 import { saveZone } from "@/app/(command)/actions"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { ZoneDrawEditor } from "@/components/map/ZoneDrawEditor"
-import { ZoneLayer } from "@/components/map/ZoneLayer"
+import { MapCanvas, ZoneDrawEditor, ZoneLayer } from "@/components/map/lazy"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -78,7 +76,7 @@ export function ZonesClient() {
 
   return (
     <main className="sts-enter grid h-full min-h-0 gap-4 p-4 xl:grid-cols-[1.4fr_22rem]">
-      <div className="relative min-h-[28rem] overflow-hidden rounded-2xl border border-border">
+      <div className="relative min-h-[28rem] overflow-hidden border border-border">
         <MapCanvas className="h-full">
           <ZoneLayer zones={toZoneInputs(snapshot.zones)} />
           <ZoneDrawEditor
@@ -87,7 +85,7 @@ export function ZonesClient() {
         </MapCanvas>
       </div>
       <form
-        className="space-y-3 rounded-2xl border border-border bg-card/80 p-4"
+        className="space-y-3 border border-border bg-surface p-4"
         onSubmit={(event) => {
           event.preventDefault()
           if (!geom) {

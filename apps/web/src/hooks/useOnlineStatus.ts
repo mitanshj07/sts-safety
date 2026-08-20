@@ -1,25 +1,25 @@
 // apps/web/src/hooks/useOnlineStatus.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribe(onStoreChange: () => void): () => void {
+  window.addEventListener("online", onStoreChange);
+  window.addEventListener("offline", onStoreChange);
+  return () => {
+    window.removeEventListener("online", onStoreChange);
+    window.removeEventListener("offline", onStoreChange);
+  };
+}
+
+function getSnapshot(): boolean {
+  return navigator.onLine;
+}
+
+function getServerSnapshot(): boolean {
+  return true;
+}
 
 export function useOnlineStatus(): boolean {
-  // Always start `true` so SSR and the first client paint match. Some runtimes
-  // expose `navigator.onLine === false` during prerender, which hydrates as
-  // "Offline" then flips to "Online".
-  const [online, setOnline] = useState(true);
-
-  useEffect(() => {
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    setOnline(navigator.onLine);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-
-  return online;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -3,15 +3,17 @@
 
 import { useEffect, useRef } from "react"
 import Link from "next/link"
-import { MapCanvas } from "@/components/map/MapCanvas"
-import { ZoneLayer } from "@/components/map/ZoneLayer"
-import { TouristLayer } from "@/components/map/TouristLayer"
-import { IncidentLayer } from "@/components/map/IncidentLayer"
+import {
+  IncidentLayer,
+  MapCanvas,
+  MapFlyTo,
+  TouristLayer,
+  ZoneLayer,
+} from "@/components/map/lazy"
 import { KpiStrip } from "@/components/command/KpiStrip"
 import { IncidentQueue } from "@/components/command/IncidentQueue"
 import { IncidentActions } from "@/components/command/IncidentActions"
 import { TouristSosLine } from "@/components/command/TouristSosLine"
-import { MapFlyTo } from "@/components/command/MapFlyTo"
 import { SeverityBadge, StatusBadge } from "@/components/command/SeverityBadge"
 import { ElapsedTimer } from "@/components/command/ElapsedTimer"
 import { useCommandRealtime } from "@/components/shared/RealtimeProvider"
@@ -58,7 +60,7 @@ export function DashboardLive() {
           <IncidentQueue />
         </div>
       </div>
-      <div className="h-48 border-t border-border md:hidden">
+      <div className="h-40 border-t border-border md:hidden">
         <IncidentQueue />
       </div>
       <Sheet
@@ -85,7 +87,7 @@ export function DashboardLive() {
                   <StatusBadge status={selected.status} />
                 </SheetTitle>
                 <SheetDescription>
-                  {selected.type.replaceAll("_", " ")} ·{" "}
+                  {(selected.type ?? "incident").replaceAll("_", " ")} ·{" "}
                   {selected.zone_name ?? selected.address_text ?? "unlocated"}
                 </SheetDescription>
               </SheetHeader>

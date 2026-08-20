@@ -3,29 +3,44 @@
 
 import { PanicButton } from "@/components/tourist/PanicButton";
 import { SosReplyThread } from "@/components/tourist/SosReplyThread";
+import { useTouristRuntime } from "@/components/tourist/TouristProvider";
+import { NetworkStatus } from "@/components/shared/NetworkStatus";
+import { formatCoord, formatIst } from "@/lib/ui/format";
 
 export default function SosPage() {
+  const { lastFix, online, queueDepth } = useTouristRuntime();
+
   return (
-    <main className="sts-enter relative mx-auto flex min-h-[70dvh] max-w-lg flex-col items-center justify-center gap-6 overflow-hidden px-4">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.45_0.18_25_/_0.28),transparent_60%)]"
-      />
-      <div className="relative z-10 space-y-2 text-center">
-        <p className="text-xs font-medium tracking-[0.28em] text-red-300/80 uppercase">
-          Emergency
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">SOS</h1>
-        <p className="mx-auto max-w-sm text-sm text-muted-foreground text-pretty">
-          Hold the button. An incident is written directly to Postgres (RLS). An optional
-          line under the button is delivered with the SOS. After it lands, you and the
-          control room can send voice notes (browser recorder → Supabase Storage — no paid API).
-        </p>
-      </div>
-      <div className="relative z-10">
+    <main className="sts-enter mx-auto flex min-h-[70dvh] max-w-lg flex-col px-4 py-8">
+      <p className="sts-kicker text-danger">Emergency</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight">SOS</h1>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground text-pretty">
+        Hold the control. This alerts the responder network and shares your current location.
+        An optional line and voice notes go to the control room after it lands.
+      </p>
+
+      <div className="mt-8 flex flex-1 flex-col items-center justify-center">
         <PanicButton />
       </div>
-      <div className="relative z-10 w-full max-w-sm">
+
+      <div className="mt-8 space-y-3 border-t border-border pt-5">
+        <NetworkStatus
+          online={online}
+          queueDepth={queueDepth}
+          lastSynced={lastFix ? formatIst(lastFix.recorded_at) : null}
+          compact
+        />
+        {lastFix ? (
+          <p className="sts-meta">Last fix {formatCoord(lastFix.lat, lastFix.lon)}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Location update paused until GPS is available. Last known coordinates will be used if
+            present.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-8 w-full">
         <SosReplyThread />
       </div>
     </main>

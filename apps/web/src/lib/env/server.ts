@@ -17,7 +17,8 @@ function isLocalDb(): boolean {
 
 export type AiMode = "groq" | "gemini" | "onnx-local" | "rules-only"
 
-function parseAiMode(value: string): AiMode {
+function parseAiMode(raw: string): AiMode {
+  const value = raw.split("#")[0]?.trim().replace(/^["']|["']$/g, "") ?? ""
   if (
     value === "groq" ||
     value === "gemini" ||
@@ -27,6 +28,15 @@ function parseAiMode(value: string): AiMode {
     return value
   }
   return "groq"
+}
+
+function effectiveAiMode(): AiMode {
+  const mode = parseAiMode(process.env.AI_MODE ?? "groq")
+  if (mode === "onnx-local" || mode === "rules-only") return mode
+  const hasGroq = Boolean(process.env.GROQ_API_KEY?.trim())
+  const hasGemini = Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim())
+  if (!hasGroq && !hasGemini) return "rules-only"
+  return mode
 }
 
 function parseLocales(raw: string): string[] {
@@ -49,7 +59,7 @@ function databaseUrl(): string {
 export const serverEnv = {
   dbMode: process.env.DB_MODE ?? "supabase-cloud",
   chainMode: process.env.CHAIN_MODE ?? "amoy",
-  aiMode: parseAiMode(process.env.AI_MODE ?? "groq"),
+  aiMode: effectiveAiMode(),
   supabaseUrl: isLocalDb()
     ? (process.env.LOCAL_SUPABASE_URL || LOCAL_SUPABASE_URL_DEFAULT)
     : (process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""),

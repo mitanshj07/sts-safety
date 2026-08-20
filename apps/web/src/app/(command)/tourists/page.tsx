@@ -3,7 +3,6 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Users } from "lucide-react"
 import { useCommandRealtime } from "@/components/shared/RealtimeProvider"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { PageHeader } from "@/components/shared/PageHeader"
@@ -49,8 +48,8 @@ export default function TouristsPage() {
       />
       {rows.length === 0 ? (
         <EmptyState
-          icon={Users}
-          title={query ? "No matches" : "No tourists in range"}
+          kicker={query ? "No matches" : "No tourists in view"}
+          title={query ? "No matches" : "No tourists in view"}
           description={
             query
               ? "Try a different name or nationality."
@@ -58,7 +57,7 @@ export default function TouristsPage() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border/80 bg-card/60">
+        <div className="overflow-hidden border border-border bg-surface">
           <Table>
             <TableHeader>
               <TableRow>

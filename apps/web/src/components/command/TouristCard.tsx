@@ -19,7 +19,7 @@ export function TouristCard({
   photoUrl?: string | null
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card/80 p-4">
+    <div className="border border-border bg-surface p-4">
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12">
           {photoUrl ? <AvatarImage src={photoUrl} alt={tourist.full_name} /> : null}

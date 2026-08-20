@@ -6,9 +6,13 @@ export function CommandClock() {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
-    setNow(new Date());
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
+    const tick = () => setNow(new Date());
+    const frame = window.requestAnimationFrame(tick);
+    const id = window.setInterval(tick, 1000);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(id);
+    };
   }, []);
 
   if (!now) {

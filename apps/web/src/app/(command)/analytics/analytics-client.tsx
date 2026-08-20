@@ -18,7 +18,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LiveIncident } from "@/lib/command/types"
 
-const COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#64748b", "#38bdf8"]
+const COLORS = [
+  "var(--severity-critical)",
+  "var(--severity-high)",
+  "var(--severity-medium)",
+  "var(--success)",
+  "var(--text-muted)",
+  "var(--info)",
+]
 
 export function AnalyticsClient({
   incidents,
@@ -93,14 +100,14 @@ export function AnalyticsClient({
           Zone pressure, response times, and incident mix for the last window.
         </p>
       </div>
-      <Card className="border-border/80 bg-card/80">
+      <Card className="border-border bg-surface">
         <CardHeader>
           <CardTitle>Incidents by zone</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={byZone}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-25} />
               <YAxis />
               <Tooltip />
@@ -110,14 +117,14 @@ export function AnalyticsClient({
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card className="border-border bg-surface">
         <CardHeader>
           <CardTitle>MTTA / MTTR trend</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={byDay}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="day" tick={{ fontSize: 10 }} />
               <YAxis />
               <Tooltip />
@@ -127,7 +134,7 @@ export function AnalyticsClient({
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card className="border-border bg-surface">
         <CardHeader>
           <CardTitle>Incident type distribution</CardTitle>
         </CardHeader>
@@ -144,7 +151,7 @@ export function AnalyticsClient({
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="border-border/80 bg-card/80">
+      <Card className="border-border bg-surface">
         <CardHeader>
           <CardTitle>Zone risk ranking</CardTitle>
         </CardHeader>

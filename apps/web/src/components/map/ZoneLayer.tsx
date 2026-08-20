@@ -7,6 +7,7 @@ import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson"
 
 import { useMap } from "@/components/map/MapCanvas";
 import { riskFillColor, ZONE_FILL_OPACITY } from "@/lib/geo/colors";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import {
   getGeoJsonSource,
   mapHasStyle,
@@ -149,8 +150,7 @@ export function ZoneLayer({ zones }: ZoneLayerProps) {
   const popupRef = useRef<Popup | null>(null);
 
   const geojson = useMemo(() => buildCollection(zones), [zones]);
-  const geojsonRef = useRef(geojson);
-  geojsonRef.current = geojson;
+  const geojsonRef = useLatestRef(geojson);
 
   useEffect(() => {
     if (!map || !isLoaded || !mapHasStyle(map)) {
@@ -222,7 +222,7 @@ export function ZoneLayer({ zones }: ZoneLayerProps) {
       removeLayerIfPresent(map, FILL_LAYER_ID);
       removeSourceIfPresent(map, SOURCE_ID);
     };
-  }, [map, isLoaded, styleEpoch]);
+  }, [map, isLoaded, styleEpoch, geojsonRef]);
 
   useEffect(() => {
     if (!map || !isLoaded) {

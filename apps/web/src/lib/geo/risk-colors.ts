@@ -11,11 +11,19 @@ export const RISK_FILL: Record<RiskLevel, string> = {
 };
 
 export const RISK_BANNER: Record<RiskLevel, string> = {
-  none: "bg-slate-700/80 text-slate-50",
-  low: "bg-emerald-700/90 text-emerald-50",
-  medium: "bg-amber-600/90 text-amber-50",
-  high: "bg-orange-600/90 text-orange-50",
-  critical: "bg-red-700/90 text-red-50",
+  none: "border-border bg-surface text-foreground",
+  low: "border-success/25 bg-success/10 text-foreground",
+  medium: "border-warning/30 bg-warning/10 text-foreground",
+  high: "border-severity-high/35 bg-severity-high/10 text-foreground",
+  critical: "border-danger/35 bg-danger/10 text-foreground",
+};
+
+export const RISK_LABEL: Record<RiskLevel, string> = {
+  none: "Clear",
+  low: "Safe zone",
+  medium: "Caution zone",
+  high: "High-risk zone",
+  critical: "Restricted zone",
 };
 
 export function isRiskLevel(value: string): value is RiskLevel {
