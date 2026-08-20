@@ -1,4 +1,4 @@
-// apps/web/src/middleware.ts
+// apps/web/src/proxy.ts
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -63,7 +63,7 @@ async function readRole(
   return parseUserRole(data?.role) ?? fromJwt ?? "tourist";
 }
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/api/")) {

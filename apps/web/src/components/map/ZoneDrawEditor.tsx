@@ -13,6 +13,7 @@ import { Circle, Pentagon, Trash2 } from "lucide-react";
 
 import { useMap } from "@/components/map/MapCanvas";
 import { Button } from "@/components/ui/button";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import { mapHasStyle } from "@/lib/geo/map-runtime";
 import { polygonGeometrySchema } from "@/lib/geo/schemas";
 
@@ -31,8 +32,7 @@ export function ZoneDrawEditor({
 }: ZoneDrawEditorProps) {
   const { map, isLoaded, styleEpoch } = useMap();
   const drawRef = useRef<TerraDraw | null>(null);
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  const onCompleteRef = useLatestRef(onComplete);
   const [mode, setMode] = useState<DrawTool>(initialMode);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export function ZoneDrawEditor({
       }
       drawRef.current = null;
     };
-  }, [enabled, map, isLoaded, styleEpoch, initialMode]);
+  }, [enabled, map, isLoaded, styleEpoch, initialMode, onCompleteRef]);
 
   useEffect(() => {
     drawRef.current?.setMode(mode);

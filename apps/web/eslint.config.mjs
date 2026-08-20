@@ -10,6 +10,14 @@ const eslintConfig = defineConfig([
   {
     files: ["src/**/*.{ts,tsx,js,mjs}"],
     rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "no-restricted-syntax": [
         "error",
         {

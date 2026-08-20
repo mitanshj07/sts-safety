@@ -624,7 +624,7 @@ export async function issueTouristIdentity(
       kyc_type: request.kycType,
       kyc_number_enc: ciphertext,
       kyc_last4: last4,
-      kyc_salt: hexToByteaLiteral(saltForInsert(normalised, request.kycType)),
+        kyc_salt: hexToByteaLiteral(saltForInsert()),
       phone_e164: request.phone ?? null,
       email: request.email ?? null,
       emergency_contacts: request.emergencyContacts ?? [],
@@ -652,6 +652,6 @@ export async function issueTouristIdentity(
   return submitOnChain(bundle);
 }
 
-function saltForInsert(_normalised: string, _kycType: string): Hex {
+function saltForInsert(): Hex {
   return bytesToHex(randomBytes(32));
 }

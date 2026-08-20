@@ -15,10 +15,9 @@ export function AiBriefPanel({
   brief: string | null
   model: string | null
 }) {
-  const [value, setValue] = useState(brief)
   const [modelName, setModelName] = useState(model)
   const [pending, start] = useTransition()
-  const [optimisticBrief, apply] = useOptimistic(value)
+  const [optimisticBrief, apply] = useOptimistic(brief)
 
   return (
     <div className="border border-border bg-surface p-4">

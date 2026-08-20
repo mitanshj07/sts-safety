@@ -18,7 +18,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LiveIncident } from "@/lib/command/types"
 
-const COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#64748b", "#38bdf8"]
+const COLORS = [
+  "var(--severity-critical)",
+  "var(--severity-high)",
+  "var(--severity-medium)",
+  "var(--success)",
+  "var(--text-muted)",
+  "var(--info)",
+]
 
 export function AnalyticsClient({
   incidents,

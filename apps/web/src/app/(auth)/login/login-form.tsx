@@ -47,7 +47,7 @@ export function LoginForm({
 
   function finish(redirectTo: string) {
     // Full navigation avoids the auth error boundary: router.push + refresh
-    // re-renders /login while middleware redirects an authenticated session.
+    // re-renders /login while the request proxy redirects an authenticated session.
     window.location.assign(safeNextPath() ?? redirectTo);
   }
 
@@ -112,7 +112,7 @@ export function LoginForm({
     runAuth(async () => {
       const supabase = requireSupabase();
       if (!supabase) return;
-      const { data, error: anonError } = await supabase.auth.signInAnonymously({
+      const { error: anonError } = await supabase.auth.signInAnonymously({
         options: {
           data: {
             display_name: DEMO_TOURIST_DISPLAY_NAME,

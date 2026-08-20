@@ -113,11 +113,16 @@ export function RealtimeProvider({
   }, [])
 
   useEffect(() => {
-    void refresh()
+    const frame = window.requestAnimationFrame(() => {
+      void refresh()
+    })
     const supabase = getBrowserSupabase()
     if (!supabase) {
       startPolling()
-      return () => stopPolling()
+      return () => {
+        window.cancelAnimationFrame(frame)
+        stopPolling()
+      }
     }
 
     const channel: RealtimeChannel = supabase.channel("command-centre", {
@@ -191,6 +196,7 @@ export function RealtimeProvider({
     }, 3000)
 
     return () => {
+      window.cancelAnimationFrame(frame)
       window.clearTimeout(watchdog)
       stopPolling()
       void supabase.removeChannel(channel)

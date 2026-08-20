@@ -1,7 +1,7 @@
 // apps/web/src/components/tourist/DigitalIdCard.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { KYC_TYPE_LABELS, type KycType } from "@sts/shared";
 import { publicEnv } from "@/lib/config/public";
@@ -36,12 +36,15 @@ function identityLabel(status: CachedDigitalId["status"]): { kicker: string; det
 
 export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
   const [qr, setQr] = useState<string | null>(null);
-  const payload: QrPayload = {
-    chainId: id.chain_id || publicEnv.chainId,
-    contract: id.contract_address || publicEnv.touristIdRegistry,
-    tokenId: id.token_id,
-    vcPath: id.vc_path,
-  };
+  const payload: QrPayload = useMemo(
+    () => ({
+      chainId: id.chain_id || publicEnv.chainId,
+      contract: id.contract_address || publicEnv.touristIdRegistry,
+      tokenId: id.token_id,
+      vcPath: id.vc_path,
+    }),
+    [id.chain_id, id.contract_address, id.token_id, id.vc_path],
+  );
 
   useEffect(() => {
     void QRCode.toDataURL(JSON.stringify(payload), {
@@ -49,7 +52,7 @@ export function DigitalIdCard({ id }: { id: CachedDigitalId }) {
       width: 220,
       color: { dark: "#1A3A2A", light: "#F7F3EA" },
     }).then(setQr);
-  }, [payload.chainId, payload.contract, payload.tokenId, payload.vcPath]);
+  }, [payload]);
 
   const explorer =
     id.issue_tx_hash && id.issue_tx_hash !== "0x0"

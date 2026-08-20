@@ -7,6 +7,7 @@ import { Pause, Play } from "lucide-react";
 
 import { useMap } from "@/components/map/MapCanvas";
 import { Button } from "@/components/ui/button";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import {
   getGeoJsonSource,
   mapHasStyle,
@@ -98,8 +99,7 @@ export function TrackReplay({
   onTimeChange,
 }: TrackReplayProps) {
   const { map, isLoaded, styleEpoch } = useMap();
-  const onTimeChangeRef = useRef(onTimeChange);
-  onTimeChangeRef.current = onTimeChange;
+  const onTimeChangeRef = useLatestRef(onTimeChange);
 
   const parsed = useMemo(
     () => trackInputSchema.safeParse({ coordinates, times }),
@@ -134,7 +134,7 @@ export function TrackReplay({
 
   useEffect(() => {
     onTimeChangeRef.current?.(cursor.index, cursor.coord);
-  }, [cursor]);
+  }, [cursor, onTimeChangeRef]);
 
   useEffect(() => {
     if (!playing || track.coords.length < 2) {
@@ -230,12 +230,12 @@ export function TrackReplay({
     return null;
   }
 
-  const start = track.epochs[0] ?? Date.now();
+  const start = track.epochs[0] ?? 0;
   const end = track.epochs[track.epochs.length - 1] ?? start;
   const at = start + (end - start) * fraction;
 
   return (
-    <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-20 flex items-center gap-3 rounded-lg border border-border bg-card/90 px-3 py-2 shadow-lg backdrop-blur">
+    <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-20 flex items-center gap-3 border border-border bg-surface/95 px-3 py-2 shadow-sm">
       <Button
         type="button"
         size="icon-sm"
@@ -257,7 +257,7 @@ export function TrackReplay({
         max={1000}
         value={Math.round(fraction * 1000)}
         aria-label="Track time"
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-muted accent-sky-400"
+        className="h-1.5 w-full cursor-pointer appearance-none bg-muted accent-[var(--brand)]"
         onChange={(event) => {
           const next = Number(event.target.value) / 1000;
           fractionRef.current = next;

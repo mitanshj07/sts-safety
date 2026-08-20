@@ -19,7 +19,7 @@ export const RISK_BANNER: Record<RiskLevel, string> = {
 };
 
 export const RISK_LABEL: Record<RiskLevel, string> = {
-  none: "Open corridor",
+  none: "Clear",
   low: "Safe zone",
   medium: "Caution zone",
   high: "High-risk zone",

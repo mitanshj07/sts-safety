@@ -1,6 +1,6 @@
 // apps/web/src/lib/supabase/config.ts
 // Public Supabase URL/anon-key resolution. Safe to import from client, server,
-// and middleware. Never reads the service-role key.
+// and the request proxy. Never reads the service-role key.
 
 import { z } from "zod";
 

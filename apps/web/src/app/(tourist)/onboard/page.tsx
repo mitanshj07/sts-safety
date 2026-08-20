@@ -509,7 +509,7 @@ export default function OnboardPage() {
                   aria-pressed={residency === "indian"}
                   onClick={() => setResidency("indian")}
                   className={cn(
-                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    "border px-3 py-3 text-left transition-colors",
                     residency === "indian"
                       ? "border-primary bg-primary/10"
                       : "border-border/80 bg-background hover:border-primary/40",
@@ -526,7 +526,7 @@ export default function OnboardPage() {
                   aria-pressed={residency === "international"}
                   onClick={() => setResidency("international")}
                   className={cn(
-                    "rounded-xl border px-3 py-3 text-left transition-colors",
+                    "border px-3 py-3 text-left transition-colors",
                     residency === "international"
                       ? "border-primary bg-primary/10"
                       : "border-border/80 bg-background hover:border-primary/40",

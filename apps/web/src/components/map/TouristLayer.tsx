@@ -1,7 +1,8 @@
 // apps/web/src/components/map/TouristLayer.tsx
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import type { Feature, FeatureCollection, Point } from "geojson";
 
 import { useMap } from "@/components/map/MapCanvas";
@@ -55,8 +56,7 @@ export function TouristLayer({ tourists }: TouristLayerProps) {
   const { map, isLoaded, styleEpoch } = useMap();
   const geojson = useMemo(() => buildCollection(tourists), [tourists]);
   const cluster = geojson.features.length > CLUSTER_THRESHOLD;
-  const geojsonRef = useRef(geojson);
-  geojsonRef.current = geojson;
+  const geojsonRef = useLatestRef(geojson);
 
   useEffect(() => {
     if (!map || !isLoaded || !mapHasStyle(map)) {
@@ -183,7 +183,7 @@ export function TouristLayer({ tourists }: TouristLayerProps) {
       removeLayerIfPresent(map, CLUSTER_LAYER_ID);
       removeSourceIfPresent(map, SOURCE_ID);
     };
-  }, [map, isLoaded, styleEpoch, cluster]);
+  }, [map, isLoaded, styleEpoch, cluster, geojsonRef]);
 
   useEffect(() => {
     if (!map || !isLoaded) {

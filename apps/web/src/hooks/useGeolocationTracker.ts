@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLatestRef } from "@/hooks/useLatestRef";
 import {
   ACCURACY_GRACE_MS,
   ACCURACY_MAX_M,
@@ -72,8 +73,7 @@ export function useGeolocationTracker(opts: {
   const lastSentAtRef = useRef(0);
   const pendingLowRef = useRef<{ fix: GeoFix; firstSeen: number } | null>(null);
   const sosUntilRef = useRef(0);
-  const touristIdRef = useRef(touristId);
-  touristIdRef.current = touristId;
+  const touristIdRef = useLatestRef(touristId);
 
   const refreshQueue = useCallback(async () => {
     setQueueDepth(await queuedPingCount());
@@ -91,7 +91,7 @@ export function useGeolocationTracker(opts: {
       await persistPing(id, fix, "phone");
       await refreshQueue();
     },
-    [refreshQueue],
+    [refreshQueue, touristIdRef],
   );
 
   useEffect(() => {
@@ -124,12 +124,14 @@ export function useGeolocationTracker(opts: {
       return;
     }
     if (!("geolocation" in navigator)) {
-      setStatus("error");
-      return;
+      const frame = window.requestAnimationFrame(() => setStatus("error"));
+      return () => window.cancelAnimationFrame(frame);
     }
 
     let cancelled = false;
-    setStatus("prompt");
+    const promptFrame = window.requestAnimationFrame(() => {
+      if (!cancelled) setStatus("prompt");
+    });
 
     const onSuccess = (pos: GeolocationPosition) => {
       if (cancelled) return;
@@ -173,6 +175,7 @@ export function useGeolocationTracker(opts: {
 
     return () => {
       cancelled = true;
+      window.cancelAnimationFrame(promptFrame);
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
@@ -181,7 +184,10 @@ export function useGeolocationTracker(opts: {
   }, [enabled, acceptFix]);
 
   useEffect(() => {
-    void refreshQueue();
+    const frame = window.requestAnimationFrame(() => {
+      void refreshQueue();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [refreshQueue]);
 
   return { status, lastFix, queueDepth, batteryPct };

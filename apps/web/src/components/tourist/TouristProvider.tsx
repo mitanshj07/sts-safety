@@ -79,7 +79,10 @@ export function TouristProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refreshSession();
+    const frame = window.requestAnimationFrame(() => {
+      void refreshSession();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [refreshSession, online]);
 
   const patchSession = useCallback(async (patch: Partial<TouristSession>) => {
